@@ -1,13 +1,9 @@
 <?php
 $title = 'Users Management - CEMOMS';
 $pageTitle = 'Users Management';
-$pageSubtitle = 'Manage personnel and foreman accounts';
 
 ob_start();
 ?>
-<div class="content-header">
-    <h1 class="content-title">Users Management</h1>
-</div>
 
 <div class="section-header">
     <h2 class="section-title">Users List</h2>
@@ -33,8 +29,11 @@ ob_start();
                 <label for="role">Role</label>
                 <select id="role" name="role" required>
                     <option value="">Select Role</option>
-                    <option value="personnel">Personnel</option>
-                    <option value="foreman">Foreman</option>
+                    <?php foreach ($roles as $role): ?>
+                        <option value="<?= htmlspecialchars($role['id']) ?>">
+                            <?= htmlspecialchars($role['role_name']) ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
             <div class="form-group">
@@ -109,37 +108,4 @@ ob_start();
 <?php
 $content = ob_get_clean();
 
-$additionalScripts = '
-<style>
-    .btn-secondary {
-        background: #6c757d;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        text-decoration: none;
-    }
-    
-    .btn-secondary:hover {
-        background: #5a6268;
-    }
-</style>
-
-<script>
-    function showAddForm() {
-        document.getElementById("add-user-form").style.display = "block";
-    }
-    
-    function hideAddForm() {
-        document.getElementById("add-user-form").style.display = "none";
-    }
-</script>
-';
-
-require base_path('views/admin/layout.php');
+require base_path('views/layout.php');

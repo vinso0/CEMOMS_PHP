@@ -1,32 +1,35 @@
 <?php
 
-use Models\User;
+use models\User;
 
 adminAuth();
 
-$userModel = new User();
-
 $username = $_POST['username'] ?? '';
-$email = $_POST['email'] ?? '';
+$email    = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
-$role_id = $_POST['role'] ?? '';
+$roleId   = $_POST['role'] ?? '';
 
 $errors = [];
 
-if (!$username) $errors[] = 'Username is required.';
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Valid email is required.';
-if (!$password) $errors[] = 'Password is required.';
-if (!in_array($role_id, [2, 3])) $errors[] = 'Invalid role selected.';
+if (!$username) {
+    $errors[] = 'Username is required.';
+}
 
-if (empty($errors)) {
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $errors[] = 'Valid email is required.';
+}
 
-    $userModel->create([
-        ':username' => $username,
-        ':email' => $email,
-        ':password' => $hashedPassword,
-        ':role_id' => $role_id
-    ]);
+if (!$password) {
+    $errors[] = 'Password is required.';
+}
+
+if (!$roleId) {
+    $errors[] = 'Role is required.';
+}
+
+if (count($errors) === 0) {
+    $userModel = new User();
+    $userModel->create($username, $email, $password, $roleId);
 
     header('Location: /admin/users');
     exit();
@@ -34,5 +37,5 @@ if (empty($errors)) {
 
 view('admin/users/create.view.php', [
     'errors' => $errors,
-    'old' => $_POST,
+    'old'    => $_POST,
 ]);

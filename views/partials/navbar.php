@@ -1,13 +1,12 @@
 <!-- Top Navbar -->
-<link rel="stylesheet" href="/assets/css/admin-styles.css">
+<link rel="stylesheet" href="/assets/css/layout.css">
 <nav class="top-navbar">
     <div class="breadcrumb">
         <button class="mobile-menu-toggle" onclick="toggleSidebar()" style="display: none;">
             <i class="fas fa-bars"></i>
         </button>
         <div>
-            <h1 class="page-title"><?= $pageTitle ?? 'Dashboard' ?></h1>
-            <p class="page-subtitle"><?= $pageSubtitle ?? 'System overview' ?></p>
+            <h1 class="page-title"><?= $pageTitle ?? 'Admin Page' ?></h1>
         </div>
     </div>
     <div class="user-profile">

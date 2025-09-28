@@ -1,5 +1,5 @@
 <!-- Sidebar -->
-<link rel="stylesheet" href="/admin-styles.css">
+<link rel="stylesheet" href="/assets/css/layout.css">
 <aside class="sidebar">
     <div class="sidebar-header">
         <div class="sidebar-logo">

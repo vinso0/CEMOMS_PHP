@@ -1,7 +1,5 @@
 <?php
 $title = 'Edit User - CEMOMS';
-$pageTitle = 'Edit User';
-$pageSubtitle = 'Update user information';
 
 ob_start();
 ?>
@@ -41,8 +39,12 @@ ob_start();
             <div class="form-group">
                 <label for="role">Role</label>
                 <select id="role" name="role" required>
-                    <option value="personnel" <?= $user['role'] === 'personnel' ? 'selected' : '' ?>>Personnel</option>
-                    <option value="foreman" <?= $user['role'] === 'foreman' ? 'selected' : '' ?>>Foreman</option>
+                    <option value="">Select Role</option>
+                    <?php foreach ($roles as $role): ?>
+                        <option value="<?= htmlspecialchars($role['id']) ?>">
+                            <?= htmlspecialchars($role['role_name']) ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
         </div>
@@ -61,27 +63,4 @@ ob_start();
 <?php
 $content = ob_get_clean();
 
-$additionalScripts = '
-<style>
-    .btn-secondary {
-        background: #6c757d;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        text-decoration: none;
-    }
-    
-    .btn-secondary:hover {
-        background: #5a6268;
-    }
-</style>
-';
-
-require base_path('views/admin/layout.php');
+require base_path('views/layout.php');

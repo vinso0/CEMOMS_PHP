@@ -1,6 +1,7 @@
 <?php
 
-use Models\User;
+use models\User;
+use models\Roles;
 
 adminAuth();
 
@@ -12,7 +13,9 @@ if (!$id) {
 }
 
 $userModel = new User();
-$user = $userModel->findById($id, ['personnel', 'foreman']);
+$roleModel = new Roles();
+$user = $userModel->findById($id, ['foreman']);
+$roles = $roleModel->getRoles(['admin']);
 
 if (!$user) {
     header('Location: /admin/users');
@@ -21,4 +24,5 @@ if (!$user) {
 
 view('admin/users/users.edit.view.php', [
     'user' => $user,
+    'roles' => $roles
 ]);

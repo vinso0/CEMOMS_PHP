@@ -1,6 +1,6 @@
 <?php
 
-use Models\User;
+use models\User;
 
 adminAuth();
 
