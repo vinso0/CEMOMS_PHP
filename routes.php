@@ -1,7 +1,7 @@
 <?php
 
 $router->get('/', function() {
-    header('Location: /admin/login');
+    header('Location: /login');
     exit;
 });
 
@@ -11,10 +11,10 @@ $router->get('/admin-styles.css', function() {
     exit;
 });
 
-// Admin Authentication
-$router->get('/admin/login', 'controllers/admin/login.php');
-$router->post('/admin/login', 'controllers/admin/login.php');
-$router->get('/admin/logout', 'controllers/admin/logout.php');
+// Login Authentication
+$router->get('/login', 'controllers/login.php');
+$router->post('/login', 'controllers/login.php');
+$router->get('/logout', 'controllers/logout.php');
 
 // Admin Dashboard & User Management
 $router->get('/admin', 'controllers/admin/dashboard.php');

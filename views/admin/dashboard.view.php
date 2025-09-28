@@ -3,15 +3,11 @@ $title = 'Admin Dashboard - CEMOMS';
 $pageTitle = 'Dashboard';
 $pageSubtitle = 'Overview of system activities';
 
-require base_path('views/admin/partials/navbar.php');
-require base_path('views/admin/partials/sidebar.php');
-
 ob_start();
 ?>
-
 <div class="content-header">
-    <h1 class="content-title">Dashboard Overview</h1>
-    <p class="content-subtitle">Monitor and manage your CEMOMS system</p>
+    <h1 class="content-title">Dashboard</h1>
+    <h2 class="content-subtitle">Garbage Collection</h2>
 </div>
 
 <!-- Quick Stats Grid -->
@@ -21,8 +17,8 @@ ob_start();
             <i class="fas fa-users"></i>
         </div>
         <div class="stat-info">
-            <h3>Total Users</h3>
-            <span class="stat-number">24</span>
+            <h3></h3>
+            <span class="stat-number">0</span>
         </div>
     </div>
     <div class="stat-card">
@@ -30,8 +26,8 @@ ob_start();
             <i class="fas fa-chart-line"></i>
         </div>
         <div class="stat-info">
-            <h3>Active Projects</h3>
-            <span class="stat-number">12</span>
+            <h3></h3>
+            <span class="stat-number">0</span>
         </div>
     </div>
     <div class="stat-card">
@@ -39,8 +35,8 @@ ob_start();
             <i class="fas fa-tasks"></i>
         </div>
         <div class="stat-info">
-            <h3>Pending Tasks</h3>
-            <span class="stat-number">8</span>
+            <h3></h3>
+            <span class="stat-number">0</span>
         </div>
     </div>
     <div class="stat-card">
@@ -48,8 +44,8 @@ ob_start();
             <i class="fas fa-clipboard-check"></i>
         </div>
         <div class="stat-info">
-            <h3>Completed</h3>
-            <span class="stat-number">156</span>
+            <h3></h3>
+            <span class="stat-number">0</span>
         </div>
     </div>
 </div>
@@ -171,3 +167,4 @@ $additionalScripts = '
     }
 </style>
 ';
+require base_path('views/admin/layout.php');

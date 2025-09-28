@@ -1,14 +1,12 @@
 <?php
 
-use Core\App;
-use Core\Database;
+use Models\User;
 
 adminAuth();
 
-$db = App::resolve(Database::class);
+$userModel = new User();
+$users = $userModel->findAll(['admin']);
 
-$users = $db->query("SELECT id, username, email, role FROM users WHERE role IN ('personnel', 'foreman')")->get();
-
-view('admin/users/index.view.php', [
+view('admin/users/users.index.view.php', [
     'users' => $users,
 ]);

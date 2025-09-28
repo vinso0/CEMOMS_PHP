@@ -1,43 +1,31 @@
 <?php
 
-use Core\App;
-use Core\Database;
+use Models\User;
 
 adminAuth();
 
-$db = App::resolve(Database::class);
+$userModel = new User();
 
 $username = $_POST['username'] ?? '';
 $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
-$role = $_POST['role'] ?? '';
+$role_id = $_POST['role'] ?? '';
 
 $errors = [];
 
-if (!$username) {
-    $errors[] = 'Username is required.';
-}
+if (!$username) $errors[] = 'Username is required.';
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Valid email is required.';
+if (!$password) $errors[] = 'Password is required.';
+if (!in_array($role_id, [2, 3])) $errors[] = 'Invalid role selected.';
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $errors[] = 'Valid email is required.';
-}
-
-if (!$password) {
-    $errors[] = 'Password is required.';
-}
-
-if (!in_array($role, ['personnel', 'foreman'])) {
-    $errors[] = 'Invalid role selected.';
-}
-
-if (count($errors) === 0) {
+if (empty($errors)) {
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    $db->query("INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, :role)", [
+    $userModel->create([
         ':username' => $username,
         ':email' => $email,
         ':password' => $hashedPassword,
-        ':role' => $role,
+        ':role_id' => $role_id
     ]);
 
     header('Location: /admin/users');

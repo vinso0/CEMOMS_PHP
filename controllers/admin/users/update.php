@@ -1,16 +1,13 @@
 <?php
 
-use Core\App;
-use Core\Database;
+use Models\User;
 
 adminAuth();
 
-$db = App::resolve(Database::class);
-
-$id = $_POST['id'] ?? null;
+$id       = $_POST['id'] ?? null;
 $username = $_POST['username'] ?? '';
-$email = $_POST['email'] ?? '';
-$role = $_POST['role'] ?? '';
+$email    = $_POST['email'] ?? '';
+$roleId   = $_POST['role'] ?? ''; // now stores role_id
 
 $errors = [];
 
@@ -26,30 +23,26 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $errors[] = 'Valid email is required.';
 }
 
-if (!in_array($role, ['personnel', 'foreman'])) {
-    $errors[] = 'Invalid role selected.';
+if (!$roleId) {
+    $errors[] = 'Role is required.';
 }
 
 if (count($errors) === 0) {
-    $db->query("UPDATE users SET username = :username, email = :email, role = :role WHERE id = :id AND role IN ('personnel', 'foreman')", [
-        ':username' => $username,
-        ':email' => $email,
-        ':role' => $role,
-        ':id' => $id,
-    ]);
+    $userModel = new User();
+    $userModel->update($id, $username, $email, $roleId);
 
     header('Location: /admin/users');
     exit();
 }
 
 $user = [
-    'id' => $id,
+    'id'       => $id,
     'username' => $username,
-    'email' => $email,
-    'role' => $role,
+    'email'    => $email,
+    'role_id'  => $roleId,
 ];
 
-view('admin/users/edit.view.php', [
+view('admin/users/users.edit.view.php', [
     'errors' => $errors,
-    'user' => $user,
+    'user'   => $user,
 ]);

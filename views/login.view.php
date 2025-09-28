@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - CEMOMS</title>
-    <link rel="stylesheet" href="/admin-styles.css">
+    <title>Login - CEMOMS</title>
+    <link rel="stylesheet" href="/assets/css/admin-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="login-container">
         <div class="login-card fade-in">
             <div class="login-header">
-                <h1 class="login-title">Login</h1>
-                <p class="login-subtitle">Enter your account details.</p>
+                <h1 class="login-title">CEMOMS Admin</h1>
+                <p class="login-subtitle">Construction Equipment Management & Operations System</p>
                 <div class="logo-circle">
-                    <i class="fas fa-leaf" style="color: #4CAF50; font-size: 20px;"></i>
+                   <img src="/assets/images/CEMD-Logo.png" alt="CEMOMS Logo" class="logo-image">
                 </div>
             </div>
             
-            <form class="login-form" method="POST" action="/admin/login">
+            <form class="login-form" method="POST" action="/login">
                 <?php if (!empty($error)) : ?>
                     <div class="error-message">
                         <i class="fas fa-exclamation-circle"></i>
@@ -27,14 +27,15 @@
                 <?php endif; ?>
                 
                 <div class="form-group">
-                    <label for="username" class="form-label">Email</label>
+                    <label for="username" class="form-label">Username or Email</label>
                     <input type="text" 
                            id="username" 
                            name="username" 
                            class="form-input" 
-                           placeholder="Enter your email or username"
+                           placeholder="Enter your username or email"
                            value="<?= htmlspecialchars($_POST['username'] ?? '') ?>"
-                           required>
+                           required
+                           autocomplete="username">
                 </div>
                 
                 <div class="form-group">
@@ -45,7 +46,8 @@
                                name="password" 
                                class="form-input" 
                                placeholder="Enter your password"
-                               required>
+                               required
+                               autocomplete="current-password">
                         <button type="button" class="password-toggle" onclick="togglePassword()">
                             <i class="fas fa-eye" id="password-icon"></i>
                         </button>
@@ -56,11 +58,10 @@
                     <label class="remember-me">
                         <input type="checkbox" name="remember"> Remember me
                     </label>
-                    <a href="#" class="forgot-password">Forgot Password?</a>
                 </div>
                 
                 <button type="submit" class="login-button">
-                    LOG IN
+                    <i class="fas fa-sign-in-alt"></i> LOG IN
                 </button>
             </form>
         </div>
@@ -81,13 +82,6 @@
                 passwordIcon.classList.add('fa-eye');
             }
         }
-
-        // Add loading state to form submission
-        document.querySelector('.login-form').addEventListener('submit', function() {
-            const button = document.querySelector('.login-button');
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
-            button.disabled = true;
-        });
     </script>
 </body>
 </html>

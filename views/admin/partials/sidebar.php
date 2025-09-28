@@ -1,8 +1,9 @@
 <!-- Sidebar -->
+<link rel="stylesheet" href="/admin-styles.css">
 <aside class="sidebar">
     <div class="sidebar-header">
         <div class="sidebar-logo">
-            <i class="fas fa-leaf"></i>
+            <img src="/assets/images/CEMD-Logo.png" alt="CEMOMS Logo" class="logo-image">
         </div>
         <span class="sidebar-title">CEMOMS</span>
     </div>
@@ -10,39 +11,40 @@
     <nav class="sidebar-nav">
         <div class="nav-item">
             <a href="/admin" class="nav-link <?= urlIs('/admin') ? 'active' : '' ?>">
-                <i class="fas fa-th-large nav-icon"></i>
+                <img src="/assets/images/dashboard.png" alt="Dashboard Icon" class="nav-icon">
                 Dashboard
             </a>
         </div>
         <div class="nav-item">
             <a href="/admin/reports" class="nav-link <?= urlIs('/admin/reports') ? 'active' : '' ?>">
-                <i class="fas fa-chart-bar nav-icon"></i>
+                <img src="/assets/images/reports.png" alt="Reports Icon" class="nav-icon">
                 Reports
             </a>
         </div>
         <div class="nav-item">
             <a href="/admin/operations" class="nav-link <?= urlIs('/admin/operations') ? 'active' : '' ?>">
-                <i class="fas fa-cogs nav-icon"></i>
+                <img src="/assets/images/operations.png" alt="Operations Icon" class="nav-icon">
                 Operations Management
             </a>
         </div>
         <div class="nav-item">
             <a href="/admin/users" class="nav-link <?= (urlIs('/admin/users') || urlIs('/admin/users/edit')) ? 'active' : '' ?>">
-                <i class="fas fa-users nav-icon"></i>
+                <img src="/assets/images/users.png" alt="Users Icon" class="nav-icon">
                 Users Management
             </a>
         </div>
         <div class="nav-item">
             <a href="/admin/settings" class="nav-link <?= urlIs('/admin/settings') ? 'active' : '' ?>">
-                <i class="fas fa-cog nav-icon"></i>
+                <img src="/assets/images/setting.png" alt="Settings Icon" class="nav-icon">
                 Settings
             </a>
         </div>
     </nav>
     
     <div class="logout-section">
-        <a href="/admin/logout" class="logout-link">
-            <i class="fas fa-sign-out-alt nav-icon"></i>
+        
+        <a href="/logout" class="logout-link">
+            <img src="/assets/images/logout.png" alt="Logout Icon" class="logout-icon">
             Logout
         </a>
     </div>

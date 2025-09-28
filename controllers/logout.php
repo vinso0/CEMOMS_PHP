@@ -3,5 +3,5 @@
 session_start();
 session_destroy();
 
-header('Location: /admin/login');
+header('Location: /login');
 exit();

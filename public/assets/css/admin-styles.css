@@ -17,7 +17,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #5ee4e4 0%, #22792f 100%);
     padding: 20px;
 }
 
@@ -39,21 +39,6 @@ body {
     position: relative;
 }
 
-.login-header::before {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 60px;
-    background: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .logo-circle {
     position: absolute;
     bottom: -30px;
@@ -70,8 +55,8 @@ body {
 }
 
 .logo-circle img {
-    width: 35px;
-    height: 35px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
 }
 
@@ -215,16 +200,10 @@ body {
     gap: 12px;
 }
 
-.sidebar-logo {
-    width: 40px;
-    height: 40px;
-    background: #4CAF50;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
+.sidebar-logo img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain; /* keeps proportions */
 }
 
 .sidebar-title {
@@ -274,6 +253,11 @@ body {
     bottom: 20px;
     left: 15px;
     right: 15px;
+}
+
+.logout-icon {
+    width: 25px;
+    height: 25px;
 }
 
 .logout-link {
@@ -340,16 +324,17 @@ body {
     gap: 10px;
 }
 
-.user-avatar {
-    width: 40px;
-    height: 40px;
+.admin-avatar {
+    position: relative;
+    cursor: pointer;
+}
+
+.avatar-image {
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
-    background: #4CAF50;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 600;
+    object-fit: fill;
+    border: 2px solid #e9ecef;
 }
 
 /* Page Content */

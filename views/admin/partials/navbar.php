@@ -1,4 +1,5 @@
 <!-- Top Navbar -->
+<link rel="stylesheet" href="/assets/css/admin-styles.css">
 <nav class="top-navbar">
     <div class="breadcrumb">
         <button class="mobile-menu-toggle" onclick="toggleSidebar()" style="display: none;">
@@ -10,9 +11,9 @@
         </div>
     </div>
     <div class="user-profile">
+        <span><?= isset($username) ? htmlspecialchars($username) : 'Admin' ?></span>
         <div class="user-avatar">
-            <?= isset($username) ? strtoupper(substr($username, 0, 1)) : 'A' ?>
+            <img src="/assets/images/users.png" alt="User Avatar" class="avatar-image">
         </div>
-        <span>Welcome, <?= isset($username) ? htmlspecialchars($username) : 'Admin' ?></span>
     </div>
 </nav>

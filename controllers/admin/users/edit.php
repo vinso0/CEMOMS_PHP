@@ -1,11 +1,8 @@
 <?php
 
-use Core\App;
-use Core\Database;
+use Models\User;
 
 adminAuth();
-
-$db = App::resolve(Database::class);
 
 $id = $_GET['id'] ?? null;
 
@@ -14,15 +11,14 @@ if (!$id) {
     exit();
 }
 
-$user = $db->query("SELECT id, username, email, role FROM users WHERE id = :id AND role IN ('personnel', 'foreman')", [
-    ':id' => $id
-])->find();
+$userModel = new User();
+$user = $userModel->findById($id, ['personnel', 'foreman']);
 
 if (!$user) {
     header('Location: /admin/users');
     exit();
 }
 
-view('admin/users/edit.view.php', [
+view('admin/users/users.edit.view.php', [
     'user' => $user,
 ]);
