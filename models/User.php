@@ -52,6 +52,13 @@ class User
         return $this->db->query($sql, $params)->find();
     }
 
+    public function getProfile($id) {
+        return $this->db->query(
+            "SELECT id, username, email FROM users WHERE id = :id",
+            [':id' => $id]
+        )->find();
+    }
+
     /**
      * Get all users, with optional exclusion of roles
      */

@@ -12,8 +12,8 @@
     <div class="login-container">
         <div class="login-card fade-in">
             <div class="login-header">
-                <h1 class="login-title">CEMOMS Admin</h1>
-                <p class="login-subtitle">Construction Equipment Management & Operations System</p>
+                <h1 class="login-title">LOGIN</h1>
+                <p class="login-subtitle">City Environmental Management Operation Monitoring System</p>
                 <div class="logo-circle">
                    <img src="/assets/images/CEMD-Logo.png" alt="CEMOMS Logo" class="logo-image">
                 </div>

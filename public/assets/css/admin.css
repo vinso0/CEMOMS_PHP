@@ -136,6 +136,13 @@
 }
 
 /* Users Management Table */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
 .btn-primary {
     background: #2196F3;
     color: white;
@@ -182,6 +189,12 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     overflow: hidden;
     border: 1px solid #f0f0f0;
+}
+
+.table-header {
+    box-shadow: 0 -10px 6px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    border-top: 1px solid #f0f0f0;
 }
 
 .users-table {

@@ -116,7 +116,7 @@
 .top-navbar {
     background: white;
     padding: 0 30px;
-    height: 70px;
+    height: 65px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -151,7 +151,7 @@
     font-size: 1.5rem;
     font-weight: 600;
     color: #2c3e50;
-    margin: 0;
+    margin-top: 22px;
 }
 
 .breadcrumb-info p {
