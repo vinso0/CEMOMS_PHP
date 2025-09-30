@@ -4,10 +4,12 @@ $pageTitle = 'Dashboard';
 
 ob_start();
 ?>
-
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!--
 <div class="content-header">
     <h1 class="content-title">Dashboard</h1>
 </div>
+-->
 
 <!-- Stats Cards Row -->
 <div class="dashboard-stats">
@@ -124,19 +126,25 @@ ob_start();
 
 <!-- Map Section -->
 <div class="map-container">
-    <div id="leaflet-map" class="map-placeholder">
-        <div class="map-placeholder-content">
-            <i class="fas fa-map-marker-alt"></i>
-            <p>Map will be displayed here</p>
-            <small>Integrate Leaflet.js to show operation locations</small>
-        </div>
-    </div>
+        <!-- NOTE: Not working yet, pag react + leaflet.js 'tong mga naka comment -->
+        <!-- Option 1: Relative path (works if dashboard URL is /admin/dashboard) 
+        <iframe 
+           src="/react/index.html" 
+           width="100%" 
+           height="600px" 
+           frameborder="0" 
+           style="border: none; display: block; min-height: 500px;">
+       </iframe>
+        -->
+        <!-- Option 2: Absolute path from web root (more reliable, works from any URL) -->
+        <!-- <iframe src="/react/index.html" width="100%" height="500px" frameborder="0" style="border: none;"></iframe> -->
+        <div id="map" class="dashboard-map" style="height: 500px; width: 100%; border: 1px solid #ccc; border-radius: 8px; margin: 20px 0;"></div>
 </div>
 
 <!-- Recent Reports Table -->
 <div class="reports-container">
     <div class="reports-header">
-        <h3><i class="fas fa-table"></i> Recent Reports Table/List</h3>
+        <h3><i class="fas fa-table"></i> Recent Reports</h3>
         <button class="btn btn-primary btn-sm" onclick="window.location.href='/admin/reports'">
             <i class="fas fa-eye"></i> View All
         </button>
@@ -191,6 +199,8 @@ ob_start();
     </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
 // Operations data (this would come from your PHP/backend)
 const operationsData = {
@@ -198,7 +208,7 @@ const operationsData = {
     collection: <?= $stats['operations']['collection'] ?? 0 ?>,
     sweeping: <?= $stats['operations']['sweeping'] ?? 0 ?>,
     flushing: <?= $stats['operations']['flushing'] ?? 0 ?>,
-    deClogging: <?= $stats['operations']['deClogging'] ?? 0 ?>
+    deClogging: <?= $stats['operations']['deClogging'] ?? 0 ?>,
     cleanup: <?= $stats['operations']['cleanup'] ?? 0 ?>
 };
 
@@ -231,6 +241,18 @@ function resetFilters() {
     document.getElementById('date-range').value = '';
     console.log('Filters reset');
 }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize map for Caloocan City (South)
+        var map = L.map('map').setView([14.6396, 120.9822], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        // Add marker with popup
+        /*L.marker([14.6396, 120.9822]).addTo(map)
+            .bindPopup('Caloocan City (South), Philippines')
+            .openPopup(); */
+    });
 </script>
 
 <?php
