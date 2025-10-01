@@ -19,6 +19,7 @@ $router->get('/logout', 'controllers/logout.php');
 // Admin Dashboard & User Management
 $router->get('/admin', 'controllers/admin/dashboard.php');
 $router->get('/admin/users', 'controllers/admin/users/index.php');
+$router->get('/admin/reports', 'controllers/admin/reports/index.php');
 $router->post('/admin/users', 'controllers/admin/users/store.php');
 $router->get('/admin/users/edit', 'controllers/admin/users/edit.php');
 $router->post('/admin/users/update', 'controllers/admin/users/update.php');
