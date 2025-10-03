@@ -12,7 +12,7 @@
     <div class="user-profile">
         <span><?= isset($username) ? htmlspecialchars($username) : 'Admin' ?></span>
         <div class="user-avatar">
-            <img src="/assets/images/users.png" alt="User Avatar" class="avatar-image">
+            <img src="/assets/images/users_avatar.png" alt="User Avatar" class="avatar-image">
         </div>
     </div>
 </nav>

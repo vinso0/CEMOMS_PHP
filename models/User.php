@@ -13,10 +13,7 @@ class User
     {
         $this->db = App::resolve(Database::class);
     }
-
-    /**
-     * Find user by username/email and include role name
-     */
+    
     public function findByLogin($loginInput)
     {
         $sql = "SELECT u.*, r.role_name AS role
