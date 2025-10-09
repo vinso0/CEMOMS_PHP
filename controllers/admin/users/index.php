@@ -1,16 +1,17 @@
 <?php
 
-use models\User;
-use models\Roles;
+use Models\Foreman;
+use Models\ForemanRole;
 
 adminAuth();
 
-$userModel = new User();
-$roleModel = new Roles();
-$users = $userModel->findAll(['admin']);
-$roles = $roleModel->getRoles(['admin']);
+$foremanModel = new Foreman();
+$foremanRoleModel = new ForemanRole();
+
+$foremen = $foremanModel->findAll();
+$roles = $foremanRoleModel->getAllRoles();
 
 view('admin/users/users.index.view.php', [
-    'users' => $users,
+    'users' => $foremen,
     'roles' => $roles
 ]);

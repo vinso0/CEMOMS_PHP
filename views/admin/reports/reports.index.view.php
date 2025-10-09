@@ -18,7 +18,6 @@ ob_start();
         <div class="filter-item">
             <label for="operation-type">Operation Type</label>
             <select id="operation-type" class="form-select">
-                <option value="all">All Types</option>
                 <option value="collection">Garbage Collection</option>
                 <option value="sweeping">Street Sweeping</option>
                 <option value="flushing">Flushing</option>
@@ -71,7 +70,7 @@ ob_start();
 <!-- Recent Reports Table -->
 <div class="reports-container">
     <div class="reports-header">
-        <h3><i class="fas fa-table"></i>Reports Table</h3>
+        <h3><i class="fas fa-table"></i> Reports Table</h3>
         <form class="d-flex" method="GET" action="/admin/reports" style="gap: 0.5rem;">
             <input type="search" name="q" class="form-control form-control-sm" placeholder="Search reports..." aria-label="Search reports">
             <button class="btn btn-primary btn-sm" type="submit">
@@ -88,6 +87,7 @@ ob_start();
                     <th>Operation Type</th>
                     <th>Location</th>
                     <th>Foreman</th>
+                    <th>Proof</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>

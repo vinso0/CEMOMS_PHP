@@ -47,10 +47,10 @@ ob_start();
     
     <div class="stat-card">
         <div class="stat-icon" style="background: #FF9800;">
-            <i class="fas fa-user-tie"></i>
+            <i class="fa-solid fa-clipboard-list"></i>
         </div>
         <div class="stat-info">
-            <h3>Active Foremen</h3>
+            <h3>Scheduled Operation</h3>
             <span class="stat-number"><?= $stats['active_foremen'] ?? 0 ?></span>
         </div>
     </div>
@@ -66,80 +66,7 @@ ob_start();
     </div>
 </div>
 
-<!-- Filters Section -->
-<div class="filters-container">
-    <div class="filters-header">
-        <h3><i class="fas fa-filter"></i> Filters:</h3>
-    </div>
-    <div class="filters-content">
-        <div class="filter-item">
-            <label for="operation-type">Operation Type</label>
-            <select id="operation-type" class="form-select">
-                <option value="all">All Types</option>
-                <option value="collection">Garbage Collection</option>
-                <option value="sweeping">Street Sweeping</option>
-                <option value="flushing">Flushing</option>
-                <option value="de-clogging">De-clogging</option>
-                <option value="cleanup">Cleanup Drives</option>
-            </select>
-        </div>
-        
-        <div class="filter-item">
-            <label for="area">Area</label>
-            <select id="area" class="form-select">
-                <option value="">All Areas</option>
-                <option value="north">Bagong Barrio East</option>
-                <option value="south">Bagong Barrio West</option>
-                <option value="east">Balintawak</option>
-                <option value="west">Bario San Jose</option>
-                <option value="west">Dagat-Dagatan</option>
-                <option value="west">Grace Park East</option>
-                <option value="west">Grace Park West</option>
-                <option value="west">Kaunlaran Village</option>
-                <option value="west">Libis Baesa/Reparo</option>
-                <option value="west">Marulas</option>
-                <option value="west">Maypajo</option>
-                <option value="west">Morning Breeze</option>
-                <option value="west">Poblacion</option>
-                <option value="west">Sangandaan</option>
-                <option value="west">Santa Quiteria</option>
-                <option value="west">Talipapa</option>
-                <option value="west">University Hills</option>
-            </select>
-        </div>
-        
-        <div class="filter-item">
-            <label for="date-range">Date Range</label>
-            <input type="date" id="date-range" class="form-control">
-        </div>
-        
-        <div class="filter-actions">
-            <button class="btn btn-primary" onclick="applyFilters()">
-                <i class="fas fa-search"></i> Apply
-            </button>
-            <button class="btn btn-secondary" onclick="resetFilters()">
-                <i class="fas fa-redo"></i> Reset
-            </button>
-        </div>
-    </div>
-</div>
 
-<!-- Map Section -->
-<div class="map-container">
-        <!-- NOTE: Not working yet, pag react + leaflet.js 'tong mga naka comment -->
-        <!-- Option 1: Relative path (works if dashboard URL is /admin/dashboard) 
-        <iframe 
-           src="/react/index.html" 
-           width="100%" 
-           height="600px" 
-           frameborder="0" 
-           style="border: none; display: block; min-height: 500px;">
-       </iframe>
-        -->
-        <!-- Option 2: Absolute path from web root (more reliable, works from any URL) -->
-        <!-- <iframe src="/react/index.html" width="100%" height="500px" frameborder="0" style="border: none;"></iframe> -->
-        <div id="map" class="dashboard-map" style="height: 500px; width: 100%; border: 1px solid #ccc; border-radius: 8px; margin: 20px 0;"></div>
-</div>
 
 <!-- Recent Reports Table -->
 <div class="reports-container">
@@ -158,6 +85,7 @@ ob_start();
                     <th>Operation Type</th>
                     <th>Location</th>
                     <th>Foreman</th>
+                    <th>Proof</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>

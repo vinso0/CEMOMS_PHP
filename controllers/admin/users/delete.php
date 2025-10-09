@@ -1,23 +1,23 @@
 <?php
 
-use models\User;
+use Models\Foreman;
 
 adminAuth();
 
-$userModel = new User();
+$foremanModel = new Foreman();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // ✅ Actually delete
+    // Delete the foreman
     $id = $_POST['id'] ?? null;
 
     if ($id) {
-        $userModel->delete($id, ['foreman']); // only delete foreman
+        $foremanModel->delete($id);
     }
 
     header('Location: /admin/users');
     exit();
 } else {
-    // ✅ Show confirmation page
+    // Show confirmation page
     $id = $_GET['id'] ?? null;
 
     if (!$id) {
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    $user = $userModel->findById($id, ['foreman']);
+    $user = $foremanModel->findById($id);
 
     if (!$user) {
         header('Location: /admin/users');

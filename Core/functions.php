@@ -2,11 +2,38 @@
 
 use Core\Response;
 
+/**
+ * Admin authentication middleware
+ */
 function adminAuth()
 {
     session_start();
-    if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-        header('Location: /admin/login');
+    if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+        header('Location: /login');
+        exit();
+    }
+}
+
+/**
+ * Foreman authentication middleware
+ */
+function foremanAuth()
+{
+    session_start();
+    if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'foreman') {
+        header('Location: /login');
+        exit();
+    }
+}
+
+/**
+ * General authenticated user check (admin or foreman)
+ */
+function requireAuth()
+{
+    session_start();
+    if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type'])) {
+        header('Location: /login');
         exit();
     }
 }

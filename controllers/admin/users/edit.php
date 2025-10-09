@@ -1,7 +1,7 @@
 <?php
 
-use models\User;
-use models\Roles;
+use Models\Foreman;
+use Models\ForemanRole;
 
 adminAuth();
 
@@ -12,10 +12,11 @@ if (!$id) {
     exit();
 }
 
-$userModel = new User();
-$roleModel = new Roles();
-$user = $userModel->findById($id, ['foreman']);
-$roles = $roleModel->getRoles(['admin']);
+$foremanModel = new Foreman();
+$foremanRoleModel = new ForemanRole();
+
+$user = $foremanModel->findById($id);
+$roles = $foremanRoleModel->getAllRoles();
 
 if (!$user) {
     header('Location: /admin/users');

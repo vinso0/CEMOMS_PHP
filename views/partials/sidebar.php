@@ -9,47 +9,88 @@
     </div>
     
     <nav class="sidebar-nav">
+        <?php
+        $userType = $_SESSION['user_type'] ?? 'admin';
+        $baseUrl = ($userType === 'admin') ? '/admin' : '/foreman';
+        ?>
+        
         <div class="nav-item">
-            <a href="/admin" class="nav-link <?= urlIs('/admin') ? 'active' : '' ?>">
+            <a href="<?= $baseUrl ?>" class="nav-link <?= urlIs($baseUrl) ? 'active' : '' ?>">
                 <img src="/assets/images/dashboard_icon.png" alt="Dashboard Icon" class="nav-icon">
                 Dashboard
             </a>
         </div>
-        <div class="nav-item">
-            <a href="/admin/reports" class="nav-link <?= urlIs('/admin/reports') ? 'active' : '' ?>">
-                <img src="/assets/images/reports_icon.png" alt="Reports Icon" class="nav-icon">
-                Reports
-            </a>
-        </div>
-        <div class="nav-item has-submenu">
-            <button class="nav-link submenu-toggle" onclick="toggleSubmenu(event)">
-                <img src="/assets/images/operations_icon.png" alt="Operations Icon" class="nav-icon">
-                Operations Management
-                <span class="submenu-arrow">&#9662;</span>
-            </button>
-            <div class="sidebar-submenu" style="display: none;">
-                <a class="submenu-link" href="/admin/operations/collection">Garbage Collection</a>
-                <a class="submenu-link" href="/admin/operations/sweeping">Street Sweeping</a>
-                <a class="submenu-link" href="/admin/operations/flushing">Flushing</a>
-                <a class="submenu-link" href="/admin/operations/de-clogging">De-clogging</a>
-                <a class="submenu-link" href="/admin/operations/cleanup">Cleanup Drives</a>
+        
+        <?php if ($userType === 'admin'): ?>
+            <!-- Admin-only menu items -->
+            <div class="nav-item">
+                <a href="/admin/reports" class="nav-link <?= urlIs('/admin/reports') ? 'active' : '' ?>">
+                    <img src="/assets/images/reports_icon.png" alt="Reports Icon" class="nav-icon">
+                    Reports
+                </a>
             </div>
-        </div>
-        <div class="nav-item">
-            <a href="/admin/users" class="nav-link <?= (urlIs('/admin/users') || urlIs('/admin/users/edit')) ? 'active' : '' ?>">
-                <img src="/assets/images/users_icon.png" alt="Users Icon" class="nav-icon">
-                Users Management
-            </a>
-        </div>
-        <div class="nav-item">
-            <a href="/admin/settings" class="nav-link <?= urlIs('/admin/settings') ? 'active' : '' ?>">
-                <img src="/assets/images/settings_icon.png" alt="Settings Icon" class="nav-icon">
-                Settings
-            </a>
-        </div>
+            
+            <div class="nav-item has-submenu">
+                <button class="nav-link submenu-toggle" onclick="toggleSubmenu(event)">
+                    <img src="/assets/images/operations_icon.png" alt="Operations Icon" class="nav-icon">
+                    Operations Management
+                    <span class="submenu-arrow">&#9662;</span>
+                </button>
+                <div class="sidebar-submenu" style="display: none;">
+                    <a class="submenu-link" href="/admin/operations/collection">Garbage Collection</a>
+                    <a class="submenu-link" href="/admin/operations/sweeping">Street Sweeping</a>
+                    <a class="submenu-link" href="/admin/operations/flushing">Flushing</a>
+                    <a class="submenu-link" href="/admin/operations/de-clogging">De-clogging</a>
+                    <a class="submenu-link" href="/admin/operations/cleanup">Cleanup Drives</a>
+                </div>
+            </div>
+            
+            <div class="nav-item">
+                <a href="/admin/users" class="nav-link <?= (urlIs('/admin/users') || urlIs('/admin/users/edit')) ? 'active' : '' ?>">
+                    <img src="/assets/images/users_icon.png" alt="Users Icon" class="nav-icon">
+                    Users Management
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="/admin/settings" class="nav-link <?= urlIs('/admin/settings') ? 'active' : '' ?>">
+                    <img src="/assets/images/settings_icon.png" alt="Settings Icon" class="nav-icon">
+                    Settings
+                </a>
+            </div>
+        <?php else: ?>
+            <!-- Foreman menu items -->
+            <div class="nav-item">
+                <a href="/foreman/reports" class="nav-link <?= urlIs('/foreman/reports') ? 'active' : '' ?>">
+                    <img src="/assets/images/reports_icon.png" alt="Reports Icon" class="nav-icon">
+                    My Reports
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="/foreman/submit-report" class="nav-link <?= urlIs('/foreman/submit-report') ? 'active' : '' ?>">
+                    <img src="/assets/images/operations_icon.png" alt="Submit Icon" class="nav-icon">
+                    Submit Report
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="/foreman/profile" class="nav-link <?= urlIs('/foreman/profile') ? 'active' : '' ?>">
+                    <img src="/assets/images/users_icon.png" alt="Profile Icon" class="nav-icon">
+                    My Profile
+                </a>
+            </div>
+        <?php endif; ?>
     </nav>
     
     <div class="logout-section">
+        <a href="/logout" class="logout-link">
+            <img src="/assets/images/logout_icon.png" alt="Logout Icon" class="logout-icon">
+            Logout
+        </a>
+    </div>
+</aside>
+
 <script>
 function toggleSubmenu(event) {
     event.preventDefault();
@@ -79,6 +120,7 @@ function toggleSubmenu(event) {
     }
 }
 </script>
+
 <style>
 .has-submenu .submenu-toggle {
     width: 100%;
@@ -118,10 +160,3 @@ function toggleSubmenu(event) {
     border-left: 2px solid #f5f5f5ff;
 }
 </style>
-        
-        <a href="/logout" class="logout-link">
-            <img src="/assets/images/logout_icon.png" alt="Logout Icon" class="logout-icon">
-            Logout
-        </a>
-    </div>
-</aside>

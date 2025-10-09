@@ -1,6 +1,7 @@
 <?php
 
-use models\User;
+use Models\Foreman;
+use Models\ForemanRole;
 
 adminAuth();
 
@@ -21,6 +22,8 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 if (!$password) {
     $errors[] = 'Password is required.';
+} elseif (strlen($password) < 6) {
+    $errors[] = 'Password must be at least 6 characters.';
 }
 
 if (!$roleId) {
@@ -28,14 +31,20 @@ if (!$roleId) {
 }
 
 if (count($errors) === 0) {
-    $userModel = new User();
-    $userModel->create($username, $email, $password, $roleId);
+    $foremanModel = new Foreman();
+    $foremanModel->create($username, $email, $password, $roleId);
 
     header('Location: /admin/users');
     exit();
 }
 
-view('admin/users/create.view.php', [
+// If there are errors, reload the page with roles
+$foremanRoleModel = new ForemanRole();
+$roles = $foremanRoleModel->getAllRoles();
+
+view('admin/users/users.index.view.php', [
     'errors' => $errors,
     'old'    => $_POST,
+    'users'  => [],
+    'roles'  => $roles
 ]);
