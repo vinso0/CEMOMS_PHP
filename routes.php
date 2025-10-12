@@ -28,21 +28,33 @@ $router->post('/admin/users/delete', 'controllers/admin/users/delete.php');
 // Reports
 $router->get('/admin/reports', 'controllers/admin/reports/index.php');
 
-//operations Management
+//operations Management//
+//Garbage Collection
 $router->get('/admin/operations/collection', function() {
-require base_path('views/admin/operations/collection.index.view.php');
+require base_path('views/admin/operations/garbage_collection/index.view.php');
 });
+$router->get('/admin/operations/collection', function() {
+require base_path('views/admin/operations/garbage_collection/create.php');
+});
+
+//Street Sweeping
 $router->get('/admin/operations/sweeping', function() {
-    require base_path('views/admin/operations/sweeping.index.view.php');
+    require base_path('views/admin/operations/street_sweeping/sweeping.index.view.php');
 });
+
+//Flushing
 $router->get('/admin/operations/flushing', function() {
-    require base_path('views/admin/operations/flushing.index.view.php');
+    require base_path('views/admin/operations/flushing/flushing.index.view.php');
 });
+
+//De-Clogging
 $router->get('/admin/operations/de-clogging', function() {
-    require base_path('views/admin/operations/de-clogging.index.view.php');
+    require base_path('views/admin/operations/de-clogging/de-clogging.index.view.php');
 });
+
+//Cleanup Drives
 $router->get('/admin/operations/cleanup', function() {
-    require base_path('views/admin/operations/cleanup.index.view.php');
+    require base_path('views/admin/operations/cleanup_drives/cleanup.index.view.php');
 });
 
 // Foreman
