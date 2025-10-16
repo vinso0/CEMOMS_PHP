@@ -169,7 +169,6 @@ ob_start();
                     <th>Foreman</th>
                     <th>Dispatch Time</th>
                     <th>Return Time</th>
-                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -182,11 +181,6 @@ ob_start();
                             <td><?= htmlspecialchars($log['foreman_name']) ?></td>
                             <td><?= htmlspecialchars($log['dispatch_time']) ?></td>
                             <td><?= htmlspecialchars($log['return_time'] ?? 'Not Returned') ?></td>
-                            <td>
-                                <span class="status-badge status-<?= htmlspecialchars($log['status']) ?>">
-                                    <?= ucfirst(htmlspecialchars($log['status'])) ?>
-                                </span>
-                            </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
@@ -404,57 +398,6 @@ ob_start();
                     </button>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Update Truck
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Dispatch Modal -->
-<div class="modal fade" id="dispatchModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Dispatch & Return Log</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="/admin/operations/collection/dispatch/log">
-                <div class="modal-body">
-                    <input type="hidden" id="dispatch-truck-id" name="truck_id">
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Truck</label>
-                        <input type="text" class="form-control" id="dispatch-truck-plate" disabled>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="dispatch-date" class="form-label">Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="dispatch-date" name="date" required>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="dispatch-time" class="form-label">Dispatch Time <span class="text-danger">*</span></label>
-                            <input type="time" class="form-control" id="dispatch-time" name="dispatch_time" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="return-time" class="form-label">Return Time</label>
-                            <input type="time" class="form-control" id="return-time" name="return_time">
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="log-notes" class="form-label">Notes (Optional)</label>
-                        <textarea class="form-control" id="log-notes" name="notes" rows="3" placeholder="Any observations or issues..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancel
-                    </button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-check"></i> Save Log
                     </button>
                 </div>
             </form>
