@@ -16,11 +16,11 @@ try {
     $routeModel = new Route();
     $foremanModel = new Foreman();
 
-    // Get all data
-    $trucks = $truckModel->getAllTrucks();
+    // Get only garbage collection trucks (operation_type_id = 1)
+    $trucks = $truckModel->getGarbageCollectionTrucks();
     $routes = $routeModel->getAllRoutes();
-    $foremen = $foremanModel->findAll();
-    $dispatch_logs = $truckModel->getDispatchLogs(10);
+    $foremen = $foremanModel->getGarbageCollectionForemen(); // Only foremen with role_id = 1
+    $dispatch_logs = $truckModel->getGarbageCollectionDispatchLogs(10);
 
     view('admin/operations/garbage_collection/index.view.php', [
         'trucks' => $trucks,

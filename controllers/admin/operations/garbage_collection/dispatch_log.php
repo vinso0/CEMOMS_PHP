@@ -72,17 +72,17 @@ if (count($errors) === 0) {
         } else {
             $scheduleId = $schedule['schedule_id'];
             
-            // Log dispatch
+            // Log dispatch - this sets status to "Dispatched"
             $dispatchDateTime = $date . ' ' . $dispatchTime . ':00';
             $scheduleModel->logDispatch($scheduleId, $dispatchDateTime);
             
-            // Log return if provided
+            // Log return if provided - this sets status to "Parked"
             if (!empty($returnTime)) {
                 $returnDateTime = $date . ' ' . $returnTime . ':00';
                 $scheduleModel->logReturn($scheduleId, $returnDateTime);
-                $_SESSION['success'] = 'Dispatch and return logged successfully.';
+                $_SESSION['success'] = 'Dispatch and return logged successfully. Truck status set to Parked.';
             } else {
-                $_SESSION['success'] = 'Dispatch logged successfully. Waiting for return.';
+                $_SESSION['success'] = 'Dispatch logged successfully. Truck status set to Dispatched.';
             }
             
             header('Location: /admin/operations/garbage_collection');

@@ -57,20 +57,6 @@ ob_start();
             </div>
             
             <div class="filter-item">
-                <label for="filter-route">Route</label>
-                <select id="filter-route" class="form-select">
-                    <option value="">All Routes</option>
-                    <?php if (!empty($routes)): ?>
-                        <?php foreach ($routes as $route): ?>
-                            <option value="<?= htmlspecialchars($route['route_id']) ?>">
-                                <?= htmlspecialchars($route['route_name']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </select>
-            </div>
-            
-            <div class="filter-item">
                 <label for="filter-foreman">Foreman</label>
                 <select id="filter-foreman" class="form-select">
                     <option value="">All Foremen</option>
@@ -88,10 +74,8 @@ ob_start();
                 <label for="filter-status">Status</label>
                 <select id="filter-status" class="form-select">
                     <option value="">All Status</option>
-                    <option value="Scheduled">Scheduled</option>
                     <option value="Dispatched">Dispatched</option>
                     <option value="Parked">Parked</option>
-                    <option value="Completed">Completed</option>
                 </select>
             </div>
             
@@ -123,7 +107,7 @@ ob_start();
                 <tr>
                     <th>Plate Number</th>
                     <th>Body Number</th>
-                    <th>Route Assigned</th>
+                    <th>Route</th>
                     <th>Foreman</th>
                     <th>Schedule Type</th>
                     <th>Status</th>
@@ -134,17 +118,29 @@ ob_start();
                 <?php if (!empty($trucks)): ?>
                     <?php foreach ($trucks as $truck): ?>
                         <tr data-truck-id="<?= $truck['id'] ?>" 
-                            data-route-id="<?= $truck['route_id'] ?? '' ?>" 
                             data-foreman-id="<?= $truck['foreman_id'] ?? '' ?>"
-                            data-status="<?= htmlspecialchars($truck['status'] ?? 'Scheduled') ?>">
+                            data-status="<?= htmlspecialchars($truck['status'] ?? 'Parked') ?>">
                             <td><strong><?= htmlspecialchars($truck['plate_number']) ?></strong></td>
                             <td><?= htmlspecialchars($truck['body_number']) ?></td>
-                            <td><?= htmlspecialchars($truck['route_name'] ?? 'Not Assigned') ?></td>
+                            <td>
+                                <?php if (!empty($truck['route_name'])): ?>
+                                    <strong><?= htmlspecialchars($truck['route_name']) ?></strong><br>
+                                    <small class="text-muted">
+                                        <?= htmlspecialchars($truck['start_point']) ?>
+                                        <?php if (!empty($truck['mid_point'])): ?>
+                                            → <?= htmlspecialchars($truck['mid_point']) ?>
+                                        <?php endif; ?>
+                                        → <?= htmlspecialchars($truck['end_point']) ?>
+                                    </small>
+                                <?php else: ?>
+                                    <span class="text-muted">Not Assigned</span>
+                                <?php endif; ?>
+                            </td>
                             <td><?= htmlspecialchars($truck['foreman_name'] ?? 'Not Assigned') ?></td>
                             <td><?= htmlspecialchars($truck['schedule'] ?? 'N/A') ?></td>
                             <td>
-                                <span class="status-badge status-<?= strtolower(str_replace(' ', '-', $truck['status'] ?? 'scheduled')) ?>">
-                                    <?= ucfirst(htmlspecialchars($truck['status'] ?? 'Scheduled')) ?>
+                                <span class="status-badge status-<?= strtolower(str_replace(' ', '-', $truck['status'] ?? 'parked')) ?>">
+                                    <?= ucfirst(htmlspecialchars($truck['status'] ?? 'Parked')) ?>
                                 </span>
                             </td>
                             <td>
@@ -278,37 +274,37 @@ ob_start();
                     </div>
 
                     <div class="mb-3">
-                        <label for="assigned-route" class="form-label">Assigned Route <span class="text-danger">*</span></label>
-                        <select class="form-select" id="assigned-route" name="route_id" required>
-                            <option value="">Select Route</option>
-                            <?php if (!empty($routes)): ?>
-                                <?php foreach ($routes as $route): ?>
-                                    <option value="<?= htmlspecialchars($route['route_id']) ?>">
-                                        <?= htmlspecialchars($route['route_name']) ?> (<?= htmlspecialchars($route['start_point']) ?> → <?= htmlspecialchars($route['end_point']) ?>)
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                        <label for="schedule-type" class="form-label">Schedule Type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="schedule-type" name="schedule_type" required>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
                         </select>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="schedule-type" class="form-label">Schedule Type <span class="text-danger">*</span></label>
-                            <select class="form-select" id="schedule-type" name="schedule_type" required>
-                                <option value="daily">Daily</option>
-                                <option value="weekly">Weekly</option>
-                            </select>
-                        </div>
+                    <hr class="my-4">
+                    <h6 class="mb-3">Route Configuration</h6>
+                    
+                    <div class="mb-3">
+                        <label for="route-name" class="form-label">Route Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="route-name" name="route_name" placeholder="e.g., Downtown Collection Route" required>
+                    </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-                            <select class="form-select" id="status" name="status" required>
-                                <option value="Scheduled">Scheduled</option>
-                                <option value="Dispatched">Dispatched</option>
-                                <option value="Parked">Parked</option>
-                                <option value="Completed">Completed</option>
-                            </select>
-                        </div>
+                    <div class="mb-3">
+                        <label for="start-point" class="form-label">Start Point <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="start-point" name="start_point" placeholder="Start typing address..." required autocomplete="off">
+                        <div id="start-suggestions" class="autocomplete-suggestions"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="mid-point" class="form-label">Mid Point (Optional)</label>
+                        <input type="text" class="form-control" id="mid-point" name="mid_point" placeholder="Start typing address..." autocomplete="off">
+                        <div id="mid-suggestions" class="autocomplete-suggestions"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="end-point" class="form-label">End Point <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="end-point" name="end_point" placeholder="Start typing address..." required autocomplete="off">
+                        <div id="end-suggestions" class="autocomplete-suggestions"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -366,37 +362,39 @@ ob_start();
                     </div>
 
                     <div class="mb-3">
-                        <label for="edit-assigned-route" class="form-label">Assigned Route <span class="text-danger">*</span></label>
-                        <select class="form-select" id="edit-assigned-route" name="route_id" required>
-                            <option value="">Select Route</option>
-                            <?php if (!empty($routes)): ?>
-                                <?php foreach ($routes as $route): ?>
-                                    <option value="<?= htmlspecialchars($route['route_id']) ?>">
-                                        <?= htmlspecialchars($route['route_name']) ?> (<?= htmlspecialchars($route['start_point']) ?> → <?= htmlspecialchars($route['end_point']) ?>)
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                        <label for="edit-schedule-type" class="form-label">Schedule Type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="edit-schedule-type" name="schedule_type" required>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
                         </select>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="edit-schedule-type" class="form-label">Schedule Type <span class="text-danger">*</span></label>
-                            <select class="form-select" id="edit-schedule-type" name="schedule_type" required>
-                                <option value="daily">Daily</option>
-                                <option value="weekly">Weekly</option>
-                            </select>
-                        </div>
+                    <hr class="my-4">
+                    <h6 class="mb-3">Route Configuration</h6>
+                    
+                    <input type="hidden" id="edit-route-id" name="route_id">
+                    
+                    <div class="mb-3">
+                        <label for="edit-route-name" class="form-label">Route Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit-route-name" name="route_name" required>
+                    </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label for="edit-status" class="form-label">Status <span class="text-danger">*</span></label>
-                            <select class="form-select" id="edit-status" name="status" required>
-                                <option value="Scheduled">Scheduled</option>
-                                <option value="Dispatched">Dispatched</option>
-                                <option value="Parked">Parked</option>
-                                <option value="Completed">Completed</option>
-                            </select>
-                        </div>
+                    <div class="mb-3">
+                        <label for="edit-start-point" class="form-label">Start Point <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit-start-point" name="start_point" required autocomplete="off">
+                        <div id="edit-start-suggestions" class="autocomplete-suggestions"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-mid-point" class="form-label">Mid Point (Optional)</label>
+                        <input type="text" class="form-control" id="edit-mid-point" name="mid_point" autocomplete="off">
+                        <div id="edit-mid-suggestions" class="autocomplete-suggestions"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-end-point" class="form-label">End Point <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit-end-point" name="end_point" required autocomplete="off">
+                        <div id="edit-end-suggestions" class="autocomplete-suggestions"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -496,10 +494,111 @@ ob_start();
     </div>
 </div>
 
+<style>
+.autocomplete-suggestions {
+    position: absolute;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    width: calc(100% - 30px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.autocomplete-suggestion {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.autocomplete-suggestion:hover {
+    background-color: #f8f9fa;
+}
+
+.autocomplete-suggestion:last-child {
+    border-bottom: none;
+}
+
+.status-parked {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-dispatched {
+    background: #cce5ff;
+    color: #004085;
+}
+</style>
+
 <script>
+// Nominatim geocoding for address autocomplete
+let debounceTimer;
+
+function setupAutocomplete(inputId, suggestionsId) {
+    const input = document.getElementById(inputId);
+    const suggestionsContainer = document.getElementById(suggestionsId);
+
+    if (!input || !suggestionsContainer) return;
+
+    input.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const query = this.value;
+
+        if (query.length < 3) {
+            suggestionsContainer.innerHTML = '';
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+        fetch(`/api/geocode?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                suggestionsContainer.innerHTML = '';
+                if (data.length === 0) {
+                    suggestionsContainer.innerHTML = '<div class="autocomplete-suggestion">No results found</div>';
+                    return;
+                }
+
+                data.slice(0, 5).forEach(place => {
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-suggestion';
+                    div.textContent = place.display_name;
+                    div.addEventListener('click', () => {
+                        input.value = place.display_name;
+                        suggestionsContainer.innerHTML = '';
+                    });
+                    suggestionsContainer.appendChild(div);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching suggestions:', error);
+                suggestionsContainer.innerHTML = '<div class="autocomplete-suggestion">Error fetching results</div>';
+            });
+    }, 300);
+    });
+
+    // Close suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+            suggestionsContainer.innerHTML = '';
+        }
+    });
+}
+
+// Initialize autocomplete for all route inputs
+document.addEventListener('DOMContentLoaded', function() {
+    setupAutocomplete('start-point', 'start-suggestions');
+    setupAutocomplete('mid-point', 'mid-suggestions');
+    setupAutocomplete('end-point', 'end-suggestions');
+    setupAutocomplete('edit-start-point', 'edit-start-suggestions');
+    setupAutocomplete('edit-mid-point', 'edit-mid-suggestions');
+    setupAutocomplete('edit-end-point', 'edit-end-suggestions');
+});
+
 function applyFilters() {
     const truck = document.getElementById('filter-truck').value;
-    const route = document.getElementById('filter-route').value;
     const foreman = document.getElementById('filter-foreman').value;
     const status = document.getElementById('filter-status').value;
     const search = document.getElementById('filter-search').value.toLowerCase();
@@ -508,7 +607,6 @@ function applyFilters() {
     
     rows.forEach(row => {
         const truckId = row.dataset.truckId;
-        const routeId = row.dataset.routeId;
         const foremanId = row.dataset.foremanId;
         const rowStatus = row.dataset.status;
         const rowText = row.textContent.toLowerCase();
@@ -516,7 +614,6 @@ function applyFilters() {
         let showRow = true;
         
         if (truck && truckId !== truck) showRow = false;
-        if (route && routeId !== route) showRow = false;
         if (foreman && foremanId !== foreman) showRow = false;
         if (status && rowStatus !== status) showRow = false;
         if (search && !rowText.includes(search)) showRow = false;
@@ -527,7 +624,6 @@ function applyFilters() {
 
 function resetFilters() {
     document.getElementById('filter-truck').value = '';
-    document.getElementById('filter-route').value = '';
     document.getElementById('filter-foreman').value = '';
     document.getElementById('filter-status').value = '';
     document.getElementById('filter-search').value = '';
@@ -543,9 +639,12 @@ function populateEditModal(truck) {
     document.getElementById('edit-plate-number').value = truck.plate_number;
     document.getElementById('edit-body-number').value = truck.body_number;
     document.getElementById('edit-assigned-foreman').value = truck.foreman_id || '';
-    document.getElementById('edit-assigned-route').value = truck.route_id || '';
     document.getElementById('edit-schedule-type').value = truck.schedule || 'daily';
-    document.getElementById('edit-status').value = truck.status || 'Scheduled';
+    document.getElementById('edit-route-id').value = truck.route_id || '';
+    document.getElementById('edit-route-name').value = truck.route_name || '';
+    document.getElementById('edit-start-point').value = truck.start_point || '';
+    document.getElementById('edit-mid-point').value = truck.mid_point || '';
+    document.getElementById('edit-end-point').value = truck.end_point || '';
 }
 
 function populateDeleteModal(truck) {

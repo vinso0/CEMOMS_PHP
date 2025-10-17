@@ -19,9 +19,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $plateNumber = trim($_POST['plate_number'] ?? '');
 $bodyNumber = trim($_POST['body_number'] ?? '');
 $foremanId = $_POST['foreman_id'] ?? null;
-$routeId = $_POST['route_id'] ?? null;
 $scheduleType = $_POST['schedule_type'] ?? 'daily';
-$status = $_POST['status'] ?? 'Scheduled';
+
+// Route data
+$routeName = trim($_POST['route_name'] ?? '');
+$startPoint = trim($_POST['start_point'] ?? '');
+$midPoint = trim($_POST['mid_point'] ?? ''); // Optional
+$endPoint = trim($_POST['end_point'] ?? '');
 
 $errors = [];
 
@@ -29,7 +33,6 @@ $errors = [];
 if (empty($plateNumber)) {
     $errors[] = 'Plate number is required.';
 } else {
-    // Check for duplicate plate number
     $truckModel = new Truck();
     if ($truckModel->plateNumberExists($plateNumber)) {
         $errors[] = 'A truck with this plate number already exists.';
@@ -44,18 +47,20 @@ if (empty($foremanId)) {
     $errors[] = 'Foreman is required.';
 }
 
-if (empty($routeId)) {
-    $errors[] = 'Route is required.';
+if (empty($routeName)) {
+    $errors[] = 'Route name is required.';
 }
 
-// Validate schedule type
+if (empty($startPoint)) {
+    $errors[] = 'Start point is required.';
+}
+
+if (empty($endPoint)) {
+    $errors[] = 'End point is required.';
+}
+
 if (!in_array($scheduleType, ['daily', 'weekly'])) {
     $errors[] = 'Invalid schedule type.';
-}
-
-// Validate status
-if (!in_array($status, ['Scheduled', 'Dispatched', 'Parked', 'Completed'])) {
-    $errors[] = 'Invalid status.';
 }
 
 if (count($errors) === 0) {
@@ -64,20 +69,16 @@ if (count($errors) === 0) {
         $scheduleModel = new OperationSchedule();
         $routeModel = new Route();
         
+        // Create route first
+        $routeId = $routeModel->createRoute($routeName, $startPoint, $midPoint, $endPoint);
+        
         // Create truck
         $truckId = $truckModel->create($plateNumber, $bodyNumber, $foremanId);
         
-        // Get route to determine area
-        $route = $routeModel->getRouteById($routeId);
-        if (!$route) {
-            throw new \Exception('Selected route not found.');
-        }
-        
-        $areaId = $route['area_id'];
-        
-        // Create operation schedule
+        // Create operation schedule with default status "Parked"
         $adminId = $_SESSION['user_id'] ?? 1;
         $operationId = 1; // Garbage Collection operation type
+        $areaId = 1; // Default area (you can modify this later if needed)
         
         $scheduleModel->create(
             $operationId,
@@ -87,10 +88,10 @@ if (count($errors) === 0) {
             $adminId,
             $foremanId,
             $scheduleType,
-            $status
+            'Parked' // Default status
         );
         
-        $_SESSION['success'] = 'Truck added successfully.';
+        $_SESSION['success'] = 'Truck and route added successfully.';
         header('Location: /admin/operations/garbage_collection');
         exit();
         

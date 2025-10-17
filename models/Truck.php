@@ -15,6 +15,38 @@ class Truck
     }
 
     /**
+     * Get only garbage collection trucks (operation_type_id = 1)
+     */
+    public function getGarbageCollectionTrucks()
+    {
+        $sql = "SELECT 
+                    t.truck_id as id,
+                    t.plate_number,
+                    t.body_number,
+                    t.foreman_id,
+                    f.username as foreman_name,
+                    r.route_id,
+                    r.route_name,
+                    r.start_point,
+                    r.mid_point,
+                    r.end_point,
+                    os.schedule_id,
+                    os.schedule_type as schedule,
+                    os.status,
+                    os.dispatch_time,
+                    os.return_time
+                FROM truck t
+                LEFT JOIN foreman f ON t.foreman_id = f.foreman_id
+                LEFT JOIN operation_schedule os ON t.truck_id = os.truck_id
+                LEFT JOIN operation o ON os.operation_id = o.operation_id
+                LEFT JOIN route r ON os.route_id = r.route_id
+                WHERE o.operation_type_id = 1
+                ORDER BY t.plate_number";
+        
+        return $this->db->query($sql)->get();
+    }
+
+    /**
      * Get all trucks with their assignments and schedules
      */
     public function getAllTrucks()
@@ -57,6 +89,7 @@ class Truck
                     r.route_id,
                     r.route_name,
                     r.start_point,
+                    r.mid_point,
                     r.end_point,
                     os.schedule_id,
                     os.schedule_type as schedule,
@@ -117,12 +150,12 @@ class Truck
         $checkSql = "SELECT COUNT(*) as count 
                      FROM operation_schedule 
                      WHERE truck_id = :id 
-                     AND status IN ('Scheduled', 'Dispatched')";
+                     AND status IN ('Dispatched')";
         
         $result = $this->db->query($checkSql, [':id' => $id])->find();
         
         if ($result['count'] > 0) {
-            throw new \Exception('Cannot delete truck with active schedules. Please complete or cancel schedules first.');
+            throw new \Exception('Cannot delete truck with active dispatches. Please park the truck first.');
         }
 
         // Delete the truck
@@ -150,6 +183,40 @@ class Truck
         }
         
         return $result['count'] > 0;
+    }
+
+    /**
+     * Get garbage collection dispatch logs with pagination
+     */
+    public function getGarbageCollectionDispatchLogs($limit = 10, $offset = 0)
+    {
+        $sql = "SELECT 
+                    os.schedule_id as id,
+                    DATE(os.dispatch_time) as date,
+                    t.truck_id,
+                    t.plate_number,
+                    t.body_number,
+                    r.route_name,
+                    f.username as foreman_name,
+                    TIME_FORMAT(os.dispatch_time, '%h:%i %p') as dispatch_time,
+                    TIME_FORMAT(os.return_time, '%h:%i %p') as return_time,
+                    os.status
+                FROM operation_schedule os
+                INNER JOIN truck t ON os.truck_id = t.truck_id
+                INNER JOIN route r ON os.route_id = r.route_id
+                INNER JOIN foreman f ON os.foreman_id = f.foreman_id
+                INNER JOIN operation o ON os.operation_id = o.operation_id
+                WHERE os.dispatch_time IS NOT NULL
+                AND o.operation_type_id = 1
+                ORDER BY os.dispatch_time DESC
+                LIMIT :limit OFFSET :offset";
+        
+        $stmt = $this->db->connection->prepare($sql);
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetchAll();
     }
 
     /**
@@ -195,7 +262,7 @@ class Truck
     }
 
     /**
-     * Get active trucks (with scheduled status)
+     * Get active trucks (with dispatched status)
      */
     public function getActiveTrucks()
     {
@@ -206,7 +273,7 @@ class Truck
                     os.status
                 FROM truck t
                 INNER JOIN operation_schedule os ON t.truck_id = os.truck_id
-                WHERE os.status IN ('Scheduled', 'Dispatched')
+                WHERE os.status = 'Dispatched'
                 ORDER BY t.plate_number";
         
         return $this->db->query($sql)->get();
