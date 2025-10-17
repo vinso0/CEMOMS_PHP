@@ -31,6 +31,14 @@ $startPoint = trim($_POST['start_point'] ?? '');
 $midPoint = trim($_POST['mid_point'] ?? '');
 $endPoint = trim($_POST['end_point'] ?? '');
 
+// Coordinate data
+$startLat = $_POST['start_lat'] ?? null;
+$startLon = $_POST['start_lon'] ?? null;
+$midLat = $_POST['mid_lat'] ?? null;
+$midLon = $_POST['mid_lon'] ?? null;
+$endLat = $_POST['end_lat'] ?? null;
+$endLon = $_POST['end_lon'] ?? null;
+
 $errors = [];
 
 // Validation
@@ -67,6 +75,20 @@ if (empty($endPoint)) {
     $errors[] = 'End point is required.';
 }
 
+// Validate coordinates
+if (empty($startLat) || empty($startLon)) {
+    $errors[] = 'Start point coordinates are required. Please select a location on the map.';
+}
+
+if (empty($endLat) || empty($endLon)) {
+    $errors[] = 'End point coordinates are required. Please select a location on the map.';
+}
+
+// Validate mid point coordinates if mid point address is provided
+if (!empty($midPoint) && (empty($midLat) || empty($midLon))) {
+    $errors[] = 'Mid point coordinates are required if mid point is specified. Please select a location on the map.';
+}
+
 if (!in_array($scheduleType, ['daily', 'weekly'])) {
     $errors[] = 'Invalid schedule type.';
 }
@@ -83,58 +105,67 @@ if (count($errors) === 0) {
         if (!$truck) {
             $errors[] = 'Truck not found.';
         } else {
-        // Update truck
-        $truckModel->update($truckId, $plateNumber, $bodyNumber, $foremanId);
-        
-        // Update or create route
-        if (!empty($routeId)) {
-            // Update existing route
-            $routeModel->updateRoute($routeId, $routeName, $startPoint, $midPoint, $endPoint);
-        } else {
-            // Create new route if doesn't exist
-            $routeId = $routeModel->createRoute($routeName, $startPoint, $midPoint, $endPoint);
-        }
-        
-        // Get the schedule for this truck
-        $schedule = $scheduleModel->getByTruckId($truckId);
-        
-        if ($schedule) {
-            // Update operation name if it exists
-            if (!empty($schedule['operation_id'])) {  // ADD THIS BLOCK
+            // Update truck
+            $truckModel->update($truckId, $plateNumber, $bodyNumber, $foremanId);
+            
+            // Update or create route with coordinates
+            if (!empty($routeId)) {
+                $routeModel->updateRouteWithCoordinates(
+                    $routeId,
+                    $routeName,
+                    $startPoint, $startLat, $startLon,
+                    $midPoint, $midLat, $midLon,
+                    $endPoint, $endLat, $endLon
+                );
+            } else {
+                $routeId = $routeModel->createRouteWithCoordinates(
+                    $routeName,
+                    $startPoint, $startLat, $startLon,
+                    $midPoint, $midLat, $midLon,
+                    $endPoint, $endLat, $endLon
+                );
+            }
+            
+            // Get the schedule for this truck
+            $schedule = $scheduleModel->getByTruckId($truckId);
+            
+            if ($schedule) {
+                // Update operation name if it exists
+                if (!empty($schedule['operation_id'])) {
+                    $operationName = "Garbage Collection - " . $plateNumber;
+                    $operationModel->update($schedule['operation_id'], $operationName, $bodyNumber);
+                }
+                
+                // Keep the existing status - don't change it during update
+                $scheduleModel->updateWithForeman(
+                    $schedule['schedule_id'],
+                    $routeId,
+                    $foremanId,
+                    $scheduleType,
+                    $schedule['status']
+                );
+            } else {
+                // Create new operation and schedule if it doesn't exist
+                $adminId = $_SESSION['user_id'] ?? 1;
                 $operationName = "Garbage Collection - " . $plateNumber;
-                $operationModel->update($schedule['operation_id'], $operationName, $bodyNumber);
+                $operationTypeId = 1;
+                $operationId = $operationModel->create($operationName, $operationTypeId, $adminId, $bodyNumber);
+                
+                $areaId = 1;
+                
+                $scheduleModel->create(
+                    $operationId,
+                    $routeId,
+                    $areaId,
+                    $truckId,
+                    $adminId,
+                    $foremanId,
+                    $scheduleType,
+                    'Parked'
+                );
             }
             
-            // Keep the existing status - don't change it during update
-            $scheduleModel->updateWithForeman(
-                $schedule['schedule_id'],
-                $routeId,
-                $foremanId,
-                $scheduleType,
-                $schedule['status'] // Preserve current status
-            );
-        } else {
-            // Create new operation and schedule if it doesn't exist
-            $adminId = $_SESSION['user_id'] ?? 1;
-            $operationName = "Garbage Collection - " . $plateNumber;
-            $operationTypeId = 1; // Garbage Collection
-            $operationId = $operationModel->create($operationName, $operationTypeId, $adminId, $bodyNumber);  // ADD THIS
-            
-            $areaId = 1; // Default area
-            
-            $scheduleModel->create(
-                $operationId,  // CHANGED: use the operation ID
-                $routeId,
-                $areaId,
-                $truckId,
-                $adminId,
-                $foremanId,
-                $scheduleType,
-                'Parked' // Default status for new schedules
-            );
-            }
-            
-            $_SESSION['success'] = 'Truck, route, and operation updated successfully.';
+            $_SESSION['success'] = 'Truck, route, and coordinates updated successfully.';
             header('Location: /admin/operations/garbage_collection');
             exit();
         }

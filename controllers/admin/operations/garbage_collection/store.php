@@ -26,8 +26,16 @@ $scheduleType = $_POST['schedule_type'] ?? 'daily';
 // Route data
 $routeName = trim($_POST['route_name'] ?? '');
 $startPoint = trim($_POST['start_point'] ?? '');
-$midPoint = trim($_POST['mid_point'] ?? ''); // Optional
+$midPoint = trim($_POST['mid_point'] ?? '');
 $endPoint = trim($_POST['end_point'] ?? '');
+
+// Coordinate data
+$startLat = $_POST['start_lat'] ?? null;
+$startLon = $_POST['start_lon'] ?? null;
+$midLat = $_POST['mid_lat'] ?? null;
+$midLon = $_POST['mid_lon'] ?? null;
+$endLat = $_POST['end_lat'] ?? null;
+$endLon = $_POST['end_lon'] ?? null;
 
 $errors = [];
 
@@ -61,6 +69,20 @@ if (empty($endPoint)) {
     $errors[] = 'End point is required.';
 }
 
+// Validate coordinates
+if (empty($startLat) || empty($startLon)) {
+    $errors[] = 'Start point coordinates are required. Please select a location on the map.';
+}
+
+if (empty($endLat) || empty($endLon)) {
+    $errors[] = 'End point coordinates are required. Please select a location on the map.';
+}
+
+// Validate mid point coordinates if mid point address is provided
+if (!empty($midPoint) && (empty($midLat) || empty($midLon))) {
+    $errors[] = 'Mid point coordinates are required if mid point is specified. Please select a location on the map.';
+}
+
 if (!in_array($scheduleType, ['daily', 'weekly'])) {
     $errors[] = 'Invalid schedule type.';
 }
@@ -70,7 +92,7 @@ if (count($errors) === 0) {
         $truckModel = new Truck();
         $scheduleModel = new OperationSchedule();
         $routeModel = new Route();
-        $operationModel = new Operation();  // ADD THIS LINE
+        $operationModel = new Operation();
         
         // Get admin ID
         $adminId = $_SESSION['user_id'] ?? 1;
@@ -80,17 +102,22 @@ if (count($errors) === 0) {
         $operationTypeId = 1; // Garbage Collection
         $operationId = $operationModel->create($operationName, $operationTypeId, $adminId, $bodyNumber);
         
-        // Step 2: Create route
-        $routeId = $routeModel->createRoute($routeName, $startPoint, $midPoint, $endPoint);
+        // Step 2: Create route with coordinates
+        $routeId = $routeModel->createRouteWithCoordinates(
+            $routeName,
+            $startPoint, $startLat, $startLon,
+            $midPoint, $midLat, $midLon,
+            $endPoint, $endLat, $endLon
+        );
         
         // Step 3: Create truck
         $truckId = $truckModel->create($plateNumber, $bodyNumber, $foremanId);
         
         // Step 4: Create operation schedule
-        $areaId = 1; // Default area (you can modify this later if needed)
+        $areaId = 1;
         
         $scheduleModel->create(
-            $operationId,  // CHANGED: use the operation ID we just created
+            $operationId,
             $routeId,
             $areaId,
             $truckId,
@@ -100,7 +127,7 @@ if (count($errors) === 0) {
             'Parked' // Default status
         );
         
-        $_SESSION['success'] = 'Truck and route added successfully.';
+        $_SESSION['success'] = 'Truck and route with coordinates added successfully.';
         header('Location: /admin/operations/garbage_collection');
         exit();
         

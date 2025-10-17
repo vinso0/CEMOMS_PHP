@@ -202,7 +202,7 @@ class Operation
     {
         // Check if operation has active schedules
         $checkSql = "SELECT COUNT(*) as count 
-                     FROM operation_schedule 
+                     FROM operation_schedule
                      WHERE operation_id = :operation_id 
                      AND status IN ('Scheduled', 'Dispatched')";
         

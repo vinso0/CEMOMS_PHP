@@ -291,20 +291,29 @@ ob_start();
 
                     <div class="mb-3">
                         <label for="start-point" class="form-label">Start Point <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="start-point" name="start_point" placeholder="Start typing address..." required autocomplete="off">
+                        <input type="text" class="form-control" id="start-point" name="start_point" required autocomplete="off">
                         <div id="start-suggestions" class="autocomplete-suggestions"></div>
+                        <!-- Add hidden fields for coordinates -->
+                        <input type="hidden" id="start-lat" name="start_lat">
+                        <input type="hidden" id="start-lon" name="start_lon">
                     </div>
 
                     <div class="mb-3">
                         <label for="mid-point" class="form-label">Mid Point (Optional)</label>
-                        <input type="text" class="form-control" id="mid-point" name="mid_point" placeholder="Start typing address..." autocomplete="off">
+                        <input type="text" class="form-control" id="mid-point" name="mid_point" autocomplete="off">
                         <div id="mid-suggestions" class="autocomplete-suggestions"></div>
+                        <!-- Add hidden fields for coordinates -->
+                        <input type="hidden" id="mid-lat" name="mid_lat">
+                        <input type="hidden" id="mid-lon" name="mid_lon">
                     </div>
 
                     <div class="mb-3">
                         <label for="end-point" class="form-label">End Point <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="end-point" name="end_point" placeholder="Start typing address..." required autocomplete="off">
+                        <input type="text" class="form-control" id="end-point" name="end_point" required autocomplete="off">
                         <div id="end-suggestions" class="autocomplete-suggestions"></div>
+                        <!-- Add hidden fields for coordinates -->
+                        <input type="hidden" id="end-lat" name="end_lat">
+                        <input type="hidden" id="end-lon" name="end_lon">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -383,18 +392,27 @@ ob_start();
                         <label for="edit-start-point" class="form-label">Start Point <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="edit-start-point" name="start_point" required autocomplete="off">
                         <div id="edit-start-suggestions" class="autocomplete-suggestions"></div>
+                        <!-- Add hidden fields for coordinates -->
+                        <input type="hidden" id="edit-start-lat" name="start_lat">
+                        <input type="hidden" id="edit-start-lon" name="start_lon">
                     </div>
 
                     <div class="mb-3">
                         <label for="edit-mid-point" class="form-label">Mid Point (Optional)</label>
                         <input type="text" class="form-control" id="edit-mid-point" name="mid_point" autocomplete="off">
                         <div id="edit-mid-suggestions" class="autocomplete-suggestions"></div>
+                        <!-- Add hidden fields for coordinates -->
+                        <input type="hidden" id="edit-mid-lat" name="mid_lat">
+                        <input type="hidden" id="edit-mid-lon" name="mid_lon">
                     </div>
 
                     <div class="mb-3">
                         <label for="edit-end-point" class="form-label">End Point <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="edit-end-point" name="end_point" required autocomplete="off">
                         <div id="edit-end-suggestions" class="autocomplete-suggestions"></div>
+                        <!-- Add hidden fields for coordinates -->
+                        <input type="hidden" id="edit-end-lat" name="end_lat">
+                        <input type="hidden" id="edit-end-lon" name="end_lon">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -537,9 +555,11 @@ ob_start();
 let debounceTimer;
 let currentFocus = -1;
 
-function setupAutocomplete(inputId, suggestionsId) {
+function setupAutocomplete(inputId, suggestionsId, latId, lonId) {
     const input = document.getElementById(inputId);
     const suggestionsContainer = document.getElementById(suggestionsId);
+    const latInput = document.getElementById(latId);
+    const lonInput = document.getElementById(lonId);
 
     if (!input || !suggestionsContainer) return;
 
@@ -588,12 +608,11 @@ function setupAutocomplete(inputId, suggestionsId) {
                         
                         div.addEventListener('click', () => {
                             input.value = place.display_name;
+                            // Store coordinates in hidden fields
+                            if (latInput) latInput.value = place.lat;
+                            if (lonInput) lonInput.value = place.lon;
                             suggestionsContainer.innerHTML = '';
                             suggestionsContainer.style.display = 'none';
-                            
-                            // Store coordinates as data attributes for future use
-                            input.setAttribute('data-lat', place.lat);
-                            input.setAttribute('data-lon', place.lon);
                         });
                         
                         suggestionsContainer.appendChild(div);
@@ -661,14 +680,14 @@ function setupAutocomplete(inputId, suggestionsId) {
 // Initialize autocomplete for all route inputs when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     // Add modal autocomplete
-    setupAutocomplete('start-point', 'start-suggestions');
-    setupAutocomplete('mid-point', 'mid-suggestions');
-    setupAutocomplete('end-point', 'end-suggestions');
+    setupAutocomplete('start-point', 'start-suggestions', 'start-lat', 'start-lon');
+    setupAutocomplete('mid-point', 'mid-suggestions', 'mid-lat', 'mid-lon');
+    setupAutocomplete('end-point', 'end-suggestions', 'end-lat', 'end-lon');
     
     // Edit modal autocomplete
-    setupAutocomplete('edit-start-point', 'edit-start-suggestions');
-    setupAutocomplete('edit-mid-point', 'edit-mid-suggestions');
-    setupAutocomplete('edit-end-point', 'edit-end-suggestions');
+    setupAutocomplete('edit-start-point', 'edit-start-suggestions', 'edit-start-lat', 'edit-start-lon');
+    setupAutocomplete('edit-mid-point', 'edit-mid-suggestions', 'edit-mid-lat', 'edit-mid-lon');
+    setupAutocomplete('edit-end-point', 'edit-end-suggestions', 'edit-end-lat', 'edit-end-lon');
     
     // Real-time search for trucks table
     const searchInput = document.getElementById('filter-search');
@@ -810,6 +829,14 @@ function populateEditModal(truck) {
     document.getElementById('edit-start-point').value = truck.start_point || '';
     document.getElementById('edit-mid-point').value = truck.mid_point || '';
     document.getElementById('edit-end-point').value = truck.end_point || '';
+
+    // Populate coordinates
+    document.getElementById('edit-start-lat').value = truck.start_lat || '';
+    document.getElementById('edit-start-lon').value = truck.start_lon || '';
+    document.getElementById('edit-mid-lat').value = truck.mid_lat || '';
+    document.getElementById('edit-mid-lon').value = truck.mid_lon || '';
+    document.getElementById('edit-end-lat').value = truck.end_lat || '';
+    document.getElementById('edit-end-lon').value = truck.end_lon || '';
 }
 
 function populateDeleteModal(truck) {
