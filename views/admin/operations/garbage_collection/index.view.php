@@ -12,6 +12,27 @@ ob_start();
     </button>
 </div>
 
+<?php if (isset($_SESSION['success'])): ?>
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        <?= htmlspecialchars($_SESSION['success']) ?>
+    </div>
+    <?php unset($_SESSION['success']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['errors'])): ?>
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i>
+        <strong>Please fix the following errors:</strong>
+        <ul class="mb-0 mt-2">
+            <?php foreach ($_SESSION['errors'] as $error): ?>
+                <li><?= htmlspecialchars($error) ?></li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+    <?php unset($_SESSION['errors']); ?>
+<?php endif; ?>
+
 <!-- Filters Section -->
 <div class="filters-container">
     <div class="filters-header">
@@ -19,11 +40,6 @@ ob_start();
     </div>
     <div class="filters-content">
         <div class="filter-row">
-            <div class="filter-item">
-                <label for="filter-date">Date</label>
-                <input type="date" id="filter-date" class="form-control">
-            </div>
-            
             <div class="filter-item">
                 <label for="filter-truck">Truck</label>
                 <select id="filter-truck" class="form-select">
@@ -44,7 +60,7 @@ ob_start();
                     <option value="">All Routes</option>
                     <?php if (!empty($routes)): ?>
                         <?php foreach ($routes as $route): ?>
-                            <option value="<?= htmlspecialchars($route['id']) ?>">
+                            <option value="<?= htmlspecialchars($route['route_id']) ?>">
                                 <?= htmlspecialchars($route['route_name']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -63,6 +79,17 @@ ob_start();
                             </option>
                         <?php endforeach; ?>
                     <?php endif; ?>
+                </select>
+            </div>
+            
+            <div class="filter-item">
+                <label for="filter-status">Status</label>
+                <select id="filter-status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="Dispatched">Dispatched</option>
+                    <option value="Parked">Parked</option>
+                    <option value="Completed">Completed</option>
                 </select>
             </div>
             
@@ -93,35 +120,33 @@ ob_start();
             <thead>
                 <tr>
                     <th>Plate Number</th>
-                    <th>Type</th>
-                    <th>Personnel</th>
+                    <th>Body Number</th>
                     <th>Route Assigned</th>
                     <th>Foreman</th>
-                    <th>Schedule</th>
+                    <th>Schedule Type</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="trucks-tbody">
                 <?php if (!empty($trucks)): ?>
                     <?php foreach ($trucks as $truck): ?>
-                        <tr>
+                        <tr data-truck-id="<?= $truck['id'] ?>" 
+                            data-route-id="<?= $truck['route_id'] ?? '' ?>" 
+                            data-foreman-id="<?= $truck['foreman_id'] ?? '' ?>"
+                            data-status="<?= htmlspecialchars($truck['status'] ?? 'Scheduled') ?>">
                             <td><strong><?= htmlspecialchars($truck['plate_number']) ?></strong></td>
-                            <td><?= htmlspecialchars($truck['type']) ?></td>
-                            <td><?= htmlspecialchars($truck['personnel']) ?></td>
+                            <td><?= htmlspecialchars($truck['body_number']) ?></td>
                             <td><?= htmlspecialchars($truck['route_name'] ?? 'Not Assigned') ?></td>
                             <td><?= htmlspecialchars($truck['foreman_name'] ?? 'Not Assigned') ?></td>
-                            <td><?= htmlspecialchars($truck['schedule']) ?></td>
+                            <td><?= htmlspecialchars($truck['schedule'] ?? 'N/A') ?></td>
                             <td>
-                                <span class="status-badge status-<?= htmlspecialchars($truck['status']) ?>">
-                                    <?= ucfirst(htmlspecialchars($truck['status'])) ?>
+                                <span class="status-badge status-<?= strtolower(str_replace(' ', '-', $truck['status'] ?? 'scheduled')) ?>">
+                                    <?= ucfirst(htmlspecialchars($truck['status'] ?? 'Scheduled')) ?>
                                 </span>
                             </td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn btn-sm btn-info" title="View Details" onclick="viewTruck(<?= $truck['id'] ?>)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
                                     <button class="btn btn-sm btn-warning" title="Edit" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#editTruckModal"
@@ -140,7 +165,7 @@ ob_start();
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="8" class="text-center">
+                        <td colspan="7" class="text-center">
                             <div class="empty-state">
                                 <i class="fas fa-truck"></i>
                                 <h5>No Trucks Found</h5>
@@ -169,6 +194,7 @@ ob_start();
                     <th>Foreman</th>
                     <th>Dispatch Time</th>
                     <th>Return Time</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -181,6 +207,11 @@ ob_start();
                             <td><?= htmlspecialchars($log['foreman_name']) ?></td>
                             <td><?= htmlspecialchars($log['dispatch_time']) ?></td>
                             <td><?= htmlspecialchars($log['return_time'] ?? 'Not Returned') ?></td>
+                            <td>
+                                <span class="status-badge status-<?= strtolower($log['status']) ?>">
+                                    <?= ucfirst(htmlspecialchars($log['status'])) ?>
+                                </span>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
@@ -207,85 +238,69 @@ ob_start();
                 <h5 class="modal-title">Add New Truck</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="/admin/operations/collection/truck/store">
+            <form method="POST" action="/admin/operations/garbage_collection/store">
                 <div class="modal-body">
                     <h6 class="mb-3">Truck Details</h6>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="plate-number" class="form-label">Plate Number <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="plate-number" name="plate_number" required>
+                            <input type="text" class="form-control" id="plate-number" name="plate_number" placeholder="e.g., ABC 1234" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="truck-type" class="form-label">Truck Type <span class="text-danger">*</span></label>
-                            <select class="form-select" id="truck-type" name="type" required>
-                                <option value="">Select Type</option>
-                                <option value="Compactor">Compactor</option>
-                                <option value="Dump Truck">Dump Truck</option>
-                                <option value="Roll-off">Roll-off</option>
-                                <option value="Side Loader">Side Loader</option>
-                            </select>
+                            <label for="body-number" class="form-label">Body Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="body-number" name="body_number" placeholder="e.g., SWM-309" required>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="personnel" class="form-label">Personnel (Driver & Crew) <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="personnel" name="personnel" placeholder="e.g., Juan Dela Cruz (Driver), Pedro Santos (Crew)" required>
-                    </div>
-
                     <hr class="my-4">
-                    <h6 class="mb-3">Route Assignment</h6>
+                    <h6 class="mb-3">Assignment</h6>
+                    
                     <div class="mb-3">
-                        <label for="route-start" class="form-label">Starting Point <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="route-start" name="route_start" placeholder="e.g., Bagong Barrio" required>
+                        <label for="assigned-foreman" class="form-label">Assigned Foreman <span class="text-danger">*</span></label>
+                        <select class="form-select" id="assigned-foreman" name="foreman_id" required>
+                            <option value="">Select Foreman</option>
+                            <?php if (!empty($foremen)): ?>
+                                <?php foreach ($foremen as $foreman): ?>
+                                    <option value="<?= htmlspecialchars($foreman['id']) ?>">
+                                        <?= htmlspecialchars($foreman['username']) ?> - <?= htmlspecialchars($foreman['role']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
                     </div>
 
                     <div class="mb-3">
-                        <label for="route-midpoints" class="form-label">Midpoints (Optional)</label>
-                        <textarea class="form-control" id="route-midpoints" name="route_midpoints" rows="2" placeholder="e.g., Grace Park, Maypajo, Talipapa"></textarea>
+                        <label for="assigned-route" class="form-label">Assigned Route <span class="text-danger">*</span></label>
+                        <select class="form-select" id="assigned-route" name="route_id" required>
+                            <option value="">Select Route</option>
+                            <?php if (!empty($routes)): ?>
+                                <?php foreach ($routes as $route): ?>
+                                    <option value="<?= htmlspecialchars($route['route_id']) ?>">
+                                        <?= htmlspecialchars($route['route_name']) ?> (<?= htmlspecialchars($route['start_point']) ?> → <?= htmlspecialchars($route['end_point']) ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="route-endpoint" class="form-label">End Point <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="route-endpoint" name="route_endpoint" placeholder="e.g., Landfill/Transfer Station" required>
-                    </div>
-
-                    <hr class="my-4">
-                    <h6 class="mb-3">Assignment & Schedule</h6>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="assigned-foreman" class="form-label">Assigned Foreman <span class="text-danger">*</span></label>
-                            <select class="form-select" id="assigned-foreman" name="foreman_id" required>
-                                <option value="">Select Foreman</option>
-                                <?php if (!empty($foremen)): ?>
-                                    <?php foreach ($foremen as $foreman): ?>
-                                        <option value="<?= htmlspecialchars($foreman['id']) ?>">
-                                            <?= htmlspecialchars($foreman['username']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </select>
-                        </div>
-
                         <div class="col-md-6 mb-3">
                             <label for="schedule-type" class="form-label">Schedule Type <span class="text-danger">*</span></label>
                             <select class="form-select" id="schedule-type" name="schedule_type" required>
-                                <option value="">Select Schedule</option>
-                                <option value="Daily">Daily</option>
-                                <option value="Mon-Wed-Fri">Monday, Wednesday, Friday</option>
-                                <option value="Tue-Thu-Sat">Tuesday, Thursday, Saturday</option>
-                                <option value="Custom">Custom Days</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
                             </select>
                         </div>
-                    </div>
 
-                    <div class="mb-3">
-                        <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-                        <select class="form-select" id="status" name="status" required>
-                            <option value="available">Available</option>
-                            <option value="on-route">On Route</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="Scheduled">Scheduled</option>
+                                <option value="Dispatched">Dispatched</option>
+                                <option value="Parked">Parked</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -309,7 +324,7 @@ ob_start();
                 <h5 class="modal-title">Edit Truck</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="/admin/operations/collection/truck/update">
+            <form method="POST" action="/admin/operations/garbage_collection/update">
                 <div class="modal-body">
                     <input type="hidden" id="edit-truck-id" name="id">
                     
@@ -320,76 +335,60 @@ ob_start();
                             <input type="text" class="form-control" id="edit-plate-number" name="plate_number" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="edit-truck-type" class="form-label">Truck Type <span class="text-danger">*</span></label>
-                            <select class="form-select" id="edit-truck-type" name="type" required>
-                                <option value="">Select Type</option>
-                                <option value="Compactor">Compactor</option>
-                                <option value="Dump Truck">Dump Truck</option>
-                                <option value="Roll-off">Roll-off</option>
-                                <option value="Side Loader">Side Loader</option>
-                            </select>
+                            <label for="edit-body-number" class="form-label">Body Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit-body-number" name="body_number" required>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="edit-personnel" class="form-label">Personnel <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="edit-personnel" name="personnel" required>
-                    </div>
-
                     <hr class="my-4">
-                    <h6 class="mb-3">Route Assignment</h6>
+                    <h6 class="mb-3">Assignment</h6>
+
                     <div class="mb-3">
-                        <label for="edit-route-start" class="form-label">Starting Point <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="edit-route-start" name="route_start" required>
+                        <label for="edit-assigned-foreman" class="form-label">Assigned Foreman <span class="text-danger">*</span></label>
+                        <select class="form-select" id="edit-assigned-foreman" name="foreman_id" required>
+                            <option value="">Select Foreman</option>
+                            <?php if (!empty($foremen)): ?>
+                                <?php foreach ($foremen as $foreman): ?>
+                                    <option value="<?= htmlspecialchars($foreman['id']) ?>">
+                                        <?= htmlspecialchars($foreman['username']) ?> - <?= htmlspecialchars($foreman['role']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
                     </div>
 
                     <div class="mb-3">
-                        <label for="edit-route-midpoints" class="form-label">Midpoints</label>
-                        <textarea class="form-control" id="edit-route-midpoints" name="route_midpoints" rows="2"></textarea>
+                        <label for="edit-assigned-route" class="form-label">Assigned Route <span class="text-danger">*</span></label>
+                        <select class="form-select" id="edit-assigned-route" name="route_id" required>
+                            <option value="">Select Route</option>
+                            <?php if (!empty($routes)): ?>
+                                <?php foreach ($routes as $route): ?>
+                                    <option value="<?= htmlspecialchars($route['route_id']) ?>">
+                                        <?= htmlspecialchars($route['route_name']) ?> (<?= htmlspecialchars($route['start_point']) ?> → <?= htmlspecialchars($route['end_point']) ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="edit-route-endpoint" class="form-label">End Point <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="edit-route-endpoint" name="route_endpoint" required>
-                    </div>
-
-                    <hr class="my-4">
-                    <h6 class="mb-3">Assignment & Schedule</h6>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="edit-assigned-foreman" class="form-label">Assigned Foreman <span class="text-danger">*</span></label>
-                            <select class="form-select" id="edit-assigned-foreman" name="foreman_id" required>
-                                <option value="">Select Foreman</option>
-                                <?php if (!empty($foremen)): ?>
-                                    <?php foreach ($foremen as $foreman): ?>
-                                        <option value="<?= htmlspecialchars($foreman['id']) ?>">
-                                            <?= htmlspecialchars($foreman['username']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </select>
-                        </div>
-
                         <div class="col-md-6 mb-3">
                             <label for="edit-schedule-type" class="form-label">Schedule Type <span class="text-danger">*</span></label>
                             <select class="form-select" id="edit-schedule-type" name="schedule_type" required>
-                                <option value="">Select Schedule</option>
-                                <option value="Daily">Daily</option>
-                                <option value="Mon-Wed-Fri">Monday, Wednesday, Friday</option>
-                                <option value="Tue-Thu-Sat">Tuesday, Thursday, Saturday</option>
-                                <option value="Custom">Custom Days</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
                             </select>
                         </div>
-                    </div>
 
-                    <div class="mb-3">
-                        <label for="edit-status" class="form-label">Status <span class="text-danger">*</span></label>
-                        <select class="form-select" id="edit-status" name="status" required>
-                            <option value="available">Available</option>
-                            <option value="on-route">On Route</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit-status" class="form-label">Status <span class="text-danger">*</span></label>
+                            <select class="form-select" id="edit-status" name="status" required>
+                                <option value="Scheduled">Scheduled</option>
+                                <option value="Dispatched">Dispatched</option>
+                                <option value="Parked">Parked</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -405,49 +404,123 @@ ob_start();
     </div>
 </div>
 
+<!-- Dispatch Modal -->
+<div class="modal fade" id="dispatchModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dispatch & Return Log</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="/admin/operations/garbage_collection/log">
+                <div class="modal-body">
+                    <input type="hidden" id="dispatch-truck-id" name="truck_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Truck</label>
+                        <input type="text" class="form-control" id="dispatch-truck-plate" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dispatch-date" class="form-label">Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="dispatch-date" name="date" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="dispatch-time" class="form-label">Dispatch Time <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" id="dispatch-time" name="dispatch_time" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="return-time" class="form-label">Return Time</label>
+                            <input type="time" class="form-control" id="return-time" name="return_time">
+                            <small class="form-text text-muted">Leave blank if not yet returned</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="log-notes" class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" id="log-notes" name="notes" rows="3" placeholder="Any observations or issues..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Save Log
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 function applyFilters() {
-    const date = document.getElementById('filter-date').value;
     const truck = document.getElementById('filter-truck').value;
     const route = document.getElementById('filter-route').value;
     const foreman = document.getElementById('filter-foreman').value;
-    const search = document.getElementById('filter-search').value;
+    const status = document.getElementById('filter-status').value;
+    const search = document.getElementById('filter-search').value.toLowerCase();
     
-    console.log('Applying filters:', { date, truck, route, foreman, search });
-    // Implement filter logic here
+    const rows = document.querySelectorAll('#trucks-tbody tr');
+    
+    rows.forEach(row => {
+        const truckId = row.dataset.truckId;
+        const routeId = row.dataset.routeId;
+        const foremanId = row.dataset.foremanId;
+        const rowStatus = row.dataset.status;
+        const rowText = row.textContent.toLowerCase();
+        
+        let showRow = true;
+        
+        if (truck && truckId !== truck) showRow = false;
+        if (route && routeId !== route) showRow = false;
+        if (foreman && foremanId !== foreman) showRow = false;
+        if (status && rowStatus !== status) showRow = false;
+        if (search && !rowText.includes(search)) showRow = false;
+        
+        row.style.display = showRow ? '' : 'none';
+    });
 }
 
 function resetFilters() {
-    document.getElementById('filter-date').value = '';
     document.getElementById('filter-truck').value = '';
     document.getElementById('filter-route').value = '';
     document.getElementById('filter-foreman').value = '';
+    document.getElementById('filter-status').value = '';
     document.getElementById('filter-search').value = '';
+    
+    const rows = document.querySelectorAll('#trucks-tbody tr');
+    rows.forEach(row => {
+        row.style.display = '';
+    });
 }
 
 function populateEditModal(truck) {
     document.getElementById('edit-truck-id').value = truck.id;
     document.getElementById('edit-plate-number').value = truck.plate_number;
-    document.getElementById('edit-truck-type').value = truck.type;
-    document.getElementById('edit-personnel').value = truck.personnel;
-    document.getElementById('edit-route-start').value = truck.route_start || '';
-    document.getElementById('edit-route-midpoints').value = truck.route_midpoints || '';
-    document.getElementById('edit-route-endpoint').value = truck.route_endpoint || '';
+    document.getElementById('edit-body-number').value = truck.body_number;
     document.getElementById('edit-assigned-foreman').value = truck.foreman_id || '';
-    document.getElementById('edit-schedule-type').value = truck.schedule || '';
-    document.getElementById('edit-status').value = truck.status;
+    document.getElementById('edit-assigned-route').value = truck.route_id || '';
+    document.getElementById('edit-schedule-type').value = truck.schedule || 'daily';
+    document.getElementById('edit-status').value = truck.status || 'Scheduled';
 }
 
 function populateDispatchModal(truck) {
     document.getElementById('dispatch-truck-id').value = truck.id;
-    document.getElementById('dispatch-truck-plate').value = truck.plate_number;
+    document.getElementById('dispatch-truck-plate').value = truck.plate_number + ' (' + truck.body_number + ')';
     document.getElementById('dispatch-date').value = new Date().toISOString().split('T')[0];
 }
 
-function viewTruck(id) {
-    console.log('Viewing truck:', id);
-    // Implement view details
-}
+// Real-time search
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('filter-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
+});
 </script>
 
 <?php

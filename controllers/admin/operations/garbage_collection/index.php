@@ -1,11 +1,24 @@
 <?php
+
 adminAuth();
 
-use Models\Schedule;
+use Models\Truck;
+use Models\Route;
+use Models\Foreman;
 
-require_once base_path('models/Schedule.php');
+$truckModel = new Truck();
+$routeModel = new Route();
+$foremanModel = new Foreman();
 
-$scheduleModel = new Schedule();
-$collections = $scheduleModel->getAllSchedules();
+// Get all data
+$trucks = $truckModel->getAllTrucks();
+$routes = $routeModel->getAllRoutes();
+$foremen = $foremanModel->findAll();
+$dispatch_logs = $truckModel->getDispatchLogs(10);
 
-require base_path('views/admin/operations/garbage_collection/index.view.php');
+view('admin/operations/garbage_collection/index.view.php', [
+    'trucks' => $trucks,
+    'routes' => $routes,
+    'foremen' => $foremen,
+    'dispatch_logs' => $dispatch_logs
+]);
