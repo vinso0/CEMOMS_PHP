@@ -52,6 +52,9 @@ $router->get('/admin/operations/cleanup', function() {
 
 // Foreman
 $router->get('/foreman', 'controllers/foreman/dashboard.php');
+$router->get('/foreman/reports', 'controllers/foreman/reports/index.php');
+$router->get('/foreman/notifications', 'controllers/foreman/notifications/index.php');
+$router->get('/foreman/account', 'controllers/foreman/account.php');
 
 // API Routes
 $router->get('/api/geocode', 'controllers/api/geocode.php');

@@ -6,10 +6,12 @@ adminAuth();
 use Models\Truck;
 use Models\OperationSchedule;
 use Models\Route;
+use Models\Operation;
 
 require_once base_path('models/Truck.php');
 require_once base_path('models/OperationSchedule.php');
 require_once base_path('models/Route.php');
+require_once base_path('models/Operation.php');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /admin/operations/garbage_collection');
@@ -68,20 +70,27 @@ if (count($errors) === 0) {
         $truckModel = new Truck();
         $scheduleModel = new OperationSchedule();
         $routeModel = new Route();
+        $operationModel = new Operation();  // ADD THIS LINE
         
-        // Create route first
+        // Get admin ID
+        $adminId = $_SESSION['user_id'] ?? 1;
+        
+        // Step 1: Create the operation first
+        $operationName = "Garbage Collection - " . $plateNumber;
+        $operationTypeId = 1; // Garbage Collection
+        $operationId = $operationModel->create($operationName, $operationTypeId, $adminId, $bodyNumber);
+        
+        // Step 2: Create route
         $routeId = $routeModel->createRoute($routeName, $startPoint, $midPoint, $endPoint);
         
-        // Create truck
+        // Step 3: Create truck
         $truckId = $truckModel->create($plateNumber, $bodyNumber, $foremanId);
         
-        // Create operation schedule with default status "Parked"
-        $adminId = $_SESSION['user_id'] ?? 1;
-        $operationId = 1; // Garbage Collection operation type
+        // Step 4: Create operation schedule
         $areaId = 1; // Default area (you can modify this later if needed)
         
         $scheduleModel->create(
-            $operationId,
+            $operationId,  // CHANGED: use the operation ID we just created
             $routeId,
             $areaId,
             $truckId,

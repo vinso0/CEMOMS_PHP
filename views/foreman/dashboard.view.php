@@ -5,6 +5,40 @@ $pageTitle = 'Dashboard';
 ob_start();
 ?>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+.dashboard-stats{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+    margin-bottom:12px;
+}
+.dashboard-stats .stat-card{
+    padding:8px 10px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+    border-radius:6px;
+    background:#fff;
+    box-shadow:0 1px 3px rgba(0,0,0,0.05);
+}
+.dashboard-stats .stat-icon{
+    width:36px;
+    height:36px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:6px;
+    color:#fff;
+}
+.dashboard-stats .stat-info h3{
+    font-size:0.85rem;
+    margin:0;
+}
+.dashboard-stats .stat-number{
+    font-size:1rem;
+    font-weight:600;
+}
+</style>
 <!--
 <div class="content-header">
     <h1 class="content-title">Dashboard</h1>
@@ -113,11 +147,11 @@ ob_start();
             <input type="date" id="date-range" class="form-control">
         </div>
         
-        <div class="filter-actions">
-            <button class="btn btn-primary" onclick="applyFilters()">
+        <div class="filter-actions" style="display:flex; gap:8px; justify-content:center;">
+            <button class="btn btn-primary" style="flex:1; padding:6px 10px; font-size:0.85rem;" onclick="applyFilters()">
                 <i class="fas fa-search"></i> Apply
             </button>
-            <button class="btn btn-secondary" onclick="resetFilters()">
+            <button class="btn btn-secondary" style="flex:1; padding:6px 10px; font-size:0.85rem;" onclick="resetFilters()">
                 <i class="fas fa-redo"></i> Reset
             </button>
         </div>
@@ -141,62 +175,11 @@ ob_start();
         <div id="map" class="dashboard-map" style="height: 500px; width: 100%; border: 1px solid #ccc; border-radius: 8px; margin: 20px 0;"></div>
 </div>
 
-<!-- Recent Reports Table -->
-<div class="reports-container">
-    <div class="reports-header">
-        <h3><i class="fas fa-table"></i> Recent Reports</h3>
-        <button class="btn btn-primary btn-sm" onclick="window.location.href='/admin/reports'">
-            <i class="fas fa-eye"></i> View All
-        </button>
-    </div>
-    <div class="reports-table-wrapper">
-        <table class="reports-table">
-            <thead>
-                <tr>
-                    <th>Report ID</th>
-                    <th>Date</th>
-                    <th>Operation Type</th>
-                    <th>Location</th>
-                    <th>Foreman</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($recent_reports)): ?>
-                    <?php foreach ($recent_reports as $report): ?>
-                        <tr>
-                            <td>#<?= htmlspecialchars($report['id']) ?></td>
-                            <td><?= htmlspecialchars($report['date']) ?></td>
-                            <td><?= htmlspecialchars($report['operation_type']) ?></td>
-                            <td><?= htmlspecialchars($report['area']) ?></td>
-                            <td><?= htmlspecialchars($report['foreman']) ?></td>
-                            <td>
-                                <span class="status-badge status-<?= htmlspecialchars($report['status']) ?>">
-                                    <?= ucfirst(htmlspecialchars($report['status'])) ?>
-                                </span>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-primary" title="View Details">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="7" class="text-center">
-                            <div class="empty-state">
-                                <i class="fas fa-inbox"></i>
-                                <h5>No Recent Reports</h5>
-                                <p>Reports will appear here once operations are logged</p>
-                            </div>
-                        </td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
+<!-- Reports panel moved to separate view -->
+<div class="card" style="padding:18px; margin-bottom:18px;">
+    <h3 style="margin:0 0 10px 0;">Reports</h3>
+    <p style="margin:0 0 12px 0;">Submit and view your reports from the Reports panel.</p>
+    <a href="/foreman/reports" class="btn btn-primary">Go to Reports</a>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -253,6 +236,36 @@ function resetFilters() {
             .bindPopup('Caloocan City (South), Philippines')
             .openPopup(); */
     });
+</script>
+
+<script>
+function applyMyReportFilters() {
+    const status = document.getElementById('filter-status').value.toLowerCase();
+    const op = document.getElementById('filter-op').value.toLowerCase();
+    const date = document.getElementById('filter-date').value;
+
+    const tbody = document.getElementById('my-reports-body');
+    if (!tbody) return;
+
+    Array.from(tbody.querySelectorAll('tr')).forEach(row => {
+        const cols = row.querySelectorAll('td');
+        if (cols.length === 0) return; // skip header/empty
+
+        const rowDate = (cols[1]?.textContent || '').trim();
+        const rowOp = (cols[2]?.textContent || '').trim().toLowerCase();
+        const rowStatus = (cols[4]?.textContent || '').trim().toLowerCase();
+
+        let show = true;
+        if (status && rowStatus.indexOf(status) === -1) show = false;
+        if (op && rowOp.indexOf(op) === -1) show = false;
+        if (date) {
+            // match YYYY-MM-DD or similar; do simple contains
+            if (rowDate.indexOf(date) === -1) show = false;
+        }
+
+        row.style.display = show ? '' : 'none';
+    });
+}
 </script>
 
 <?php

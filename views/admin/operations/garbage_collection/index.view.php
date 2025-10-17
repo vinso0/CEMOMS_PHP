@@ -533,8 +533,9 @@ ob_start();
 </style>
 
 <script>
-// Nominatim geocoding for address autocomplete
+//Nominatim geocoding for address autocomplete
 let debounceTimer;
+let currentFocus = -1;
 
 function setupAutocomplete(inputId, suggestionsId) {
     const input = document.getElementById(inputId);
@@ -544,58 +545,222 @@ function setupAutocomplete(inputId, suggestionsId) {
 
     input.addEventListener('input', function() {
         clearTimeout(debounceTimer);
-        const query = this.value;
+        const query = this.value.trim();
 
-        if (query.length < 3) {
+        if (query.length < 2) {
             suggestionsContainer.innerHTML = '';
+            suggestionsContainer.style.display = 'none';
             return;
         }
 
-        debounceTimer = setTimeout(() => {
-        fetch(`/api/geocode?q=${encodeURIComponent(query)}`)
-            .then(response => response.json())
-            .then(data => {
-                suggestionsContainer.innerHTML = '';
-                if (data.length === 0) {
-                    suggestionsContainer.innerHTML = '<div class="autocomplete-suggestion">No results found</div>';
-                    return;
-                }
+        // Show loading indicator
+        suggestionsContainer.innerHTML = '<div class="autocomplete-suggestion loading">Searching...</div>';
+        suggestionsContainer.style.display = 'block';
 
-                data.slice(0, 5).forEach(place => {
-                    const div = document.createElement('div');
-                    div.className = 'autocomplete-suggestion';
-                    div.textContent = place.display_name;
-                    div.addEventListener('click', () => {
-                        input.value = place.display_name;
-                        suggestionsContainer.innerHTML = '';
+        debounceTimer = setTimeout(() => {
+            fetch(`/api/geocode?q=${encodeURIComponent(query)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    suggestionsContainer.innerHTML = '';
+                    currentFocus = -1;
+                    
+                    if (!data || data.length === 0) {
+                        suggestionsContainer.innerHTML = '<div class="autocomplete-suggestion no-results">No locations found. Try being more specific.</div>';
+                        return;
+                    }
+
+                    data.forEach((place, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'autocomplete-suggestion';
+                        div.setAttribute('data-index', index);
+                        
+                        // Create a structured display
+                        const displayText = place.display_name;
+                        div.innerHTML = `
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="suggestion-text">${displayText}</span>
+                        `;
+                        
+                        div.addEventListener('click', () => {
+                            input.value = place.display_name;
+                            suggestionsContainer.innerHTML = '';
+                            suggestionsContainer.style.display = 'none';
+                            
+                            // Store coordinates as data attributes for future use
+                            input.setAttribute('data-lat', place.lat);
+                            input.setAttribute('data-lon', place.lon);
+                        });
+                        
+                        suggestionsContainer.appendChild(div);
                     });
-                    suggestionsContainer.appendChild(div);
+                    
+                    suggestionsContainer.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error);
+                    suggestionsContainer.innerHTML = '<div class="autocomplete-suggestion error">Error fetching results. Please try again.</div>';
                 });
-            })
-            .catch(error => {
-                console.error('Error fetching suggestions:', error);
-                suggestionsContainer.innerHTML = '<div class="autocomplete-suggestion">Error fetching results</div>';
-            });
-    }, 300);
+        }, 400); // Increased debounce time for better API usage
     });
+
+    // Keyboard navigation
+    input.addEventListener('keydown', function(e) {
+        const suggestions = suggestionsContainer.getElementsByClassName('autocomplete-suggestion');
+        
+        if (e.keyCode === 40) { // Down arrow
+            e.preventDefault();
+            currentFocus++;
+            addActive(suggestions);
+        } else if (e.keyCode === 38) { // Up arrow
+            e.preventDefault();
+            currentFocus--;
+            addActive(suggestions);
+        } else if (e.keyCode === 13) { // Enter
+            e.preventDefault();
+            if (currentFocus > -1 && suggestions[currentFocus]) {
+                suggestions[currentFocus].click();
+            }
+        } else if (e.keyCode === 27) { // Escape
+            suggestionsContainer.innerHTML = '';
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+
+    function addActive(suggestions) {
+        if (!suggestions || suggestions.length === 0) return;
+        
+        removeActive(suggestions);
+        
+        if (currentFocus >= suggestions.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = suggestions.length - 1;
+        
+        suggestions[currentFocus].classList.add('active');
+        suggestions[currentFocus].scrollIntoView({ block: 'nearest' });
+    }
+
+    function removeActive(suggestions) {
+        for (let i = 0; i < suggestions.length; i++) {
+            suggestions[i].classList.remove('active');
+        }
+    }
 
     // Close suggestions when clicking outside
     document.addEventListener('click', function(e) {
         if (!input.contains(e.target) && !suggestionsContainer.contains(e.target)) {
             suggestionsContainer.innerHTML = '';
+            suggestionsContainer.style.display = 'none';
         }
     });
 }
 
-// Initialize autocomplete for all route inputs
+// Initialize autocomplete for all route inputs when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
+    // Add modal autocomplete
     setupAutocomplete('start-point', 'start-suggestions');
     setupAutocomplete('mid-point', 'mid-suggestions');
     setupAutocomplete('end-point', 'end-suggestions');
+    
+    // Edit modal autocomplete
     setupAutocomplete('edit-start-point', 'edit-start-suggestions');
     setupAutocomplete('edit-mid-point', 'edit-mid-suggestions');
     setupAutocomplete('edit-end-point', 'edit-end-suggestions');
+    
+    // Real-time search for trucks table
+    const searchInput = document.getElementById('filter-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
 });
+
+// Enhanced styling for autocomplete
+const style = document.createElement('style');
+style.textContent = `
+.autocomplete-suggestions {
+    position: absolute;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    max-height: 250px;
+    overflow-y: auto;
+    width: calc(100% - 30px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 0 0 8px 8px;
+    display: none;
+}
+
+.autocomplete-suggestion {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    transition: background-color 0.2s;
+}
+
+.autocomplete-suggestion i {
+    color: #4CAF50;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.autocomplete-suggestion .suggestion-text {
+    flex: 1;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.autocomplete-suggestion:hover,
+.autocomplete-suggestion.active {
+    background-color: #f8f9fa;
+}
+
+.autocomplete-suggestion:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-suggestion.loading,
+.autocomplete-suggestion.no-results,
+.autocomplete-suggestion.error {
+    justify-content: center;
+    color: #666;
+    font-style: italic;
+    cursor: default;
+}
+
+.autocomplete-suggestion.loading {
+    color: #2196F3;
+}
+
+.autocomplete-suggestion.error {
+    color: #f44336;
+}
+
+/* Scrollbar styling for suggestions */
+.autocomplete-suggestions::-webkit-scrollbar {
+    width: 8px;
+}
+
+.autocomplete-suggestions::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.autocomplete-suggestions::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.autocomplete-suggestions::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+`;
+document.head.appendChild(style);
 
 function applyFilters() {
     const truck = document.getElementById('filter-truck').value;
@@ -657,7 +822,6 @@ function populateDispatchModal(truck) {
     document.getElementById('dispatch-truck-plate').value = truck.plate_number + ' (' + truck.body_number + ')';
     document.getElementById('dispatch-date').value = new Date().toISOString().split('T')[0];
 }
-
 // Real-time search
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('filter-search');

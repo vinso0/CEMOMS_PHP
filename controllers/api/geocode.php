@@ -1,4 +1,5 @@
 <?php
+// controllers/api/geocode.php
 
 header('Content-Type: application/json');
 
@@ -11,28 +12,32 @@ if (empty($query)) {
 
 // Clean and format the query
 $query = trim($query);
-if (!str_contains(strtolower($query), 'caloocan')) {
-    $query .= ", Caloocan";
-}
-if (!str_contains(strtolower($query), 'philippines')) {
-    $query .= ", Philippines";
+
+// Always add Caloocan to the search to narrow results
+if (!stripos($query, 'caloocan')) {
+    $query .= ", Caloocan City, Metro Manila, Philippines";
 }
 
-// Setup the search URL
+// Setup the search URL with better parameters
 $url = "https://nominatim.openstreetmap.org/search?" . http_build_query([
     'format' => 'json',
     'q' => $query,
     'countrycodes' => 'ph',
     'limit' => 10,
     'addressdetails' => 1,
-    'accept-language' => 'en'
+    'accept-language' => 'en',
+    'bounded' => 0, // Don't restrict to viewport
+    'dedupe' => 1 // Remove duplicate results
 ]);
 
-// Make the request
+// Make the request with proper headers
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_USERAGENT, 'CEMOMS/1.0');
+curl_setopt($ch, CURLOPT_USERAGENT, 'CEMOMS/1.0 (https://cemoms.local)');
+curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+
 $response = curl_exec($ch);
 
 if (curl_errno($ch)) {
@@ -47,57 +52,80 @@ curl_close($ch);
 $results = json_decode($response, true) ?: [];
 
 // Filter and format results
-$formatted = array_values(array_filter(array_map(function($item) {
-    if (!isset($item['address'])) {
-        return null;
+$formatted = [];
+$seen = []; // Track unique addresses
+
+foreach ($results as $item) {
+    if (!isset($item['address']) || !isset($item['lat']) || !isset($item['lon'])) {
+        continue;
     }
 
     $address = $item['address'];
     
-    // Only include results in Caloocan
-    if (!isset($address['city']) || 
-        !str_contains(strtolower($address['city']), 'caloocan')) {
-        return null;
-    }
-
-    // Build address parts
+    // Build a comprehensive address
     $parts = [];
     
+    // Add house number and road
     if (isset($address['house_number'])) {
         $parts[] = $address['house_number'];
     }
     
-    if (isset($address['building'])) {
-        $parts[] = $address['building'];
-    }
-    
     if (isset($address['road'])) {
         $parts[] = $address['road'];
+    } elseif (isset($address['street'])) {
+        $parts[] = $address['street'];
     }
     
+    // Add suburb or neighbourhood
     if (isset($address['suburb'])) {
         $parts[] = $address['suburb'];
+    } elseif (isset($address['neighbourhood'])) {
+        $parts[] = $address['neighbourhood'];
     }
     
-    if (isset($address['barangay'])) {
-        $parts[] = 'Barangay ' . $address['barangay'];
+    // Add barangay
+    if (isset($address['village'])) {
+        $parts[] = 'Brgy. ' . $address['village'];
+    } elseif (isset($address['quarter'])) {
+        $parts[] = 'Brgy. ' . $address['quarter'];
     }
     
-    $parts[] = 'Caloocan City';
+    // Always add city
+    if (isset($address['city'])) {
+        $parts[] = $address['city'];
+    } elseif (isset($address['municipality'])) {
+        $parts[] = $address['municipality'];
+    }
     
-    return [
-        'display_name' => implode(', ', array_filter($parts)),
+    // Add province/state
+    if (isset($address['state'])) {
+        $parts[] = $address['state'];
+    }
+    
+    $displayName = implode(', ', array_filter($parts));
+    
+    // Skip if empty or duplicate
+    if (empty($displayName) || isset($seen[$displayName])) {
+        continue;
+    }
+    
+    $seen[$displayName] = true;
+    
+    $formatted[] = [
+        'display_name' => $displayName,
         'lat' => $item['lat'],
         'lon' => $item['lon'],
-        'type' => $item['type']
+        'type' => $item['type'] ?? 'location',
+        'importance' => $item['importance'] ?? 0
     ];
-    
-}, $results)));
-
-// If no results found, return empty array
-if (empty($formatted)) {
-    echo json_encode([]);
-    exit;
 }
+
+// Sort by importance (more important locations first)
+usort($formatted, function($a, $b) {
+    return $b['importance'] <=> $a['importance'];
+});
+
+// Limit to top 5 results
+$formatted = array_slice($formatted, 0, 5);
 
 echo json_encode($formatted);
