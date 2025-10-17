@@ -25,7 +25,7 @@ class Route
     /**
      * Create a new route with coordinates
      */
-    public function createRoute($routeName, $startPoint, $midPoint, $endPoint)
+    public function createRoute($routeName, $startPoint, $endPoint, $midPoint = null)
     {
         $areaId = 1;
         
@@ -48,37 +48,44 @@ class Route
     /**
      * Create route with coordinates stored in route_points table
      */
-    public function createRouteWithCoordinates($routeName, $startPoint, $startLat, $startLon, 
-                                                $midPoint = null, $midLat = null, $midLon = null,
-                                                $endPoint, $endLat, $endLon)
-    {
-        $areaId = 1;
-        
-        // Insert main route
-        $query = "INSERT INTO route (route_name, area_id, start_point, mid_point, end_point, date_created) 
-                  VALUES (:route_name, :area_id, :start_point, :mid_point, :end_point, NOW())";
-        
-        $this->db->query($query, [
-            ':route_name' => $routeName,
-            ':area_id' => $areaId,
-            ':start_point' => $startPoint,
-            ':mid_point' => $midPoint,
-            ':end_point' => $endPoint
-        ]);
-        
-        $routeId = $this->db->connection->lastInsertId();
-        
-        // Insert route points
-        $this->insertRoutePoint($routeId, $startLat, $startLon, 1, 'Start');
-        
-        if ($midPoint && $midLat && $midLon) {
-            $this->insertRoutePoint($routeId, $midLat, $midLon, 2, 'Midpoint');
-            $this->insertRoutePoint($routeId, $endLat, $endLon, 3, 'End');
-        } else {
-            $this->insertRoutePoint($routeId, $endLat, $endLon, 2, 'End');
+    public function createRouteWithCoordinates(
+        $routeName, 
+        $startPoint, 
+        $startLat, 
+        $startLon,
+        $endPoint,
+        $endLat,
+        $endLon,
+        $midPoint = null,
+        $midLat = null,
+        $midLon = null
+    ) {
+        try {
+            $this->db->beginTransaction();
+
+            // Insert route
+            $sql = "INSERT INTO route (route_name) VALUES (:route_name)";
+            $this->db->query($sql, [':route_name' => $routeName]);
+            $routeId = $this->db->lastInsertId();
+
+            // Insert start point
+            $this->insertRoutePoint($routeId, $startLat, $startLon, 1, $startPoint);
+
+            // Insert mid point if provided
+            if ($midPoint && $midLat && $midLon) {
+                $this->insertRoutePoint($routeId, $midLat, $midLon, 2, $midPoint);
+            }
+
+            // Insert end point
+            $this->insertRoutePoint($routeId, $endLat, $endLon, 3, $endPoint);
+
+            $this->db->commit();
+            return $routeId;
+
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            throw $e;
         }
-        
-        return $routeId;
     }
 
     /**
@@ -86,14 +93,14 @@ class Route
      */
     private function insertRoutePoint($routeId, $lat, $lon, $order, $label)
     {
-        $query = "INSERT INTO route_points (route_id, latitude, longtitude, point_order, label) 
-                  VALUES (:route_id, :latitude, :longtitude, :point_order, :label)";
+        $sql = "INSERT INTO route_points (route_id, latitude, longitude, point_order, label) 
+                VALUES (:route_id, :lat, :lon, :order, :label)";
         
-        $this->db->query($query, [
+        $this->db->query($sql, [
             ':route_id' => $routeId,
-            ':latitude' => $lat,
-            ':longtitude' => $lon,
-            ':point_order' => $order,
+            ':lat' => $lat,
+            ':lon' => $lon,
+            ':order' => $order,
             ':label' => $label
         ]);
     }
@@ -149,11 +156,19 @@ class Route
     /**
      * Update route with coordinates
      */
-    public function updateRouteWithCoordinates($routeId, $routeName, 
-                                                $startPoint, $startLat, $startLon,
-                                                $midPoint = null, $midLat = null, $midLon = null,
-                                                $endPoint, $endLat, $endLon)
-    {
+    public function updateRouteWithCoordinates(
+        $routeId,
+        $routeName,
+        $startPoint,
+        $startLat,
+        $startLon,
+        $endPoint,
+        $endLat,
+        $endLon,
+        $midPoint = null,
+        $midLat = null,
+        $midLon = null
+    ) {
         // Update main route
         $query = "UPDATE route 
                   SET route_name = :route_name,

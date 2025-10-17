@@ -291,29 +291,37 @@ ob_start();
 
                     <div class="mb-3">
                         <label for="start-point" class="form-label">Start Point <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="start-point" name="start_point" required autocomplete="off">
+                        <input type="text" class="form-control" id="start-point" name="start_point" required readonly>
                         <div id="start-suggestions" class="autocomplete-suggestions"></div>
-                        <!-- Add hidden fields for coordinates -->
                         <input type="hidden" id="start-lat" name="start_lat">
                         <input type="hidden" id="start-lon" name="start_lon">
                     </div>
 
                     <div class="mb-3">
                         <label for="mid-point" class="form-label">Mid Point (Optional)</label>
-                        <input type="text" class="form-control" id="mid-point" name="mid_point" autocomplete="off">
+                        <input type="text" class="form-control" id="mid-point" name="mid_point" readonly>
                         <div id="mid-suggestions" class="autocomplete-suggestions"></div>
-                        <!-- Add hidden fields for coordinates -->
                         <input type="hidden" id="mid-lat" name="mid_lat">
                         <input type="hidden" id="mid-lon" name="mid_lon">
                     </div>
 
                     <div class="mb-3">
                         <label for="end-point" class="form-label">End Point <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="end-point" name="end_point" required autocomplete="off">
+                        <input type="text" class="form-control" id="end-point" name="end_point" required readonly>
                         <div id="end-suggestions" class="autocomplete-suggestions"></div>
-                        <!-- Add hidden fields for coordinates -->
                         <input type="hidden" id="end-lat" name="end_lat">
                         <input type="hidden" id="end-lon" name="end_lon">
+                    </div>
+
+                    <div class="mb-3 text-end">
+                        <button type="button" class="btn btn-secondary reset-route-btn">
+                            <i class="fas fa-redo"></i> Reset Route Points
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Route Map</label>
+                        <div id="add-route-map" style="height: 400px; border-radius: 8px;"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -390,7 +398,7 @@ ob_start();
 
                     <div class="mb-3">
                         <label for="edit-start-point" class="form-label">Start Point <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="edit-start-point" name="start_point" required autocomplete="off">
+                        <input type="text" class="form-control" id="edit-start-point" name="start_point" required readonly>
                         <div id="edit-start-suggestions" class="autocomplete-suggestions"></div>
                         <!-- Add hidden fields for coordinates -->
                         <input type="hidden" id="edit-start-lat" name="start_lat">
@@ -399,7 +407,7 @@ ob_start();
 
                     <div class="mb-3">
                         <label for="edit-mid-point" class="form-label">Mid Point (Optional)</label>
-                        <input type="text" class="form-control" id="edit-mid-point" name="mid_point" autocomplete="off">
+                        <input type="text" class="form-control" id="edit-mid-point" name="mid_point" readonly>
                         <div id="edit-mid-suggestions" class="autocomplete-suggestions"></div>
                         <!-- Add hidden fields for coordinates -->
                         <input type="hidden" id="edit-mid-lat" name="mid_lat">
@@ -408,11 +416,22 @@ ob_start();
 
                     <div class="mb-3">
                         <label for="edit-end-point" class="form-label">End Point <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="edit-end-point" name="end_point" required autocomplete="off">
+                        <input type="text" class="form-control" id="edit-end-point" name="end_point" required readonly>
                         <div id="edit-end-suggestions" class="autocomplete-suggestions"></div>
                         <!-- Add hidden fields for coordinates -->
                         <input type="hidden" id="edit-end-lat" name="end_lat">
                         <input type="hidden" id="edit-end-lon" name="end_lon">
+                    </div>
+
+                    <div class="mb-3 text-end">
+                        <button type="button" class="btn btn-secondary reset-route-btn">
+                            <i class="fas fa-redo"></i> Reset Route Points
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Route Map</label>
+                        <div id="edit-route-map" style="height: 400px; border-radius: 8px;"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -547,6 +566,53 @@ ob_start();
 .status-dispatched {
     background: #cce5ff;
     color: #004085;
+}
+
+/* Add these styles to your existing <style> block */
+.modal {
+    z-index: 1050;
+}
+
+.modal-backdrop {
+    z-index: 1040;
+}
+
+.leaflet-container {
+    z-index: 1;
+}
+
+#add-route-map,
+#edit-route-map {
+    position: relative;
+    z-index: 1;
+    height: 400px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+/* Fix for map controls being under modal */
+.leaflet-top,
+.leaflet-bottom {
+    z-index: 1000 !important;
+}
+
+/* Additional styles for modal and map responsiveness */
+.modal-lg {
+    max-width: 900px;
+}
+
+.modal-body {
+    max-height: calc(100vh - 210px);
+    overflow-y: auto;
+}
+
+.reset-route-btn {
+    margin-top: 10px;
+}
+
+.reset-route-btn:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
 }
 </style>
 
@@ -694,6 +760,59 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchInput) {
         searchInput.addEventListener('input', applyFilters);
     }
+
+    // Add modal map initialization
+    const addModal = document.getElementById('addTruckModal');
+    addModal.addEventListener('shown.bs.modal', function() {
+        setTimeout(() => {
+            if (!addRouteMap) {
+                addRouteMap = new RouteMapSelector('add-route-map', {
+                    modalId: 'add'
+                });
+                addRouteMap.invalidateSize();
+                
+                // Add reset button handler
+                const resetBtn = addModal.querySelector('.reset-route-btn');
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', () => addRouteMap.clearAllMarkers());
+                }
+            }
+        }, 200);
+    });
+
+    // Edit modal map initialization
+    const editModal = document.getElementById('editTruckModal');
+    editModal.addEventListener('shown.bs.modal', function() {
+        setTimeout(() => {
+            if (!editRouteMap) {
+                editRouteMap = new RouteMapSelector('edit-route-map', {
+                    modalId: 'edit'
+                });
+                editRouteMap.invalidateSize();
+                
+                // Add reset button handler
+                const resetBtn = editModal.querySelector('.reset-route-btn');
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', () => editRouteMap.clearAllMarkers());
+                }
+            }
+        }, 200);
+    });
+
+    // Cleanup on modal hide
+    addModal.addEventListener('hide.bs.modal', function() {
+        if (addRouteMap) {
+            addRouteMap.destroy();
+            addRouteMap = null;
+        }
+    });
+
+    editModal.addEventListener('hide.bs.modal', function() {
+        if (editRouteMap) {
+            editRouteMap.destroy();
+            editRouteMap = null;
+        }
+    });
 });
 
 // Enhanced styling for autocomplete
@@ -837,6 +956,15 @@ function populateEditModal(truck) {
     document.getElementById('edit-mid-lon').value = truck.mid_lon || '';
     document.getElementById('edit-end-lat').value = truck.end_lat || '';
     document.getElementById('edit-end-lon').value = truck.end_lon || '';
+
+    // Ensure map is initialized before loading route
+    if (editRouteMap) {
+        editRouteMap.loadExistingRoute(
+            truck.start_lat, truck.start_lon,
+            truck.mid_lat, truck.mid_lon,
+            truck.end_lat, truck.end_lon
+        );
+    }
 }
 
 function populateDeleteModal(truck) {
@@ -849,17 +977,68 @@ function populateDispatchModal(truck) {
     document.getElementById('dispatch-truck-plate').value = truck.plate_number + ' (' + truck.body_number + ')';
     document.getElementById('dispatch-date').value = new Date().toISOString().split('T')[0];
 }
-// Real-time search
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('filter-search');
-    if (searchInput) {
-        searchInput.addEventListener('input', applyFilters);
-    }
-});
-</script>
 
+// At the end of your file, before requiring layout.php
 <?php
 $content = ob_get_clean();
-$additionalStyles = '<link rel="stylesheet" href="/assets/css/modal.css">';
-$additionalStyles .= ' <link rel="stylesheet" href="/assets/css/garbage_collection.css">';
+$additionalStyles = '
+    <link rel="stylesheet" href="/assets/css/modal.css">
+    <link rel="stylesheet" href="/assets/css/garbage_collection.css">
+';
+$additionalScripts = '
+    <script src="/assets/js/components/RouteMapSelector.js"></script>
+    <script>
+        let addRouteMap = null;
+        let editRouteMap = null;
+
+        // Initialize maps when modals are shown
+        document.getElementById("addTruckModal").addEventListener("shown.bs.modal", function () {
+            if (!addRouteMap) {
+                addRouteMap = new RouteMapSelector("add-route-map", {
+                    modalId: "add"
+                });
+            }
+        });
+
+        document.getElementById("editTruckModal").addEventListener("shown.bs.modal", function () {
+            if (!editRouteMap) {
+                editRouteMap = new RouteMapSelector("edit-route-map", {
+                    modalId: "edit"
+                });
+            }
+
+            // Load existing route points if available
+            const startLat = document.getElementById("edit-start-lat").value;
+            const startLon = document.getElementById("edit-start-lon").value;
+            const midLat = document.getElementById("edit-mid-lat").value;
+            const midLon = document.getElementById("edit-mid-lon").value;
+            const endLat = document.getElementById("edit-end-lat").value;
+            const endLon = document.getElementById("edit-end-lon").value;
+
+            if (startLat && startLon) {
+                editRouteMap.loadExistingRoute(
+                    startLat, startLon,
+                    midLat, midLon,
+                    endLat, endLon
+                );
+            }
+        });
+
+        // Clean up maps when modals are hidden
+        document.getElementById("addTruckModal").addEventListener("hidden.bs.modal", function () {
+            if (addRouteMap) {
+                addRouteMap.destroy();
+                addRouteMap = null;
+            }
+        });
+
+        document.getElementById("editTruckModal").addEventListener("hidden.bs.modal", function () {
+            if (editRouteMap) {
+                editRouteMap.destroy();
+                editRouteMap = null;
+            }
+        });
+    </script>
+';
+
 require base_path('views/layout.php');
