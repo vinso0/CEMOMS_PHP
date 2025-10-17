@@ -39,6 +39,15 @@
         <div class="sidebar-overlay"></div>
     </div>
 
+    <?php if ($userType !== 'foreman'): ?>
+            <div class="sidebar-overlay"></div>
+        <?php endif; ?>
+
+        <?php if ($userType === 'foreman'): ?>
+            <?php require base_path('views/partials/foreman-bottom-nav.php'); ?>
+        <?php endif; ?>
+    </div>
+
     <!-- JavaScript Files -->
     <script src="/assets/js/layout.js"></script>
     
