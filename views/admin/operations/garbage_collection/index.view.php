@@ -1,4 +1,6 @@
 <?php
+// views/admin/operations/garbage_collection/index.view.php
+
 $title = 'Garbage Collection - Operations';
 $pageTitle = 'Garbage Collection';
 
@@ -158,6 +160,12 @@ ob_start();
                                             data-bs-target="#dispatchModal"
                                             onclick="populateDispatchModal(<?= htmlspecialchars(json_encode($truck)) ?>)">
                                         <i class="fas fa-clipboard-check"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" title="Delete"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteTruckModal"
+                                            onclick="populateDeleteModal(<?= htmlspecialchars(json_encode($truck)) ?>)">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
                             </td>
@@ -404,6 +412,38 @@ ob_start();
     </div>
 </div>
 
+<!-- Delete Truck Modal -->
+<div class="modal fade" id="deleteTruckModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-trash-alt text-danger" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="mb-3">Delete Truck?</h5>
+                <p class="text-muted mb-3">
+                    Are you sure you want to delete truck <strong id="delete-truck-plate"></strong>? 
+                    This action cannot be undone.
+                </p>
+                <form method="POST" action="/admin/operations/garbage_collection/delete">
+                    <input type="hidden" id="delete-truck-id" name="id">
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Dispatch Modal -->
 <div class="modal fade" id="dispatchModal" tabindex="-1">
     <div class="modal-dialog">
@@ -412,7 +452,7 @@ ob_start();
                 <h5 class="modal-title">Dispatch & Return Log</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="/admin/operations/garbage_collection/log">
+            <form method="POST" action="/admin/operations/garbage_collection/dispatch">
                 <div class="modal-body">
                     <input type="hidden" id="dispatch-truck-id" name="truck_id">
                     
@@ -506,6 +546,11 @@ function populateEditModal(truck) {
     document.getElementById('edit-assigned-route').value = truck.route_id || '';
     document.getElementById('edit-schedule-type').value = truck.schedule || 'daily';
     document.getElementById('edit-status').value = truck.status || 'Scheduled';
+}
+
+function populateDeleteModal(truck) {
+    document.getElementById('delete-truck-id').value = truck.id;
+    document.getElementById('delete-truck-plate').textContent = truck.plate_number + ' (' + truck.body_number + ')';
 }
 
 function populateDispatchModal(truck) {

@@ -1,10 +1,15 @@
 <?php
+// controllers/admin/operations/garbage_collection/store.php
 
 adminAuth();
 
 use Models\Truck;
 use Models\OperationSchedule;
 use Models\Route;
+
+require_once base_path('models/Truck.php');
+require_once base_path('models/OperationSchedule.php');
+require_once base_path('models/Route.php');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /admin/operations/garbage_collection');
@@ -23,6 +28,12 @@ $errors = [];
 // Validation
 if (empty($plateNumber)) {
     $errors[] = 'Plate number is required.';
+} else {
+    // Check for duplicate plate number
+    $truckModel = new Truck();
+    if ($truckModel->plateNumberExists($plateNumber)) {
+        $errors[] = 'A truck with this plate number already exists.';
+    }
 }
 
 if (empty($bodyNumber)) {
@@ -37,22 +48,36 @@ if (empty($routeId)) {
     $errors[] = 'Route is required.';
 }
 
+// Validate schedule type
+if (!in_array($scheduleType, ['daily', 'weekly'])) {
+    $errors[] = 'Invalid schedule type.';
+}
+
+// Validate status
+if (!in_array($status, ['Scheduled', 'Dispatched', 'Parked', 'Completed'])) {
+    $errors[] = 'Invalid status.';
+}
+
 if (count($errors) === 0) {
     try {
         $truckModel = new Truck();
         $scheduleModel = new OperationSchedule();
+        $routeModel = new Route();
         
         // Create truck
         $truckId = $truckModel->create($plateNumber, $bodyNumber, $foremanId);
         
         // Get route to determine area
-        $routeModel = new Route();
         $route = $routeModel->getRouteById($routeId);
-        $areaId = $route['area_id'] ?? 1;
+        if (!$route) {
+            throw new \Exception('Selected route not found.');
+        }
+        
+        $areaId = $route['area_id'];
         
         // Create operation schedule
         $adminId = $_SESSION['user_id'] ?? 1;
-        $operationId = 1; // You may need to create an operation first or handle this differently
+        $operationId = 1; // Garbage Collection operation type
         
         $scheduleModel->create(
             $operationId,
@@ -65,8 +90,10 @@ if (count($errors) === 0) {
             $status
         );
         
+        $_SESSION['success'] = 'Truck added successfully.';
         header('Location: /admin/operations/garbage_collection');
         exit();
+        
     } catch (\Exception $e) {
         $errors[] = 'Error creating truck: ' . $e->getMessage();
     }
@@ -74,5 +101,5 @@ if (count($errors) === 0) {
 
 // If there are errors, redirect back with errors
 $_SESSION['errors'] = $errors;
-header('Location: /admin/operations/collection');
+header('Location: /admin/operations/garbage_collection');
 exit();

@@ -25,9 +25,10 @@ $router->get('/admin/reports', 'controllers/admin/reports/index.php');
 
 // Operations Management - Garbage Collection
 $router->get('/admin/operations/garbage_collection', 'controllers/admin/operations/garbage_collection/index.php');
-$router->post('/admin/operations/garbage_collection/truck/store', 'controllers/admin/operations/garbage_collection/store.php');
-$router->post('/admin/operations/garbage_collection/truck/update', 'controllers/admin/operations/garbage_collection/update.php');
-$router->post('/admin/operations/garbage_collection/log', 'controllers/admin/operations/garbage_collection/dispatch_log.php');
+$router->post('/admin/operations/garbage_collection/store', 'controllers/admin/operations/garbage_collection/store.php');
+$router->post('/admin/operations/garbage_collection/update', 'controllers/admin/operations/garbage_collection/update.php');
+$router->post('/admin/operations/garbage_collection/delete', 'controllers/admin/operations/garbage_collection/delete.php');
+$router->post('/admin/operations/garbage_collection/dispatch', 'controllers/admin/operations/garbage_collection/dispatch_log.php');
 
 // Street Sweeping
 $router->get('/admin/operations/sweeping', function() {

@@ -54,10 +54,35 @@ class OperationSchedule
             ':status' => $status,
             ':schedule_id' => $scheduleId
         ]);
+
+        return true;
     }
 
     /**
-     * Log dispatch
+     * Update schedule with foreman change
+     */
+    public function updateWithForeman($scheduleId, $routeId, $foremanId, $scheduleType, $status)
+    {
+        $sql = "UPDATE operation_schedule 
+                SET route_id = :route_id,
+                    foreman_id = :foreman_id,
+                    schedule_type = :schedule_type,
+                    status = :status
+                WHERE schedule_id = :schedule_id";
+        
+        $this->db->query($sql, [
+            ':route_id' => $routeId,
+            ':foreman_id' => $foremanId,
+            ':schedule_type' => $scheduleType,
+            ':status' => $status,
+            ':schedule_id' => $scheduleId
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Log dispatch time
      */
     public function logDispatch($scheduleId, $dispatchTime)
     {
@@ -70,10 +95,12 @@ class OperationSchedule
             ':dispatch_time' => $dispatchTime,
             ':schedule_id' => $scheduleId
         ]);
+
+        return true;
     }
 
     /**
-     * Log return
+     * Log return time
      */
     public function logReturn($scheduleId, $returnTime)
     {
@@ -86,6 +113,8 @@ class OperationSchedule
             ':return_time' => $returnTime,
             ':schedule_id' => $scheduleId
         ]);
+
+        return true;
     }
 
     /**
@@ -99,5 +128,47 @@ class OperationSchedule
                 LIMIT 1";
         
         return $this->db->query($sql, [':truck_id' => $truckId])->find();
+    }
+
+    /**
+     * Get schedule by ID
+     */
+    public function getById($scheduleId)
+    {
+        $sql = "SELECT * FROM operation_schedule WHERE schedule_id = :schedule_id";
+        return $this->db->query($sql, [':schedule_id' => $scheduleId])->find();
+    }
+
+    /**
+     * Delete schedule
+     */
+    public function delete($scheduleId)
+    {
+        $sql = "DELETE FROM operation_schedule WHERE schedule_id = :schedule_id";
+        $this->db->query($sql, [':schedule_id' => $scheduleId]);
+        return true;
+    }
+
+    /**
+     * Delete schedules by truck ID
+     */
+    public function deleteByTruckId($truckId)
+    {
+        $sql = "DELETE FROM operation_schedule WHERE truck_id = :truck_id";
+        $this->db->query($sql, [':truck_id' => $truckId]);
+        return true;
+    }
+
+    /**
+     * Check if truck has active schedules
+     */
+    public function hasActiveSchedules($truckId)
+    {
+        $sql = "SELECT COUNT(*) as count FROM operation_schedule 
+                WHERE truck_id = :truck_id 
+                AND status IN ('Scheduled', 'Dispatched')";
+        
+        $result = $this->db->query($sql, [':truck_id' => $truckId])->find();
+        return $result['count'] > 0;
     }
 }

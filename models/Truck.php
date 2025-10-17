@@ -15,7 +15,7 @@ class Truck
     }
 
     /**
-     * Get all trucks with their assignments
+     * Get all trucks with their assignments and schedules
      */
     public function getAllTrucks()
     {
@@ -23,14 +23,17 @@ class Truck
                     t.truck_id as id,
                     t.plate_number,
                     t.body_number,
+                    t.foreman_id,
                     f.username as foreman_name,
-                    f.foreman_id,
-                    r.route_name,
                     r.route_id,
+                    r.route_name,
                     r.start_point,
                     r.end_point,
+                    os.schedule_id,
                     os.schedule_type as schedule,
-                    os.status
+                    os.status,
+                    os.dispatch_time,
+                    os.return_time
                 FROM truck t
                 LEFT JOIN foreman f ON t.foreman_id = f.foreman_id
                 LEFT JOIN operation_schedule os ON t.truck_id = os.truck_id
@@ -41,7 +44,7 @@ class Truck
     }
 
     /**
-     * Get truck by ID
+     * Get truck by ID with full details
      */
     public function getTruckById($id)
     {
@@ -55,6 +58,7 @@ class Truck
                     r.route_name,
                     r.start_point,
                     r.end_point,
+                    os.schedule_id,
                     os.schedule_type as schedule,
                     os.status
                 FROM truck t
@@ -80,12 +84,11 @@ class Truck
             ':foreman_id' => $foremanId
         ]);
         
-        // Get the last inserted ID
         return $this->db->connection->lastInsertId();
     }
 
     /**
-     * Update truck
+     * Update truck details
      */
     public function update($id, $plateNumber, $bodyNumber, $foremanId)
     {
@@ -101,43 +104,111 @@ class Truck
             ':foreman_id' => $foremanId,
             ':id' => $id
         ]);
+
+        return true;
     }
 
     /**
-     * Delete truck
+     * Delete truck (checks for dependencies)
      */
     public function delete($id)
     {
+        // First check if truck has active schedules
+        $checkSql = "SELECT COUNT(*) as count 
+                     FROM operation_schedule 
+                     WHERE truck_id = :id 
+                     AND status IN ('Scheduled', 'Dispatched')";
+        
+        $result = $this->db->query($checkSql, [':id' => $id])->find();
+        
+        if ($result['count'] > 0) {
+            throw new \Exception('Cannot delete truck with active schedules. Please complete or cancel schedules first.');
+        }
+
+        // Delete the truck
         $sql = "DELETE FROM truck WHERE truck_id = :id";
         $this->db->query($sql, [':id' => $id]);
+
+        return true;
     }
 
     /**
-     * Get dispatch logs
+     * Check if plate number already exists
      */
-    public function getDispatchLogs($limit = 10)
+    public function plateNumberExists($plateNumber, $excludeId = null)
+    {
+        if ($excludeId) {
+            $sql = "SELECT COUNT(*) as count FROM truck 
+                    WHERE plate_number = :plate_number AND truck_id != :id";
+            $result = $this->db->query($sql, [
+                ':plate_number' => $plateNumber,
+                ':id' => $excludeId
+            ])->find();
+        } else {
+            $sql = "SELECT COUNT(*) as count FROM truck WHERE plate_number = :plate_number";
+            $result = $this->db->query($sql, [':plate_number' => $plateNumber])->find();
+        }
+        
+        return $result['count'] > 0;
+    }
+
+    /**
+     * Get dispatch logs with pagination
+     */
+    public function getDispatchLogs($limit = 10, $offset = 0)
     {
         $sql = "SELECT 
                     os.schedule_id as id,
                     DATE(os.dispatch_time) as date,
+                    t.truck_id,
                     t.plate_number,
+                    t.body_number,
                     r.route_name,
                     f.username as foreman_name,
                     TIME_FORMAT(os.dispatch_time, '%h:%i %p') as dispatch_time,
                     TIME_FORMAT(os.return_time, '%h:%i %p') as return_time,
                     os.status
                 FROM operation_schedule os
-                JOIN truck t ON os.truck_id = t.truck_id
-                JOIN route r ON os.route_id = r.route_id
-                JOIN foreman f ON os.foreman_id = f.foreman_id
+                INNER JOIN truck t ON os.truck_id = t.truck_id
+                INNER JOIN route r ON os.route_id = r.route_id
+                INNER JOIN foreman f ON os.foreman_id = f.foreman_id
                 WHERE os.dispatch_time IS NOT NULL
                 ORDER BY os.dispatch_time DESC
-                LIMIT :limit";
+                LIMIT :limit OFFSET :offset";
         
         $stmt = $this->db->connection->prepare($sql);
         $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
         $stmt->execute();
         
         return $stmt->fetchAll();
+    }
+
+    /**
+     * Get trucks count
+     */
+    public function getTrucksCount()
+    {
+        $sql = "SELECT COUNT(*) as count FROM truck";
+        $result = $this->db->query($sql)->find();
+        return $result['count'] ?? 0;
+    }
+
+    /**
+     * Get active trucks (with scheduled status)
+     */
+    public function getActiveTrucks()
+    {
+        $sql = "SELECT 
+                    t.truck_id as id,
+                    t.plate_number,
+                    t.body_number,
+                    os.status
+                FROM truck t
+                INNER JOIN operation_schedule os ON t.truck_id = os.truck_id
+                WHERE os.status IN ('Scheduled', 'Dispatched')
+                ORDER BY t.plate_number";
+        
+        return $this->db->query($sql)->get();
     }
 }
