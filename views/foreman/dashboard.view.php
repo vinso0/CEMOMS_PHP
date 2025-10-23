@@ -4,7 +4,7 @@ $pageTitle = 'Dashboard';
 
 ob_start();
 ?>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
 <style>
 .dashboard-stats{
     display:grid;
@@ -156,23 +156,6 @@ ob_start();
             </button>
         </div>
     </div>
-</div>
-
-<!-- Map Section -->
-<div class="map-container">
-        <!-- NOTE: Not working yet, pag react + leaflet.js 'tong mga naka comment -->
-        <!-- Option 1: Relative path (works if dashboard URL is /admin/dashboard) 
-        <iframe 
-           src="/react/index.html" 
-           width="100%" 
-           height="600px" 
-           frameborder="0" 
-           style="border: none; display: block; min-height: 500px;">
-       </iframe>
-        -->
-        <!-- Option 2: Absolute path from web root (more reliable, works from any URL) -->
-        <!-- <iframe src="/react/index.html" width="100%" height="500px" frameborder="0" style="border: none;"></iframe> -->
-        <div id="map" class="dashboard-map" style="height: 500px; width: 100%; border: 1px solid #ccc; border-radius: 8px; margin: 20px 0;"></div>
 </div>
 
 <!-- Reports panel moved to separate view -->
