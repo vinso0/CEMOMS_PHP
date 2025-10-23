@@ -1,75 +1,76 @@
+/* Layout & Containers */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.section-title {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #2c3e50;
+}
+
+/* Filters Section */
 .filters-container {
     background: white;
     border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
 }
 
 .filters-header {
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 2px solid #f0f0f0;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
 }
 
 .filters-header h3 {
     margin: 0;
     font-size: 1.1rem;
-    color: #333;
-    font-weight: 600;
+    color: #495057;
+}
+
+.filters-content {
+    padding: 1rem;
 }
 
 .filter-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    display: flex;
     gap: 1rem;
-    align-items: end;
+    flex-wrap: wrap;
 }
 
 .filter-item {
-    display: flex;
-    flex-direction: column;
-}
-
-.filter-item label {
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: #555;
+    flex: 1;
+    min-width: 200px;
 }
 
 .filter-actions {
     display: flex;
+    align-items: flex-end;
     gap: 0.5rem;
 }
 
-.trucks-table-container,
-.logs-container {
+/* Tables */
+.table-wrapper {
     background: white;
     border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: auto;
 }
 
-.table-header,
-.logs-header {
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 2px solid #f0f0f0;
+.table-header {
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
 }
 
-.table-header h3,
-.logs-header h3 {
+.table-header h3 {
     margin: 0;
     font-size: 1.1rem;
-    color: #333;
-    font-weight: 600;
-}
-
-.table-wrapper,
-.logs-wrapper {
-    overflow-x: auto;
+    color: #495057;
 }
 
 .trucks-table,
@@ -78,152 +79,51 @@
     border-collapse: collapse;
 }
 
-.trucks-table thead,
-.logs-table thead {
-    background: #f8f9fa;
-}
-
 .trucks-table th,
 .logs-table th {
-    padding: 1rem;
+    background: #f8f9fa;
+    padding: 0.75rem;
     text-align: left;
     font-weight: 600;
-    color: #333;
+    color: #495057;
     border-bottom: 2px solid #dee2e6;
-    white-space: nowrap;
 }
 
 .trucks-table td,
 .logs-table td {
-    padding: 1rem;
+    padding: 0.75rem;
     border-bottom: 1px solid #dee2e6;
 }
 
-.trucks-table tbody tr:hover,
-.logs-table tbody tr:hover {
-    background: #f8f9fa;
-}
-
-.status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    display: inline-block;
-}
-
-.status-available {
+/* Status Indicators */
+.status-parked {
     background: #d4edda;
     color: #155724;
-}
-
-.status-on-route {
-    background: #cce5ff;
-    color: #004085;
-}
-
-.status-maintenance {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.status-inactive {
-    background: #f8d7da;
-    color: #721c24;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
 }
 
 .status-dispatched {
     background: #cce5ff;
     color: #004085;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
 }
 
-.status-returned {
-    background: #d4edda;
-    color: #155724;
-}
-
+/* Action Buttons */
 .action-buttons {
     display: flex;
     gap: 0.5rem;
 }
 
-.empty-state {
-    padding: 3rem 1rem;
-    text-align: center;
+.action-buttons .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
 }
 
-.empty-state i {
-    font-size: 3rem;
-    color: #dee2e6;
-    margin-bottom: 1rem;
-}
-
-.empty-state h5 {
-    color: #6c757d;
-    margin-bottom: 0.5rem;
-}
-
-.empty-state p {
-    color: #adb5bd;
-    margin: 0;
-}
-
-.autocomplete-suggestions {
-    position: absolute;
-    border: 1px solid #ddd;
-    background: white;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    width: 100%;
-}
-
-.autocomplete-suggestion {
-    padding: 8px 12px;
-    cursor: pointer;
-}
-
-.autocomplete-suggestion:hover {
-    background-color: #f5f5f5;
-}
-
-.autocomplete-suggestions {
-    position: absolute;
-    z-index: 1000;
-    background: white;
-    border: 1px solid #ddd;
-    border-top: none;
-    max-height: 200px;
-    overflow-y: auto;
-    width: calc(100% - 30px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.autocomplete-suggestion {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.autocomplete-suggestion:hover {
-    background-color: #f8f9fa;
-}
-
-.autocomplete-suggestion:last-child {
-    border-bottom: none;
-}
-
-.status-parked {
-    background: #d4edda;
-    color: #155724;
-}
-
-.status-dispatched {
-    background: #cce5ff;
-    color: #004085;
-}
-
-/* Add these styles to your existing <style> block */
+/* Modal Specific */
 .modal {
     z-index: 1050;
 }
@@ -232,6 +132,16 @@
     z-index: 1040;
 }
 
+.modal-lg {
+    max-width: 900px;
+}
+
+.modal-body {
+    max-height: calc(100vh - 210px);
+    overflow-y: auto;
+}
+
+/* Map Related */
 .leaflet-container {
     z-index: 1;
 }
@@ -245,22 +155,94 @@
     margin-bottom: 15px;
 }
 
-/* Fix for map controls being under modal */
 .leaflet-top,
 .leaflet-bottom {
     z-index: 1000 !important;
 }
 
-/* Additional styles for modal and map responsiveness */
-.modal-lg {
-    max-width: 900px;
-}
-
-.modal-body {
-    max-height: calc(100vh - 210px);
+/* Autocomplete */
+.autocomplete-suggestions {
+    position: absolute;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    max-height: 250px;
     overflow-y: auto;
+    width: calc(100% - 30px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 0 0 8px 8px;
+    display: none;
 }
 
+.autocomplete-suggestion {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    transition: background-color 0.2s;
+}
+
+.autocomplete-suggestion:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-suggestion:hover,
+.autocomplete-suggestion.active {
+    background-color: #f8f9fa;
+}
+
+.autocomplete-suggestion i {
+    color: #4CAF50;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.autocomplete-suggestion .suggestion-text {
+    flex: 1;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* State Modifiers */
+.autocomplete-suggestion.loading,
+.autocomplete-suggestion.no-results,
+.autocomplete-suggestion.error {
+    justify-content: center;
+    color: #666;
+    font-style: italic;
+    cursor: default;
+}
+
+.autocomplete-suggestion.loading {
+    color: #2196F3;
+}
+
+.autocomplete-suggestion.error {
+    color: #f44336;
+}
+
+/* Custom Scrollbar */
+.autocomplete-suggestions::-webkit-scrollbar {
+    width: 8px;
+}
+
+.autocomplete-suggestions::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.autocomplete-suggestions::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.autocomplete-suggestions::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Reset Route Button */
 .reset-route-btn {
     margin-top: 10px;
 }
@@ -270,12 +252,18 @@
     border-color: #6c757d;
 }
 
+/* Responsive Adjustments */
 @media (max-width: 768px) {
-    .filter-row {
-        grid-template-columns: 1fr;
+    .filter-item {
+        min-width: 100%;
     }
     
     .action-buttons {
         flex-direction: column;
+    }
+    
+    .modal-lg {
+        max-width: 95%;
+        margin: 10px;
     }
 }
