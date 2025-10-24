@@ -1,316 +1,224 @@
-// Garbage Collection Management
+// Add this function to the existing GarbageCollectionManager class
+
 class GarbageCollectionManager {
-    constructor() {
-        this.routeMapSelector = null;
-        this.init();
-    }
+    /**
+     * View truck details in modal with map
+     */
+    viewTruckDetails(truck) {
+    const modal = document.getElementById('truckDetailsModal');
+    const content = document.getElementById('truckDetailsContent');
     
-    init() {
-        this.initModals();
-        this.initFilters();
-        this.initFormValidation();
-    }
-    
-    initModals() {
-        // Initialize Add Truck Modal
-        const addTruckModal = document.getElementById('addTruckModal');
-        if (addTruckModal) {
-            addTruckModal.addEventListener('shown.bs.modal', () => {
-                this.initAddTruckMap();
-            });
-            
-            addTruckModal.addEventListener('hidden.bs.modal', () => {
-                this.resetAddTruckForm();
-            });
-        }
-    }
-    
-    // Replace the existing initAddTruckMap method with this:
-    initAddTruckMap() {
-        const mapContainer = document.getElementById('addRouteMap');
-        
-        if (!mapContainer) {
-            console.error('Map container not found');
-            return;
-        }
-        
-        // Check if Leaflet is loaded
-        if (typeof L === 'undefined') {
-            console.error('Leaflet library not loaded');
-            this.showMapError('Leaflet library not loaded. Please refresh the page.');
-            return;
-        }
-        
-        try {
-            // Clear any existing content
-            mapContainer.innerHTML = '';
-            
-            // Add a small delay to ensure modal DOM is ready
-            setTimeout(() => {
-                // Initialize RouteMapSelector
-                this.routeMapSelector = new RouteMapSelector('addRouteMap', {
-                    defaultLat: 14.5995, // Philippines
-                    defaultLng: 120.9842,
-                    defaultZoom: 13
-                });
-                
-                // Mark map as loaded
-                mapContainer.classList.add('map-loaded');
-                console.log('Map initialized successfully');
-            }, 200);
-            
-        } catch (error) {
-            console.error('Error initializing map:', error);
-            this.showMapError('Failed to load map. Please try again.');
-        }
-    }
-
-    // Replace the showMapError method with this:
-    showMapError(message = 'Unable to load map. Please check your internet connection.') {
-        const mapContainer = document.getElementById('addRouteMap');
-        if (mapContainer) {
-            mapContainer.innerHTML = `
-                <div class="map-error">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h6>Map Loading Error</h6>
-                    <p>${message}</p>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="window.location.reload()">
-                        <i class="fas fa-redo me-1"></i>Retry
-                    </button>
+    // Generate the details content
+    content.innerHTML = `
+        <div class="truck-details-grid">
+            <div class="truck-details-info">
+                <div class="details-section">
+                    <h6><i class="fas fa-truck me-2"></i>Truck Information</h6>
+                    <div class="detail-row">
+                        <span class="detail-label">Plate Number:</span>
+                        <span class="detail-value"><strong>${truck.plate_number}</strong></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Body Number:</span>
+                        <span class="detail-value">${truck.body_number}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Truck ID:</span>
+                        <span class="detail-value">#${truck.id}</span>
+                    </div>
                 </div>
-            `;
-        }
-    }
 
-    // Update the resetAddTruckForm method:
-    resetAddTruckForm() {
-        const form = document.getElementById('addTruckForm');
-        if (form) {
-            form.reset();
-            form.classList.remove('was-validated');
-            
-            // Clear validation errors
-            form.querySelectorAll('.is-invalid').forEach(field => {
-                field.classList.remove('is-invalid');
-            });
-        }
-        
-        // Reset map
-        if (this.routeMapSelector) {
-            this.routeMapSelector.clearAllMarkers();
-        }
-        
-        // Reset map container
-        const mapContainer = document.getElementById('addRouteMap');
-        if (mapContainer) {
-            mapContainer.classList.remove('map-loaded');
-        }
-    }
-
-
-    
-    initFilters() {
-        const filterButtons = document.querySelectorAll('[onclick*="applyFilters"], [onclick*="resetFilters"]');
-        filterButtons.forEach(button => {
-            const action = button.getAttribute('onclick');
-            button.removeAttribute('onclick');
-            
-            if (action.includes('applyFilters')) {
-                button.addEventListener('click', () => this.applyFilters());
-            } else if (action.includes('resetFilters')) {
-                button.addEventListener('click', () => this.resetFilters());
-            }
-        });
-    }
-    
-    initFormValidation() {
-        const addTruckForm = document.getElementById('addTruckForm');
-        if (addTruckForm) {
-            addTruckForm.addEventListener('submit', (e) => {
-                if (!this.validateTruckForm(addTruckForm)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-                
-                addTruckForm.classList.add('was-validated');
-            });
-        }
-    }
-    
-    validateTruckForm(form) {
-        let isValid = true;
-        
-        // Validate required fields
-        const requiredFields = form.querySelectorAll('[required]');
-        requiredFields.forEach(field => {
-            if (!field.value.trim()) {
-                this.setFieldError(field, 'This field is required');
-                isValid = false;
-            } else {
-                this.clearFieldError(field);
-            }
-        });
-        
-        // Validate route points
-        const startLat = document.getElementById('startLat').value;
-        const startLon = document.getElementById('startLon').value;
-        const endLat = document.getElementById('endLat').value;
-        const endLon = document.getElementById('endLon').value;
-        
-        if (!startLat || !startLon) {
-            this.setFieldError(document.getElementById('startPoint'), 'Please select a start point on the map');
-            isValid = false;
-        }
-        
-        if (!endLat || !endLon) {
-            this.setFieldError(document.getElementById('endPoint'), 'Please select an end point on the map');
-            isValid = false;
-        }
-        
-        return isValid;
-    }
-    
-    setFieldError(field, message) {
-        field.classList.add('is-invalid');
-        const feedback = field.parentElement.querySelector('.invalid-feedback');
-        if (feedback) {
-            feedback.textContent = message;
-        }
-    }
-    
-    clearFieldError(field) {
-        field.classList.remove('is-invalid');
-        const feedback = field.parentElement.querySelector('.invalid-feedback');
-        if (feedback) {
-            feedback.textContent = '';
-        }
-    }
-    
-    resetAddTruckForm() {
-        const form = document.getElementById('addTruckForm');
-        if (form) {
-            form.reset();
-            form.classList.remove('was-validated');
-            
-            // Clear validation errors
-            form.querySelectorAll('.is-invalid').forEach(field => {
-                field.classList.remove('is-invalid');
-            });
-            
-            // Clear route map
-            if (this.routeMapSelector) {
-                this.routeMapSelector.clearAllMarkers();
-            }
-        }
-    }
-    
-    applyFilters() {
-        const filters = {
-            truck: document.getElementById('filter-truck')?.value || '',
-            foreman: document.getElementById('filter-foreman')?.value || '',
-            status: document.getElementById('filter-status')?.value || '',
-            search: document.getElementById('filter-search')?.value || ''
-        };
-        
-        const rows = document.querySelectorAll('#trucks-tbody tr[data-truck-id]');
-        
-        rows.forEach(row => {
-            let showRow = true;
-            
-            // Filter by truck
-            if (filters.truck && row.dataset.truckId !== filters.truck) {
-                showRow = false;
-            }
-            
-            // Filter by foreman
-            if (filters.foreman && row.dataset.foremanId !== filters.foreman) {
-                showRow = false;
-            }
-            
-            // Filter by status
-            if (filters.status && row.dataset.status !== filters.status) {
-                showRow = false;
-            }
-            
-            // Filter by search
-            if (filters.search) {
-                const searchText = row.textContent.toLowerCase();
-                if (!searchText.includes(filters.search.toLowerCase())) {
-                    showRow = false;
-                }
-            }
-            
-            row.style.display = showRow ? '' : 'none';
-        });
-        
-        this.updateFilterResults();
-    }
-    
-    resetFilters() {
-        document.getElementById('filter-truck').value = '';
-        document.getElementById('filter-foreman').value = '';
-        document.getElementById('filter-status').value = '';
-        document.getElementById('filter-search').value = '';
-        
-        // Show all rows
-        document.querySelectorAll('#trucks-tbody tr').forEach(row => {
-            row.style.display = '';
-        });
-        
-        this.updateFilterResults();
-    }
-    
-    updateFilterResults() {
-        const visibleRows = document.querySelectorAll('#trucks-tbody tr[data-truck-id][style=""], #trucks-tbody tr[data-truck-id]:not([style])');
-        console.log(`Showing ${visibleRows.length} trucks`);
-    }
-    
-    showMapError() {
-        const mapContainer = document.getElementById('addRouteMap');
-        if (mapContainer) {
-            mapContainer.innerHTML = `
-                <div class="map-error">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Unable to load map. Please check your internet connection.</p>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="location.reload()">
-                        Reload Page
-                    </button>
+                <div class="details-section">
+                    <h6><i class="fas fa-user-tie me-2"></i>Assignment</h6>
+                    <div class="detail-row">
+                        <span class="detail-label">Foreman:</span>
+                        <span class="detail-value">${truck.foreman_name || 'Not Assigned'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Schedule Type:</span>
+                        <span class="detail-value">
+                            <span class="badge bg-info">${truck.schedule || 'N/A'}</span>
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value">
+                            <span class="status-badge status-${(truck.status || 'parked').toLowerCase().replace(' ', '-')}">
+                                <i class="fas fa-circle me-1"></i>
+                                ${truck.status || 'Parked'}
+                            </span>
+                        </span>
+                    </div>
                 </div>
-            `;
+
+                <div class="details-section">
+                    <h6><i class="fas fa-route me-2"></i>Route Information</h6>
+                    <div class="detail-row">
+                        <span class="detail-label">Route Name:</span>
+                        <span class="detail-value"><strong>${truck.route_name || 'No Route Assigned'}</strong></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Start Point:</span>
+                        <span class="detail-value">${truck.start_point || 'N/A'}</span>
+                    </div>
+                    ${truck.mid_point ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Mid Point:</span>
+                        <span class="detail-value">${truck.mid_point}</span>
+                    </div>
+                    ` : ''}
+                    <div class="detail-row">
+                        <span class="detail-label">End Point:</span>
+                        <span class="detail-value">${truck.end_point || 'N/A'}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="truck-details-map-section">
+                <div class="details-section">
+                    <h6><i class="fas fa-map me-2"></i>Route Map</h6>
+                    <div class="route-map-container">
+                        <div id="truckDetailsMap" class="route-details-map"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Show the modal
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    
+    // Initialize map after modal is shown
+    modal.addEventListener('shown.bs.modal', () => {
+        this.initTruckDetailsMap(truck);
+    }, { once: true });
+}
+
+/**
+ * Initialize map for truck details
+ */
+initTruckDetailsMap(truck) {
+    const mapContainer = document.getElementById('truckDetailsMap');
+    
+    if (!mapContainer) return;
+    
+    try {
+        // Clear any existing map
+        mapContainer.innerHTML = '';
+        
+        // Initialize Leaflet Map
+        const map = L.map('truckDetailsMap', {
+            center: [14.5995, 120.9842], // Default Philippines coordinates
+            zoom: 13,
+            zoomControl: true
+        });
+        
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+        
+        // Add markers if coordinates are available
+        const markers = [];
+        let bounds = null;
+        
+        // Start point
+        if (truck.start_lat && truck.start_lon) {
+            const startMarker = L.marker([truck.start_lat, truck.start_lon], {
+                icon: this.createCustomIcon('start')
+            }).addTo(map);
+            
+            startMarker.bindPopup(`
+                <div class="map-popup">
+                    <strong>Start Point</strong><br>
+                    ${truck.start_point || 'Unknown Location'}
+                </div>
+            `);
+            
+            markers.push(startMarker);
         }
+        
+        // Mid point
+        if (truck.mid_lat && truck.mid_lon) {
+            const midMarker = L.marker([truck.mid_lat, truck.mid_lon], {
+                icon: this.createCustomIcon('mid')
+            }).addTo(map);
+            
+            midMarker.bindPopup(`
+                <div class="map-popup">
+                    <strong>Mid Point</strong><br>
+                    ${truck.mid_point || 'Unknown Location'}
+                </div>
+            `);
+            
+            markers.push(midMarker);
+        }
+        
+        // End point
+        if (truck.end_lat && truck.end_lon) {
+            const endMarker = L.marker([truck.end_lat, truck.end_lon], {
+                icon: this.createCustomIcon('end')
+            }).addTo(map);
+            
+            endMarker.bindPopup(`
+                <div class="map-popup">
+                    <strong>End Point</strong><br>
+                    ${truck.end_point || 'Unknown Location'}
+                </div>
+            `);
+            
+            markers.push(endMarker);
+        }
+        
+        // Fit map to show all markers
+        if (markers.length > 0) {
+            const group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
+        
+        // Force map resize
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
+        
+    } catch (error) {
+        console.error('Error initializing truck details map:', error);
+        mapContainer.innerHTML = `
+            <div class="map-error">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Unable to load map</p>
+            </div>
+        `;
     }
 }
 
-// Utility functions for modal population (existing functionality)
-function populateEditModal(truck) {
-    // Implementation for edit modal
-    console.log('Edit truck:', truck);
+/**
+ * Create custom map icons
+ */
+createCustomIcon(type) {
+    const icons = {
+        start: { color: '#28a745', icon: 'play' },
+        mid: { color: '#ffc107', icon: 'pause' },
+        end: { color: '#dc3545', icon: 'stop' }
+    };
+    
+    const config = icons[type] || icons.start;
+    
+    return L.divIcon({
+        className: `custom-marker ${type}-marker`,
+        html: `<div class="marker-pin" style="background: ${config.color}"><i class="fas fa-${config.icon}"></i></div>`,
+        iconSize: [30, 40],
+        iconAnchor: [15, 40],
+        popupAnchor: [0, -40]
+    });
 }
 
-function populateDispatchModal(truck) {
-    // Implementation for dispatch modal
-    console.log('Dispatch truck:', truck);
-}
-
-function populateDeleteModal(truck) {
-    // Implementation for delete modal
-    console.log('Delete truck:', truck);
-}
-
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    new GarbageCollectionManager();
-});
-
-// Legacy support for existing onclick handlers
-function applyFilters() {
+// Static method for onclick handlers
+static viewTruckDetails(truck) {
     if (window.garbageCollectionManager) {
-        window.garbageCollectionManager.applyFilters();
+        window.garbageCollectionManager.viewTruckDetails(truck);
     }
 }
-
-function resetFilters() {
-    if (window.garbageCollectionManager) {
-        window.garbageCollectionManager.resetFilters();
-    }
 }
