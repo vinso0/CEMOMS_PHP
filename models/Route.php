@@ -61,12 +61,12 @@ class Route
         $midLon = null
     ) {
         try {
-            $this->db->beginTransaction();
+            $this->db->connection->beginTransaction();
 
             // Insert route
             $sql = "INSERT INTO route (route_name) VALUES (:route_name)";
             $this->db->query($sql, [':route_name' => $routeName]);
-            $routeId = $this->db->lastInsertId();
+            $routeId = $this->db->connection->lastInsertId();
 
             // Insert start point
             $this->insertRoutePoint($routeId, $startLat, $startLon, 1, $startPoint);
@@ -79,14 +79,17 @@ class Route
             // Insert end point
             $this->insertRoutePoint($routeId, $endLat, $endLon, 3, $endPoint);
 
-            $this->db->commit();
+            $this->db->connection->commit();
             return $routeId;
 
         } catch (\Exception $e) {
-            $this->db->rollBack();
+            if ($this->db->connection->inTransaction()) {
+                $this->db->connection->rollBack();
+            }
             throw $e;
         }
     }
+
 
     /**
      * Insert a route point

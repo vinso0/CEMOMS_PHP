@@ -20,33 +20,66 @@ class RouteMapSelector {
         this.init();
     }
     
-    init() {
+    // Replace the init method with this:
+init() {
+    try {
         this.initMap();
         this.initEventListeners();
+        console.log('RouteMapSelector initialized successfully');
+    } catch (error) {
+        console.error('RouteMapSelector initialization failed:', error);
+        throw error;
     }
-    
+}
+
+// Replace the initMap method with this:
     initMap() {
-        // Initialize Leaflet Map
-        this.map = L.map(this.mapId, {
-            center: [this.options.defaultLat, this.options.defaultLng],
-            zoom: this.options.defaultZoom,
-            zoomControl: true
-        });
+        const mapContainer = document.getElementById(this.mapId);
         
-        // Add OpenStreetMap tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
-        }).addTo(this.map);
+        if (!mapContainer) {
+            throw new Error(`Map container with id '${this.mapId}' not found`);
+        }
         
-        // Add map click listener
-        this.map.on('click', (event) => {
-            this.handleMapClick(event);
-        });
+        if (typeof L === 'undefined') {
+            throw new Error('Leaflet library not loaded');
+        }
         
-        // Try to get user's current location
-        this.getCurrentLocation();
+        try {
+            // Initialize Leaflet Map
+            this.map = L.map(this.mapId, {
+                center: [this.options.defaultLat, this.options.defaultLng],
+                zoom: this.options.defaultZoom,
+                zoomControl: true,
+                attributionControl: true
+            });
+            
+            // Add OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(this.map);
+            
+            // Add map click listener
+            this.map.on('click', (event) => {
+                this.handleMapClick(event);
+            });
+            
+            // Force map to resize properly after modal is shown
+            setTimeout(() => {
+                this.map.invalidateSize();
+            }, 100);
+            
+            // Try to get user's current location
+            this.getCurrentLocation();
+            
+            console.log('Leaflet map initialized successfully');
+            
+        } catch (error) {
+            console.error('Error creating Leaflet map:', error);
+            throw new Error('Failed to create map instance');
+        }
     }
+
     
     initEventListeners() {
         // Point mode selector

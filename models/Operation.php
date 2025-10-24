@@ -32,22 +32,42 @@ class Operation
      */
     public function create($operationName, $operationTypeId, $adminId, $description = '')
     {
-        // We're NOT using truck_id in the INSERT because it's causing issues
-        // The truck is linked through operation_schedule table instead
-        $sql = "INSERT INTO operation (operation_name, operation_type_id, admin_id, description, is_truck_based)
-                VALUES (:operation_name, :operation_type_id, :admin_id, :description, :is_truck_based)";
-        
-        $this->db->query($sql, [
-            ':operation_name' => $operationName,
-            ':operation_type_id' => $operationTypeId,
-            ':admin_id' => $adminId,
-            ':description' => $description,
-            ':is_truck_based' => 1 // 1 = truck-based operation (like garbage collection)
-        ]);
-        
-        // Return the ID of the newly created operation
-        return $this->db->connection->lastInsertId();
+        try {
+            // We're NOT using truck_id in the INSERT because it's causing issues
+            // The truck is linked through operation_schedule table instead
+            $sql = "INSERT INTO operation (operation_name, operation_type_id, admin_id, description, is_truck_based)
+                    VALUES (:operation_name, :operation_type_id, :admin_id, :description, :is_truck_based)";
+            
+            $this->db->query($sql, [
+                ':operation_name' => $operationName,
+                ':operation_type_id' => $operationTypeId,
+                ':admin_id' => $adminId,
+                ':description' => $description,
+                ':is_truck_based' => 1 // 1 = truck-based operation (like garbage collection)
+            ]);
+            
+            // Get the last inserted ID
+            $lastId = $this->db->connection->lastInsertId();
+            
+            // Validate the ID
+            if (!$lastId || $lastId == 0) {
+                throw new \Exception('Failed to get auto-increment ID from operation table. Please check database configuration.');
+            }
+            
+            return $lastId;
+            
+        } catch (\PDOException $e) {
+            error_log('Operation creation PDO error: ' . $e->getMessage());
+            if ($e->getCode() == 23000) {
+                throw new \Exception('Database constraint violation: ' . $e->getMessage());
+            }
+            throw new \Exception('Database error creating operation: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            error_log('Operation creation error: ' . $e->getMessage());
+            throw new \Exception('Error creating operation: ' . $e->getMessage());
+        }
     }
+
 
     /**
      * Get operation by ID

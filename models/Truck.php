@@ -108,17 +108,32 @@ class Truck
      */
     public function create($plateNumber, $bodyNumber, $foremanId)
     {
-        $sql = "INSERT INTO truck (plate_number, body_number, foreman_id)
-                VALUES (:plate_number, :body_number, :foreman_id)";
-        
-        $this->db->query($sql, [
-            ':plate_number' => $plateNumber,
-            ':body_number' => $bodyNumber,
-            ':foreman_id' => $foremanId
-        ]);
-        
-        return $this->db->connection->lastInsertId();
+        try {
+            $sql = "INSERT INTO truck (plate_number, body_number, foreman_id)
+                    VALUES (:plate_number, :body_number, :foreman_id)";
+            
+            $this->db->query($sql, [
+                ':plate_number' => $plateNumber,
+                ':body_number' => $bodyNumber,
+                ':foreman_id' => $foremanId
+            ]);
+            
+            $lastId = $this->db->connection->lastInsertId();
+            
+            if ($lastId == 0) {
+                throw new \Exception('Failed to get auto-increment ID. Please check database configuration.');
+            }
+            
+            return $lastId;
+            
+        } catch (\PDOException $e) {
+            if ($e->getCode() == 23000) {
+                throw new \Exception('Duplicate entry or constraint violation: ' . $e->getMessage());
+            }
+            throw new \Exception('Database error creating truck: ' . $e->getMessage());
+        }
     }
+
 
     /**
      * Update truck details

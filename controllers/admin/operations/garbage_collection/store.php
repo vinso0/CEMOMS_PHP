@@ -89,6 +89,13 @@ if (!in_array($scheduleType, ['daily', 'weekly'])) {
 
 if (count($errors) === 0) {
     try {
+        // Get database connection for transaction
+        $db = \Core\App::resolve(\Core\Database::class);
+        $pdo = $db->connection;
+        
+        // Start transaction
+        $pdo->beginTransaction();
+        
         $truckModel = new Truck();
         $scheduleModel = new OperationSchedule();
         $routeModel = new Route();
@@ -102,6 +109,11 @@ if (count($errors) === 0) {
         $operationTypeId = 1; // Garbage Collection
         $operationId = $operationModel->create($operationName, $operationTypeId, $adminId, $bodyNumber);
         
+        // Check if operation was created successfully
+        if (!$operationId || $operationId == 0) {
+            throw new \Exception('Failed to create operation record');
+        }
+        
         // Step 2: Create route with coordinates
         $routeId = $routeModel->createRouteWithCoordinates(
             $routeName,
@@ -110,13 +122,23 @@ if (count($errors) === 0) {
             $endPoint, $endLat, $endLon
         );
         
+        // Check if route was created successfully
+        if (!$routeId || $routeId == 0) {
+            throw new \Exception('Failed to create route record');
+        }
+        
         // Step 3: Create truck
         $truckId = $truckModel->create($plateNumber, $bodyNumber, $foremanId);
+        
+        // Check if truck was created successfully
+        if (!$truckId || $truckId == 0) {
+            throw new \Exception('Failed to create truck record');
+        }
         
         // Step 4: Create operation schedule
         $areaId = 1;
         
-        $scheduleModel->create(
+        $scheduleId = $scheduleModel->create(
             $operationId,
             $routeId,
             $areaId,
@@ -127,12 +149,26 @@ if (count($errors) === 0) {
             'Parked' // Default status
         );
         
+        // Check if schedule was created successfully
+        if (!$scheduleId || $scheduleId == 0) {
+            throw new \Exception('Failed to create schedule record');
+        }
+        
+        // Commit transaction
+        $pdo->commit();
+        
         $_SESSION['success'] = 'Truck and route with coordinates added successfully.';
         header('Location: /admin/operations/garbage_collection');
         exit();
         
     } catch (\Exception $e) {
+        // Rollback transaction if it was started
+        if (isset($pdo) && $pdo->inTransaction()) {
+            $pdo->rollback();
+        }
+        
         $errors[] = 'Error creating truck: ' . $e->getMessage();
+        error_log('Truck creation error: ' . $e->getMessage()); // Log the actual error
     }
 }
 

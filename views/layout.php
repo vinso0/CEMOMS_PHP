@@ -14,10 +14,11 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <!-- CSS Files -->
-    <link rel="stylesheet" href="/assets/css/base.css">
-    <link rel="stylesheet" href="/assets/css/layout.css">
-    <link rel="stylesheet" href="/assets/css/admin.css">
-    <link rel="stylesheet" href="/assets/css/foreman.css">
+    <link rel="stylesheet" href="/public/assets/css/base.css">
+    <link rel="stylesheet" href="/public/assets/css/layout.css">
+    <link rel="stylesheet" href="/public/assets/css/admin.css">
+    <link rel="stylesheet" href="/public/assets/css/foreman.css">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- Additional page-specific styles -->
@@ -49,7 +50,7 @@
     </div>
 
     <!-- JavaScript Files -->
-    <script src="/assets/js/layout.js"></script>
+   <script src="/public/assets/js/layout.js"></script>
     
     <!-- Additional page-specific scripts -->
     <?= $additionalScripts ?? '' ?>

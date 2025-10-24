@@ -25,18 +25,88 @@ class GarbageCollectionManager {
         }
     }
     
+    // Replace the existing initAddTruckMap method with this:
     initAddTruckMap() {
-        if (typeof L !== 'undefined') {
-            this.routeMapSelector = new RouteMapSelector('addRouteMap', {
-                defaultLat: 14.5995, // Philippines
-                defaultLng: 120.9842,
-                defaultZoom: 13
-            });
-        } else {
+        const mapContainer = document.getElementById('addRouteMap');
+        
+        if (!mapContainer) {
+            console.error('Map container not found');
+            return;
+        }
+        
+        // Check if Leaflet is loaded
+        if (typeof L === 'undefined') {
             console.error('Leaflet library not loaded');
-            this.showMapError();
+            this.showMapError('Leaflet library not loaded. Please refresh the page.');
+            return;
+        }
+        
+        try {
+            // Clear any existing content
+            mapContainer.innerHTML = '';
+            
+            // Add a small delay to ensure modal DOM is ready
+            setTimeout(() => {
+                // Initialize RouteMapSelector
+                this.routeMapSelector = new RouteMapSelector('addRouteMap', {
+                    defaultLat: 14.5995, // Philippines
+                    defaultLng: 120.9842,
+                    defaultZoom: 13
+                });
+                
+                // Mark map as loaded
+                mapContainer.classList.add('map-loaded');
+                console.log('Map initialized successfully');
+            }, 200);
+            
+        } catch (error) {
+            console.error('Error initializing map:', error);
+            this.showMapError('Failed to load map. Please try again.');
         }
     }
+
+    // Replace the showMapError method with this:
+    showMapError(message = 'Unable to load map. Please check your internet connection.') {
+        const mapContainer = document.getElementById('addRouteMap');
+        if (mapContainer) {
+            mapContainer.innerHTML = `
+                <div class="map-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h6>Map Loading Error</h6>
+                    <p>${message}</p>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="window.location.reload()">
+                        <i class="fas fa-redo me-1"></i>Retry
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    // Update the resetAddTruckForm method:
+    resetAddTruckForm() {
+        const form = document.getElementById('addTruckForm');
+        if (form) {
+            form.reset();
+            form.classList.remove('was-validated');
+            
+            // Clear validation errors
+            form.querySelectorAll('.is-invalid').forEach(field => {
+                field.classList.remove('is-invalid');
+            });
+        }
+        
+        // Reset map
+        if (this.routeMapSelector) {
+            this.routeMapSelector.clearAllMarkers();
+        }
+        
+        // Reset map container
+        const mapContainer = document.getElementById('addRouteMap');
+        if (mapContainer) {
+            mapContainer.classList.remove('map-loaded');
+        }
+    }
+
 
     
     initFilters() {
