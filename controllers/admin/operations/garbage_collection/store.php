@@ -116,10 +116,10 @@ if (count($errors) === 0) {
         
         // Step 2: Create route with coordinates
         $routeId = $routeModel->createRouteWithCoordinates(
-            $routeName,
-            $startPoint, $startLat, $startLon,
-            $midPoint, $midLat, $midLon,
-            $endPoint, $endLat, $endLon
+        $routeName,
+        $startPoint, $startLat, $startLon,
+        $endPoint, $endLat, $endLon,
+        $midPoint, $midLat, $midLon
         );
         
         // Check if route was created successfully

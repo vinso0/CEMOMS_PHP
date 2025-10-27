@@ -1,7 +1,7 @@
 <?php
-// Debugging Route Details Modal with Leaflet/OpenStreetMap
+// Simplified Route Details Modal with Leaflet/OpenStreetMap
 ?>
-<div class="modal fade" id="routeDetailsModal" tabindex="-1" aria-labelledby="routeDetailsModalLabel" aria-modal="true" role="dialog">
+<div class="modal fade" id="routeDetailsModal" tabindex="-1" aria-labelledby="routeDetailsModalLabel">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -12,11 +12,6 @@
             </div>
             <div class="modal-body p-0">
                 <div class="route-details-container">
-                    <!-- Debug Info -->
-                    <div class="debug-info p-2 bg-warning text-dark border-bottom">
-                        <small><strong>Debug:</strong> <span id="debug-info">Waiting for truck data...</span></small>
-                    </div>
-                    
                     <!-- Truck Information & Route Assignment -->
                     <div class="info-section p-3 bg-light border-bottom">
                         <div class="row">
@@ -58,9 +53,9 @@
                                     <h6 class="mb-0">Route Points</h6>
                                 </div>
                                 <div class="points-list" id="route-points-list">
-                                    <div class="empty-points text-center p-4">
-                                        <i class="fas fa-map-pin text-muted mb-2"></i>
-                                        <p class="text-muted mb-0">No route points</p>
+                                    <div class="loading-points text-center p-4">
+                                        <i class="fas fa-spinner fa-spin text-muted mb-2"></i>
+                                        <p class="text-muted mb-0">Loading route points...</p>
                                     </div>
                                 </div>
                             </div>
@@ -69,14 +64,10 @@
                         <!-- Map -->
                         <div class="col-md-8">
                             <div class="map-section">
-                                <div id="route-map" style="height: 400px; background: #f0f0f0;">
-                                    <div class="d-flex align-items-center justify-content-center h-100">
-                                        <div class="text-center">
-                                            <i class="fas fa-map text-muted mb-2"></i>
-                                            <p class="text-muted mb-0">Map will load here</p>
-                                        </div>
-                                    </div>
+                                <div class="map-header p-2 bg-dark text-white">
+                                    <small>Interactive Route Map</small>
                                 </div>
+                                <div id="route-map" style="height: 360px; background: #f0f0f0;"></div>
                             </div>
                         </div>
                     </div>
@@ -100,7 +91,7 @@
         crossorigin=""></script>
 
 <style>
-/* Simple styles for route details modal */
+/* Styles for route details modal */
 .route-details-container {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
@@ -171,25 +162,12 @@
     line-height: 1.2;
 }
 
-.map-section {
-    position: relative;
-}
-
-#route-map {
-    width: 100%;
-}
-
-.empty-points {
+.loading-points, .empty-points {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100%;
-}
-
-.debug-info {
-    font-family: monospace;
-    font-size: 12px;
 }
 
 /* Responsive adjustments */
@@ -216,191 +194,144 @@
 </style>
 
 <script>
-// DEBUG VERSION - Enhanced logging
 let routeMap;
 let routeMarkers = [];
 let routePath;
 
 /**
- * DEBUG: Populate route details modal with extensive logging
+ * Simple function to populate route details modal
  */
 function populateRouteDetailsModal(truck) {
-    console.log('=== ROUTE DETAILS MODAL DEBUG ===');
-    console.log('1. Function called with truck data:', truck);
-    
     if (!truck) {
-        console.error('ERROR: No truck data provided');
-        document.getElementById('debug-info').textContent = 'ERROR: No truck data provided';
+        console.error('No truck data provided');
         return;
     }
     
-    // Show debug info
-    document.getElementById('debug-info').textContent = `Loaded truck: ${truck.plate_number || 'Unknown'} - Checking route points...`;
+    console.log('Loading route details for truck:', truck.plate_number);
     
     // Update basic information
-    console.log('2. Updating basic truck information...');
-    const plateElement = document.getElementById('details-plate-number');
-    const bodyElement = document.getElementById('details-body-number');
-    const routeElement = document.getElementById('details-route-name');
-    const foremanElement = document.getElementById('details-foreman');
+    document.getElementById('details-plate-number').textContent = truck.plate_number || '-';
+    document.getElementById('details-body-number').textContent = truck.body_number || '-';
+    document.getElementById('details-route-name').textContent = truck.route_name || 'Not Assigned';
+    document.getElementById('details-foreman').textContent = truck.foreman_name || 'Not Assigned';
     
-    if (plateElement) plateElement.textContent = truck.plate_number || '-';
-    if (bodyElement) bodyElement.textContent = truck.body_number || '-';
-    if (routeElement) routeElement.textContent = truck.route_name || 'Not Assigned';
-    if (foremanElement) foremanElement.textContent = truck.foreman_name || 'Not Assigned';
-    
-    // Debug: Show all available properties
-    console.log('3. All truck properties:', Object.keys(truck));
-    console.log('4. Looking for route coordinates...');
-    
-    // Check for different possible coordinate field names
-    const possibleFields = [
-        'start_lat', 'start_lng', 'start_lon', 'start_point',
-        'mid_lat', 'mid_lng', 'mid_lon', 'mid_point', 
-        'end_lat', 'end_lng', 'end_lon', 'end_point',
-        'route_points', 'coordinates', 'waypoints'
-    ];
-    
-    console.log('5. Checking for coordinate fields:');
-    possibleFields.forEach(field => {
-        if (truck.hasOwnProperty(field)) {
-            console.log(`   ✓ Found: ${field} =`, truck[field]);
-        }
-    });
-    
-    // Build route points array
-    const routePoints = buildRoutePointsFromTruck(truck);
-    console.log('6. Built route points:', routePoints);
-    
-    // Update debug info
-    document.getElementById('debug-info').textContent = `Found ${routePoints.length} route points`;
-    
-    // Load route points
-    loadRoutePointsDebug(routePoints);
-    
-    // Initialize map
-    const modal = document.getElementById('routeDetailsModal');
-    if (modal) {
-        modal.addEventListener('shown.bs.modal', function initMapHandler() {
-            console.log('7. Modal shown, initializing map...');
-            initializeMapDebug(routePoints);
-            // Remove event listener after first use
-            modal.removeEventListener('shown.bs.modal', initMapHandler);
-        });
-    }
-}
-
-/**
- * DEBUG: Build route points from truck data with extensive checking
- */
-function buildRoutePointsFromTruck(truck) {
-    const routePoints = [];
-    console.log('Building route points from truck data...');
-    
-    // Method 1: Check for start/mid/end points
-    if (truck.start_lat && truck.start_lng) {
-        const startPoint = {
-            name: truck.start_point || 'Start Point',
-            address: truck.start_address || 'Start location',
-            lat: parseFloat(truck.start_lat),
-            lng: parseFloat(truck.start_lng)
-        };
-        
-        if (!isNaN(startPoint.lat) && !isNaN(startPoint.lng)) {
-            routePoints.push(startPoint);
-            console.log('Added start point:', startPoint);
-        }
-    }
-    
-    if (truck.mid_lat && truck.mid_lng) {
-        const midPoint = {
-            name: truck.mid_point || 'Mid Point',
-            address: truck.mid_address || 'Collection point',
-            lat: parseFloat(truck.mid_lat),
-            lng: parseFloat(truck.mid_lng)
-        };
-        
-        if (!isNaN(midPoint.lat) && !isNaN(midPoint.lng)) {
-            routePoints.push(midPoint);
-            console.log('Added mid point:', midPoint);
-        }
-    }
-    
-    if (truck.end_lat && truck.end_lng) {
-        const endPoint = {
-            name: truck.end_point || 'End Point',
-            address: truck.end_address || 'End location',
-            lat: parseFloat(truck.end_lat),
-            lng: parseFloat(truck.end_lng)
-        };
-        
-        if (!isNaN(endPoint.lat) && !isNaN(endPoint.lng)) {
-            routePoints.push(endPoint);
-            console.log('Added end point:', endPoint);
-        }
-    }
-    
-    // Method 2: Check for route_points array
-    if (truck.route_points && Array.isArray(truck.route_points)) {
-        console.log('Found route_points array:', truck.route_points);
-        truck.route_points.forEach((point, index) => {
-            if (point.lat && point.lng) {
-                routePoints.push({
-                    name: point.name || `Point ${index + 1}`,
-                    address: point.address || 'Address not available',
-                    lat: parseFloat(point.lat),
-                    lng: parseFloat(point.lng)
-                });
-            }
-        });
-    }
-    
-    // Method 3: Add some sample data if no points found (for testing)
-    if (routePoints.length === 0) {
-        console.warn('No route points found, adding sample data for testing...');
-        routePoints.push(
-            {
-                name: 'Sample Start Point',
-                address: 'Manila City Hall, Manila',
-                lat: 14.5995,
-                lng: 120.9842
-            },
-            {
-                name: 'Sample End Point',
-                address: 'Rizal Park, Manila',
-                lat: 14.5832,
-                lng: 120.9794
-            }
-        );
-    }
-    
-    return routePoints;
-}
-
-/**
- * DEBUG: Load route points with logging
- */
-function loadRoutePointsDebug(routePoints) {
-    console.log('Loading route points into list...');
+    // Reset points list to loading state
     const pointsList = document.getElementById('route-points-list');
+    pointsList.innerHTML = `
+        <div class="loading-points text-center p-4">
+            <i class="fas fa-spinner fa-spin text-muted mb-2"></i>
+            <p class="text-muted mb-0">Loading route points...</p>
+        </div>
+    `;
     
-    if (!pointsList) {
-        console.error('route-points-list element not found');
+    // Initialize map when modal is shown
+    const modal = document.getElementById('routeDetailsModal');
+    modal.addEventListener('shown.bs.modal', function modalShownHandler() {
+        initializeMap();
+        
+        // Fetch route points if route exists
+        if (truck.route_id) {
+            fetchRoutePoints(truck.route_id);
+        } else {
+            showNoRoutePoints();
+        }
+        
+        // Remove event listener after first use
+        modal.removeEventListener('shown.bs.modal', modalShownHandler);
+    });
+}
+
+/**
+ * Initialize the map
+ */
+function initializeMap() {
+    const mapElement = document.getElementById('route-map');
+    
+    if (!mapElement) {
+        console.error('Map element not found');
         return;
     }
     
-    if (!routePoints || routePoints.length === 0) {
-        console.log('No route points to display');
-        pointsList.innerHTML = `
-            <div class="empty-points text-center p-4">
-                <i class="fas fa-map-pin text-muted mb-2"></i>
-                <p class="text-muted mb-0">No route points</p>
+    // Remove existing map
+    if (routeMap) {
+        routeMap.remove();
+        routeMap = null;
+    }
+    
+    try {
+        console.log('Initializing map...');
+        
+        // Create map
+        routeMap = L.map('route-map', {
+            center: [14.5995, 120.9842], // Manila
+            zoom: 12,
+            zoomControl: true,
+            scrollWheelZoom: true
+        });
+        
+        // Add tile layer
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(routeMap);
+        
+        // Fix map size
+        setTimeout(() => {
+            if (routeMap) {
+                routeMap.invalidateSize();
+            }
+        }, 200);
+        
+        console.log('Map initialized successfully');
+        
+    } catch (error) {
+        console.error('Error initializing map:', error);
+        mapElement.innerHTML = `
+            <div class="d-flex align-items-center justify-content-center h-100 text-center text-danger">
+                <div>
+                    <i class="fas fa-exclamation-triangle mb-2"></i>
+                    <p class="mb-0">Error loading map</p>
+                </div>
             </div>
         `;
+    }
+}
+
+/**
+ * Fetch route points via AJAX
+ */
+function fetchRoutePoints(routeId) {
+    console.log('Fetching route points for route ID:', routeId);
+    
+    fetch(`/admin/operations/garbage_collection/get_route_points?route_id=${routeId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Route points fetched:', data.route_points);
+            displayRoutePoints(data.route_points);
+            addPointsToMap(data.route_points);
+        })
+        .catch(error => {
+            console.error('Error fetching route points:', error);
+            showErrorPoints();
+        });
+}
+
+/**
+ * Display route points in the list
+ */
+function displayRoutePoints(routePoints) {
+    const pointsList = document.getElementById('route-points-list');
+    
+    if (!routePoints || routePoints.length === 0) {
+        showNoRoutePoints();
         return;
     }
     
-    console.log(`Displaying ${routePoints.length} route points`);
     let pointsHTML = '';
     routePoints.forEach((point, index) => {
         const pointType = index === 0 ? 'start' : 
@@ -411,8 +342,8 @@ function loadRoutePointsDebug(routePoints) {
                 <div class="d-flex align-items-start">
                     <span class="point-number ${pointType}">${index + 1}</span>
                     <div class="flex-grow-1">
-                        <div class="point-name">${point.name || `Point ${index + 1}`}</div>
-                        <div class="point-address">${point.address || 'Address not available'}</div>
+                        <div class="point-name">${point.name}</div>
+                        <div class="point-address">${point.address}</div>
                     </div>
                 </div>
             </div>
@@ -420,193 +351,107 @@ function loadRoutePointsDebug(routePoints) {
     });
     
     pointsList.innerHTML = pointsHTML;
-    console.log('Route points list updated successfully');
 }
 
 /**
- * DEBUG: Initialize map with extensive logging
+ * Show no route points message
  */
-function initializeMapDebug(routePoints) {
-    console.log('=== MAP INITIALIZATION DEBUG ===');
-    console.log('1. Starting map initialization with points:', routePoints);
-    
-    const mapElement = document.getElementById('route-map');
-    if (!mapElement) {
-        console.error('ERROR: route-map element not found');
-        return;
-    }
-    
-    // Check if Leaflet is loaded
-    if (typeof L === 'undefined') {
-        console.error('ERROR: Leaflet library not loaded');
-        mapElement.innerHTML = `
-            <div class="d-flex align-items-center justify-content-center h-100 text-center text-danger">
-                <div>
-                    <i class="fas fa-exclamation-triangle mb-2"></i>
-                    <p class="mb-0">Leaflet library not loaded</p>
-                </div>
-            </div>
-        `;
-        return;
-    }
-    
-    console.log('2. Leaflet library loaded successfully');
-    
-    // Remove existing map if any
-    if (routeMap) {
-        console.log('3. Removing existing map instance');
-        routeMap.remove();
-        routeMap = null;
-    }
-    
-    // Clear map container
-    mapElement.innerHTML = '';
-    console.log('4. Map container cleared');
-    
-    try {
-        // Default center (Manila)
-        const defaultCenter = [14.5995, 120.9842];
-        const defaultZoom = 13;
-        
-        console.log('5. Creating map instance...');
-        routeMap = L.map('route-map', {
-            center: defaultCenter,
-            zoom: defaultZoom,
-            zoomControl: true,
-            scrollWheelZoom: true
-        });
-        
-        console.log('6. Adding tile layer...');
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(routeMap);
-        
-        console.log('7. Tile layer added successfully');
-        
-        // Add route points to map
-        if (routePoints && routePoints.length > 0) {
-            console.log('8. Adding route points to map...');
-            addPointsToMapDebug(routePoints);
-        } else {
-            console.log('8. No route points to add to map');
-        }
-        
-        // Fix map size after initialization
-        setTimeout(() => {
-            if (routeMap) {
-                console.log('9. Invalidating map size...');
-                routeMap.invalidateSize();
-                console.log('10. Map initialization completed successfully!');
-            }
-        }, 300);
-        
-    } catch (error) {
-        console.error('ERROR during map initialization:', error);
-        mapElement.innerHTML = `
-            <div class="d-flex align-items-center justify-content-center h-100 text-center text-danger">
-                <div>
-                    <i class="fas fa-exclamation-triangle mb-2"></i>
-                    <p class="mb-0">Error initializing map</p>
-                    <small>${error.message}</small>
-                </div>
-            </div>
-        `;
-    }
+function showNoRoutePoints() {
+    const pointsList = document.getElementById('route-points-list');
+    pointsList.innerHTML = `
+        <div class="empty-points text-center p-4">
+            <i class="fas fa-map-pin text-muted mb-2"></i>
+            <p class="text-muted mb-0">No route points assigned</p>
+        </div>
+    `;
 }
 
 /**
- * DEBUG: Add points to map with logging
+ * Show error message
  */
-function addPointsToMapDebug(routePoints) {
-    console.log('Adding points to map:', routePoints);
-    
+function showErrorPoints() {
+    const pointsList = document.getElementById('route-points-list');
+    pointsList.innerHTML = `
+        <div class="empty-points text-center p-4">
+            <i class="fas fa-exclamation-triangle text-warning mb-2"></i>
+            <p class="text-muted mb-0">Error loading route points</p>
+        </div>
+    `;
+}
+
+/**
+ * Add points to map
+ */
+function addPointsToMap(routePoints) {
     if (!routeMap || !routePoints || routePoints.length === 0) {
-        console.log('Cannot add points: missing map or points');
+        console.log('Cannot add points to map');
         return;
     }
     
     // Clear existing markers
-    clearMapMarkers();
+    clearMap();
     
     const pathCoordinates = [];
     const bounds = L.latLngBounds();
     
     routePoints.forEach((point, index) => {
-        console.log(`Processing point ${index + 1}:`, point);
-        
-        if (!point.lat || !point.lng || isNaN(point.lat) || isNaN(point.lng)) {
-            console.warn(`Skipping point ${index + 1}: invalid coordinates`);
-            return;
-        }
+        if (!point.lat || !point.lng) return;
         
         const coordinates = [point.lat, point.lng];
         pathCoordinates.push(coordinates);
         bounds.extend(coordinates);
         
-        // Determine point type and color
         const pointType = index === 0 ? 'start' : 
                          index === routePoints.length - 1 ? 'end' : 'collection';
         
-        const markerColor = pointType === 'start' ? 'green' : 
-                           pointType === 'end' ? 'red' : 'blue';
+        const markerColor = pointType === 'start' ? '#28a745' : 
+                           pointType === 'end' ? '#dc3545' : '#007bff';
         
-        // Create custom icon
+        // Create custom marker
         const customIcon = L.divIcon({
             html: `<div style="background-color: ${markerColor}; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${index + 1}</div>`,
-            className: 'custom-marker',
+            className: 'custom-route-marker',
             iconSize: [24, 24],
-            iconAnchor: [12, 12],
-            popupAnchor: [0, -12]
+            iconAnchor: [12, 12]
         });
         
-        // Create marker
-        const marker = L.marker(coordinates, {
-            icon: customIcon,
-            title: point.name || `Point ${index + 1}`
-        }).bindPopup(`
-            <div style="min-width: 150px;">
-                <h6 style="margin-bottom: 8px;">${point.name || `Point ${index + 1}`}</h6>
-                <p style="margin-bottom: 4px; font-size: 12px;"><strong>Address:</strong><br>${point.address || 'No address'}</p>
-                <p style="margin: 0; font-size: 12px;"><strong>Type:</strong> ${pointType.charAt(0).toUpperCase() + pointType.slice(1)} Point</p>
-            </div>
-        `);
+        const marker = L.marker(coordinates, { icon: customIcon })
+            .addTo(routeMap)
+            .bindPopup(`
+                <div style="min-width: 150px;">
+                    <h6>${point.name}</h6>
+                    <p class="mb-0"><small>${point.address}</small></p>
+                </div>
+            `);
         
-        marker.addTo(routeMap);
         routeMarkers.push({ marker, index });
-        console.log(`Added marker ${index + 1} at [${point.lat}, ${point.lng}]`);
     });
     
-    // Draw route path if more than one point
+    // Draw path
     if (pathCoordinates.length > 1) {
-        console.log('Drawing route path...');
         routePath = L.polyline(pathCoordinates, {
             color: '#2196f3',
             weight: 4,
-            opacity: 0.7,
-            smoothFactor: 1
+            opacity: 0.7
         }).addTo(routeMap);
     }
     
-    // Fit map to show all points
+    // Fit bounds
     if (pathCoordinates.length > 0) {
-        console.log('Fitting map bounds to show all points');
         routeMap.fitBounds(bounds, { padding: [20, 20] });
     }
     
-    console.log(`Successfully added ${routeMarkers.length} markers to map`);
+    console.log(`Added ${routeMarkers.length} markers to map`);
 }
 
 /**
- * Clear all markers and paths from map
+ * Clear map markers and path
  */
-function clearMapMarkers() {
+function clearMap() {
     if (!routeMap) return;
     
     routeMarkers.forEach(item => {
-        if (item.marker) {
-            routeMap.removeLayer(item.marker);
-        }
+        routeMap.removeLayer(item.marker);
     });
     routeMarkers = [];
     
@@ -617,37 +462,43 @@ function clearMapMarkers() {
 }
 
 /**
- * Highlight specific point
+ * Highlight point
  */
 function highlightPoint(pointIndex) {
-    console.log('Highlighting point:', pointIndex);
-    
     // Remove active class from all points
     document.querySelectorAll('.point-item').forEach(item => {
         item.classList.remove('active');
     });
     
-    // Add active class to selected point
+    // Add active class
     const pointItem = document.querySelector(`[data-point-index="${pointIndex}"]`);
     if (pointItem) {
         pointItem.classList.add('active');
     }
     
-    // Highlight marker on map
+    // Highlight on map
     const markerData = routeMarkers.find(item => item.index === pointIndex);
     if (markerData && routeMap) {
-        // Open popup and pan to marker
         markerData.marker.openPopup();
         routeMap.panTo(markerData.marker.getLatLng());
     }
 }
 
-// Clean up when modal is closed
+// Fix accessibility warning - add to garbage-collection.js
 document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('routeDetailsModal');
-    if (modal) {
-        modal.addEventListener('hidden.bs.modal', function() {
-            console.log('Route details modal closed, cleaning up');
+    // Handle focus blur to prevent aria-hidden warning
+    document.addEventListener('hide.bs.modal', function(event) {
+        if (event.target.id === 'routeDetailsModal') {
+            if (document.activeElement && document.activeElement.blur) {
+                document.activeElement.blur();
+            }
+        }
+    });
+    
+    // Clean up when modal closes
+    document.addEventListener('hidden.bs.modal', function(event) {
+        if (event.target.id === 'routeDetailsModal') {
+            console.log('Cleaning up route details modal...');
             
             if (routeMap) {
                 routeMap.remove();
@@ -661,13 +512,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.point-item').forEach(item => {
                 item.classList.remove('active');
             });
-            
-            // Reset debug info
-            const debugInfo = document.getElementById('debug-info');
-            if (debugInfo) {
-                debugInfo.textContent = 'Waiting for truck data...';
-            }
-        });
-    }
+        }
+    });
 });
 </script>
