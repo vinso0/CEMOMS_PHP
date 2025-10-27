@@ -282,6 +282,125 @@ class GarbageCollectionManager {
 }
 
 // Utility functions for modal population (existing functionality)
+function populateRouteDetailsModal(truck) {
+    // Populate basic information
+    document.getElementById('details-plate-number').textContent = truck.plate_number || '-';
+    document.getElementById('details-body-number').textContent = truck.body_number || '-';
+    document.getElementById('details-route-name').textContent = truck.route_name || '-';
+    document.getElementById('details-foreman').textContent = truck.foreman_name || 'Not Assigned';
+    document.getElementById('details-schedule').textContent = truck.schedule || 'N/A';
+    document.getElementById('details-status').textContent = truck.status || 'Parked';
+
+    // Populate route points
+    const routePointsList = document.getElementById('route-points-list');
+    routePointsList.innerHTML = '';
+
+    if (truck.start_point) {
+        const routePoints = [];
+        
+        // Add start point
+        routePoints.push({
+            type: 'start',
+            text: truck.start_point,
+            lat: truck.start_lat,
+            lng: truck.start_lon
+        });
+
+        // Add mid point if exists
+        if (truck.mid_point) {
+            routePoints.push({
+                type: 'mid',
+                text: truck.mid_point,
+                lat: truck.mid_lat,
+                lng: truck.mid_lon
+            });
+        }
+
+        // Add end point
+        if (truck.end_point) {
+            routePoints.push({
+                type: 'end',
+                text: truck.end_point,
+                lat: truck.end_lat,
+                lng: truck.end_lon
+            });
+        }
+
+        // Create route points display
+        routePoints.forEach(point => {
+            const pointElement = document.createElement('div');
+            pointElement.className = `route-point ${point.type}-point`;
+            pointElement.innerHTML = `
+                <div class="route-point-icon">
+                    <i class="fas fa-${point.type === 'start' ? 'play' : point.type === 'mid' ? 'circle' : 'stop'}"></i>
+                </div>
+                <div class="route-point-text">${point.text}</div>
+            `;
+            routePointsList.appendChild(pointElement);
+        });
+
+        // Initialize map
+        const mapContainer = document.getElementById('routeDetailsMap');
+        if (mapContainer) {
+            // Clear any existing map
+            mapContainer.innerHTML = '';
+
+            // Initialize map with the first point
+            const map = L.map('routeDetailsMap').setView(
+                [routePoints[0].lat || 14.5995, routePoints[0].lng || 120.9842],
+                13
+            );
+
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add markers and connect them with a line
+            const coordinates = routePoints.map(point => [point.lat, point.lng]);
+            const polyline = L.polyline(coordinates, {color: '#007bff', weight: 3}).addTo(map);
+
+            // Add markers
+            routePoints.forEach(point => {
+                const markerHtml = `
+                    <div class="custom-marker ${point.type}-marker">
+                        <div class="marker-pin">
+                            <i class="fas fa-${point.type === 'start' ? 'play' : point.type === 'mid' ? 'circle' : 'stop'}"></i>
+                        </div>
+                    </div>`;
+
+                const icon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: markerHtml,
+                    iconSize: [30, 42],
+                    iconAnchor: [15, 42]
+                });
+
+                L.marker([point.lat, point.lng], {icon: icon})
+                    .addTo(map)
+                    .bindPopup(point.text);
+            });
+
+            // Fit bounds to show all markers
+            if (coordinates.length > 0) {
+                map.fitBounds(polyline.getBounds());
+            }
+        }
+    } else {
+        routePointsList.innerHTML = `
+            <div class="text-muted text-center py-3">
+                No route points assigned
+            </div>
+        `;
+        document.getElementById('routeDetailsMap').innerHTML = `
+            <div class="text-muted text-center py-5">
+                <i class="fas fa-map-marked-alt fa-3x mb-3"></i>
+                <p>No route data available</p>
+            </div>
+        `;
+    }
+}
+
 function populateEditModal(truck) {
     // Implementation for edit modal
     console.log('Edit truck:', truck);

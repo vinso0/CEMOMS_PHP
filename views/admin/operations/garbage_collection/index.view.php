@@ -107,7 +107,7 @@ ob_start();
                 <tr>
                     <th>Plate Number</th>
                     <th>Body Number</th>
-                    <th>Route</th>
+                    <th>Route Name</th>
                     <th>Foreman</th>
                     <th>Schedule Type</th>
                     <th>Status</th>
@@ -125,13 +125,6 @@ ob_start();
                             <td>
                                 <?php if (!empty($truck['route_name'])): ?>
                                     <strong><?= htmlspecialchars($truck['route_name']) ?></strong><br>
-                                    <small class="text-muted">
-                                        <?= htmlspecialchars($truck['start_point']) ?>
-                                        <?php if (!empty($truck['mid_point'])): ?>
-                                            → <?= htmlspecialchars($truck['mid_point']) ?>
-                                        <?php endif; ?>
-                                        → <?= htmlspecialchars($truck['end_point']) ?>
-                                    </small>
                                 <?php else: ?>
                                     <span class="text-muted">Not Assigned</span>
                                 <?php endif; ?>
@@ -145,17 +138,17 @@ ob_start();
                             </td>
                             <td>
                                 <div class="action-buttons">
+                                    <button class="btn btn-sm btn-success" title="View"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#routeDetailsModal"
+                                            onclick="populateRouteDetailsModal(<?= htmlspecialchars(json_encode($truck)) ?>)">
+                                        <i class="fa-solid fa-expand"></i>
+                                    </button>
                                     <button class="btn btn-sm btn-warning" title="Edit" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#editTruckModal"
                                             onclick="populateEditModal(<?= htmlspecialchars(json_encode($truck)) ?>)">
                                         <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-success" title="Dispatch Log"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#dispatchModal"
-                                            onclick="populateDispatchModal(<?= htmlspecialchars(json_encode($truck)) ?>)">
-                                        <i class="fas fa-clipboard-check"></i>
                                     </button>
                                     <button class="btn btn-sm btn-danger" title="Delete"
                                             data-bs-toggle="modal"
@@ -238,6 +231,7 @@ ob_start();
 require 'modals/add-truck.modal.php';
 require 'modals/edit-truck.modal.php';
 require 'modals/delete-truck.modal.php';
+require 'modals/route-details.modal.php';
 ?>
 
 <?php

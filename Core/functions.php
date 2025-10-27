@@ -75,6 +75,14 @@ function base_path($path)
     return BASE_PATH . $path;
 } 
 
+function asset($path)
+{
+    // Get the subdirectory if CEMOMS is not in root of htdocs
+    $subDir = dirname($_SERVER['SCRIPT_NAME']);
+    $subDir = $subDir === '/' ? '' : $subDir;
+    return $subDir . '/assets/' . ltrim($path, '/');
+}
+
 function view($path, $attributes = [])
 {
     extract($attributes);

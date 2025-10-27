@@ -67,7 +67,13 @@
     border-bottom: 1px solid #dee2e6;
 }
 
-.table-header h3 {
+.logs-header {
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    margin-top: 1.5rem;
+}
+
+.table-header h3, .logs-header h3 {
     margin: 0;
     font-size: 1.1rem;
     color: #495057;
