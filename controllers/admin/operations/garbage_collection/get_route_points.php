@@ -3,6 +3,8 @@
 
 adminAuth();
 
+header('Content-Type: application/json; charset=utf-8'); 
+
 use Models\Route;
 
 require_once base_path('models/Route.php');

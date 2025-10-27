@@ -226,21 +226,17 @@ function populateRouteDetailsModal(truck) {
     
     // Initialize map immediately and fetch points
     setTimeout(() => {
-        initializeMap();
-        
-        // Fetch route points if route exists
-        console.log('=== ROUTE ID CHECK ===');
-        console.log('truck.route_id:', truck.route_id);
-        console.log('typeof truck.route_id:', typeof truck.route_id);
-        
-        if (truck.route_id) {
-            console.log('✅ Route ID found, calling fetchRoutePoints...');
-            fetchRoutePoints(truck.route_id);
-        } else {
-            console.log('❌ No route ID, showing no points');
-            showNoRoutePoints();
-        }
-    }, 300); // Small delay to ensure modal DOM is ready
+    initializeMap();
+
+    const rid = String(truck.route_id || '').trim();
+    console.log('Final route_id value:', rid);
+
+    if (rid) {
+        fetchRoutePoints(rid);
+    } else {
+        showNoRoutePoints();
+    }
+    }, 300);
 
 }
 
@@ -304,25 +300,38 @@ function initializeMap() {
  * Fetch route points via AJAX
  */
 function fetchRoutePoints(routeId) {
-    console.log('Fetching route points for route ID:', routeId);
-    
-    fetch(`/admin/operations/garbage_collection/get_route_points?route_id=${routeId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Route points fetched:', data.route_points);
-            displayRoutePoints(data.route_points);
-            addPointsToMap(data.route_points);
-        })
-        .catch(error => {
-            console.error('Error fetching route points:', error);
-            showErrorPoints();
-        });
+  console.log('Fetching route points for route ID:', routeId);
+
+  const url = `/admin/operations/garbage_collection/get_route_points?route_id=${encodeURIComponent(routeId)}`;
+  console.log('Request URL:', url);
+
+  fetch(url, { headers: { 'Accept': 'application/json' } })
+    .then(async (response) => {
+      console.log('Response status:', response.status, response.statusText);
+      const text = await response.text();
+      console.log('Raw body length:', text.length);
+      // Try to parse even if there is stray whitespace
+      try {
+        const data = JSON.parse(text.trim());
+        console.log('Parsed JSON:', data);
+        if (data && Array.isArray(data.route_points) && data.route_points.length) {
+          displayRoutePoints(data.route_points);
+          addPointsToMap(data.route_points);
+        } else {
+          console.warn('No route_points array or empty');
+          showNoRoutePoints();
+        }
+      } catch (e) {
+        console.error('JSON parse error:', e, 'Raw body snippet:', text.slice(0, 500));
+        showErrorPoints();
+      }
+    })
+    .catch((error) => {
+      console.error('Fetch error:', error);
+      showErrorPoints();
+    });
 }
+
 
 /**
  * Display route points in the list
@@ -330,8 +339,8 @@ function fetchRoutePoints(routeId) {
 function displayRoutePoints(routePoints) {
     const pointsList = document.getElementById('route-points-list');
     
-    if (!routePoints || routePoints.length === 0) {
-        showNoRoutePoints();
+    if (!pointsList) {
+        console.error('route-points-list not found');
         return;
     }
     
