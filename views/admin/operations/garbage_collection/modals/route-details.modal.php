@@ -1,5 +1,5 @@
 <?php
-// Simplified Route Details Modal - HTML only (JavaScript handled by garbage-collection.js)
+// Route Details Modal - HTML only (CSS/JS handled globally)
 ?>
 <div class="modal fade" id="routeDetailsModal" tabindex="-1" aria-labelledby="routeDetailsModalLabel">
     <div class="modal-dialog modal-lg">
@@ -67,7 +67,7 @@
                                 <div class="map-header p-2 bg-dark text-white">
                                     <small>Interactive Route Map</small>
                                 </div>
-                                <div id="route-map" style="height: 360px; background: #f0f0f0;"></div>
+                                <div id="route-map"></div>
                             </div>
                         </div>
                     </div>
@@ -79,123 +79,3 @@
         </div>
     </div>
 </div>
-
-<!-- Keep the CSS styles -->
-<style>
-/* Styles for route details modal */
-.route-details-container {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
-.info-section .info-item {
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-}
-
-.points-section {
-    height: 400px;
-    display: flex;
-    flex-direction: column;
-}
-
-.points-list {
-    flex: 1;
-    overflow-y: auto;
-    background: #f8f9fa;
-}
-
-.point-item {
-    padding: 0.75rem;
-    border-bottom: 1px solid #dee2e6;
-    background: white;
-    margin: 0.25rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.point-item:hover {
-    background: #e3f2fd;
-}
-
-.point-item.active {
-    background: #bbdefb;
-    border-left: 4px solid #2196f3;
-}
-
-.point-number {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    background: #007bff;
-    color: white;
-    text-align: center;
-    border-radius: 50%;
-    font-size: 0.75rem;
-    font-weight: bold;
-    line-height: 20px;
-    margin-right: 0.5rem;
-}
-
-.point-number.start { background: #28a745; }
-.point-number.end { background: #dc3545; }
-
-.point-name {
-    font-weight: 600;
-    color: #212529;
-    font-size: 0.85rem;
-    margin-bottom: 0.25rem;
-}
-
-.point-address {
-    color: #6c757d;
-    font-size: 0.75rem;
-    line-height: 1.2;
-}
-
-.loading-points, .empty-points {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-}
-
-/* Add this to your route-details.modal.php styles or main CSS */
-.leaflet-container {
-    height: 100%;
-    width: 100%;
-    background: #f0f0f0;
-}
-
-.leaflet-tile {
-    filter: none !important;
-}
-
-#route-map .leaflet-container {
-    min-height: 360px;
-}
-
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .modal-dialog.modal-lg {
-        margin: 0.5rem;
-        max-width: none;
-    }
-    
-    .row.g-0 > .col-md-4,
-    .row.g-0 > .col-md-8 {
-        flex: 0 0 100%;
-        max-width: 100%;
-    }
-    
-    .points-section {
-        height: 200px;
-    }
-    
-    #route-map {
-        height: 300px !important;
-    }
-}
-</style>

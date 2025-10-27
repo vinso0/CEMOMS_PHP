@@ -147,7 +147,7 @@
     overflow-y: auto;
 }
 
-/* Map Related */
+/* ===== ADD TRUCK MAP STYLES ===== */
 .leaflet-container {
     height: 100% !important;
     width: 100% !important;
@@ -184,7 +184,7 @@
     z-index: 1000 !important;
 }
 
-/* Custom Leaflet Markers - ADD THIS */
+/* Custom Leaflet Markers */
 .custom-marker {
     background: transparent;
     border: none;
@@ -237,7 +237,7 @@
     box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
 }
 
-/* Map error state - ADD THIS */
+/* Map error state */
 .map-error {
     display: flex;
     flex-direction: column;
@@ -255,7 +255,7 @@
     color: #dc3545;
 }
 
-/* Route point input animations - ADD THIS */
+/* Route point input animations */
 .route-point-input.updated {
     background-color: #d4edda;
     border-color: #c3e6cb;
@@ -267,7 +267,7 @@
     100% { background-color: #fff; }
 }
 
-/* Map instructions styling - ADD THIS */
+/* Map instructions styling */
 .map-instructions {
     background: #e3f2fd;
     border-left: 4px solid #2196f3;
@@ -275,7 +275,7 @@
     border-radius: 0 4px 4px 0;
 }
 
-/* Route controls styling - ADD THIS */
+/* Route controls styling */
 .route-points-container {
     background: #f8f9fa;
     border-radius: 8px;
@@ -290,6 +290,209 @@
 
 .route-mode-selector .btn-group {
     margin-left: 0.5rem;
+}
+
+/* ===== ROUTE DETAILS MODAL STYLES ===== */
+
+/* Route Details Container */
+.route-details-container {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.info-section .info-item {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Route Points Section */
+.points-section {
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    background: #f8f9fa;
+}
+
+.points-header {
+    background: #6c757d !important;
+    color: white;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #495057;
+}
+
+.points-list {
+    flex: 1;
+    overflow-y: auto;
+    background: #f8f9fa;
+    position: relative;
+}
+
+.point-item {
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+    background: white;
+    margin: 0.25rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.point-item:hover {
+    background: #e3f2fd;
+}
+
+.point-item.active {
+    background: #bbdefb;
+    border-left: 4px solid #2196f3;
+}
+
+.point-number {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: #007bff;
+    color: white;
+    text-align: center;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: bold;
+    line-height: 20px;
+    margin-right: 0.5rem;
+}
+
+.point-number.start { 
+    background: #28a745; 
+}
+
+.point-number.end { 
+    background: #dc3545; 
+}
+
+.point-name {
+    font-weight: 600;
+    color: #212529;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.point-address {
+    color: #6c757d;
+    font-size: 0.75rem;
+    line-height: 1.2;
+}
+
+/* Loading and Empty States */
+.loading-points, .empty-points {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6c757d;
+    text-align: center;
+    padding: 2rem;
+}
+
+.loading-points .fa-spinner {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.empty-points .fa-map-pin {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* Map Section */
+.map-section {
+    position: relative;
+    height: 400px;
+}
+
+.map-header {
+    background: #343a40 !important;
+    color: white;
+    padding: 0.5rem;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #495057;
+}
+
+/* FIXED: Route Details Map Styles */
+#route-map {
+    height: 360px !important;
+    width: 100% !important;
+    background: #f0f0f0;
+    position: relative;
+    z-index: 1;
+    border: none;
+}
+
+/* FIXED: Leaflet Container Overrides for Route Details */
+#route-map .leaflet-container {
+    height: 360px !important;
+    width: 100% !important;
+    position: relative !important;
+    outline: none;
+    background: #ddd;
+}
+
+/* FIXED: Ensure Leaflet tiles display properly */
+#route-map .leaflet-tile,
+#route-map .leaflet-container img.leaflet-image-layer,
+#route-map .leaflet-container .leaflet-marker-pane img,
+#route-map .leaflet-container .leaflet-shadow-pane img,
+#route-map .leaflet-container .leaflet-overlay-pane svg {
+    max-width: none !important;
+    max-height: none !important;
+    filter: none !important;
+    visibility: visible !important;
+}
+
+/* FIXED: Leaflet controls visibility */
+#route-map .leaflet-control-zoom {
+    position: absolute !important;
+    top: 10px !important;
+    left: 10px !important;
+    z-index: 1000 !important;
+    background: white !important;
+    border-radius: 4px !important;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.65) !important;
+}
+
+#route-map .leaflet-control-zoom a {
+    background-color: #fff !important;
+    color: #333 !important;
+    text-decoration: none !important;
+    width: 26px !important;
+    height: 26px !important;
+    line-height: 26px !important;
+    text-align: center !important;
+    border-bottom: 1px solid #ccc !important;
+}
+
+/* FIXED: Custom Route Markers */
+.custom-route-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* FIXED: Leaflet Popups */
+#route-map .leaflet-popup-content-wrapper {
+    background: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.4) !important;
+}
+
+#route-map .leaflet-popup-content {
+    margin: 10px 15px !important;
+    font-family: inherit !important;
+}
+
+/* FIXED: Attribution and Scale */
+#route-map .leaflet-control-attribution {
+    background: rgba(255, 255, 255, 0.8) !important;
+    font-size: 11px !important;
+    padding: 2px 5px !important;
 }
 
 /* Autocomplete */
@@ -384,7 +587,7 @@
     border-color: #6c757d;
 }
 
-/* Responsive Adjustments */
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
 @media (max-width: 768px) {
     .filter-item {
         min-width: 100%;
@@ -397,5 +600,25 @@
     .modal-lg {
         max-width: 95%;
         margin: 10px;
+    }
+    
+    /* Route Details Modal Mobile */
+    .modal-dialog.modal-lg {
+        margin: 0.5rem;
+        max-width: none;
+    }
+    
+    .row.g-0 > .col-md-4,
+    .row.g-0 > .col-md-8 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    .points-section {
+        height: 200px;
+    }
+    
+    #route-map {
+        height: 300px !important;
     }
 }

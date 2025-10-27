@@ -451,14 +451,16 @@ function displayRoutePoints(routePoints) {
     console.log('✅ Route points displayed successfully');
 }
 
-// FIXED: Add points to map
+/**
+ * ENHANCED: Add points to map with road-following route
+ */
 function addPointsToRouteDetailsMap(routePoints) {
     if (!window.routeDetailsMapInstance || !routePoints || routePoints.length === 0) {
         console.log('Cannot add points to map');
         return;
     }
     
-    // Clear existing markers
+    // Clear existing markers and paths
     if (window.routeDetailsMarkers) {
         window.routeDetailsMarkers.forEach(marker => {
             window.routeDetailsMapInstance.removeLayer(marker);
@@ -466,9 +468,15 @@ function addPointsToRouteDetailsMap(routePoints) {
     }
     window.routeDetailsMarkers = [];
     
+    if (window.routeDetailsPath) {
+        window.routeDetailsMapInstance.removeLayer(window.routeDetailsPath);
+        window.routeDetailsPath = null;
+    }
+    
     const pathCoordinates = [];
     const bounds = L.latLngBounds();
     
+    // Add markers first
     routePoints.forEach((point, index) => {
         if (!point.lat || !point.lng) return;
         
@@ -502,13 +510,10 @@ function addPointsToRouteDetailsMap(routePoints) {
         window.routeDetailsMarkers.push(marker);
     });
     
-    // Draw path
+    // Draw route using road routing
     if (pathCoordinates.length > 1) {
-        window.routeDetailsPath = L.polyline(pathCoordinates, {
-            color: '#2196f3',
-            weight: 4,
-            opacity: 0.7
-        }).addTo(window.routeDetailsMapInstance);
+        console.log('🛣️ Fetching road route between points...');
+        drawRoadRoute(pathCoordinates);
     }
     
     // Fit bounds
@@ -544,7 +549,112 @@ function showErrorPoints() {
     }
 }
 
-// FIXED: Highlight function with unique name
+/**
+ * NEW: Draw route following actual roads using OpenStreetMap routing
+ */
+function drawRoadRoute(coordinates) {
+    if (coordinates.length < 2) return;
+    
+    // Show loading indicator
+    const mapElement = document.getElementById('route-map');
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'route-loading';
+    loadingDiv.innerHTML = `
+        <div style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 4px; font-size: 12px; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+            <i class="fas fa-spinner fa-spin me-1"></i>Calculating route...
+        </div>
+    `;
+    mapElement.appendChild(loadingDiv);
+    
+    // Build waypoints string for OSRM (Open Source Routing Machine)
+    const waypoints = coordinates.map(coord => `${coord[1]},${coord[0]}`).join(';');
+    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${waypoints}?overview=full&geometries=geojson`;
+    
+    console.log('🔗 OSRM URL:', osrmUrl);
+    
+    fetch(osrmUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Routing service error: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('🛣️ Route data received:', data);
+            
+            // Remove loading indicator
+            const loading = document.getElementById('route-loading');
+            if (loading) loading.remove();
+            
+            if (data.routes && data.routes.length > 0) {
+                const route = data.routes[0];
+                const routeCoordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                
+                // Draw the road-following route
+                window.routeDetailsPath = L.polyline(routeCoordinates, {
+                    color: '#2196f3',
+                    weight: 4,
+                    opacity: 0.8,
+                    smoothFactor: 1
+                }).addTo(window.routeDetailsMapInstance);
+                
+                // Add route info popup
+                const distance = (route.distance / 1000).toFixed(1); // Convert to km
+                const duration = Math.round(route.duration / 60); // Convert to minutes
+                
+                window.routeDetailsPath.bindPopup(`
+                    <div style="text-align: center;">
+                        <h6>📍 Route Information</h6>
+                        <p style="margin: 5px 0;"><strong>Distance:</strong> ${distance} km</p>
+                        <p style="margin: 5px 0;"><strong>Duration:</strong> ${duration} min</p>
+                        <small style="color: #666;">Following actual roads</small>
+                    </div>
+                `);
+                
+                console.log(`✅ Road route drawn: ${distance}km, ${duration}min`);
+            } else {
+                console.warn('No route found, falling back to straight line');
+                drawStraightLineRoute(coordinates);
+            }
+        })
+        .catch(error => {
+            console.error('❌ Routing error:', error);
+            
+            // Remove loading indicator
+            const loading = document.getElementById('route-loading');
+            if (loading) loading.remove();
+            
+            // Fallback to straight line
+            console.log('📍 Using straight line fallback');
+            drawStraightLineRoute(coordinates);
+        });
+}
+
+/**
+ * NEW: Fallback function for straight line route
+ */
+function drawStraightLineRoute(coordinates) {
+    if (!window.routeDetailsMapInstance) return;
+    
+    window.routeDetailsPath = L.polyline(coordinates, {
+        color: '#ff9800', // Orange color to indicate straight line
+        weight: 3,
+        opacity: 0.7,
+        dashArray: '10, 5' // Dashed line to show it's not following roads
+    }).addTo(window.routeDetailsMapInstance);
+    
+    window.routeDetailsPath.bindPopup(`
+        <div style="text-align: center;">
+            <h6>📍 Direct Route</h6>
+            <p style="margin: 5px 0; color: #ff9800;"><strong>⚠️ Straight line connection</strong></p>
+            <small style="color: #666;">Road routing unavailable</small>
+        </div>
+    `);
+}
+
+/**
+ * ENHANCED: Highlight point with route segment highlighting
+ */
 function highlightRoutePoint(pointIndex) {
     // Remove active class from all points
     document.querySelectorAll('.point-item').forEach(item => {
@@ -561,7 +671,13 @@ function highlightRoutePoint(pointIndex) {
     if (window.routeDetailsMarkers && window.routeDetailsMarkers[pointIndex] && window.routeDetailsMapInstance) {
         const marker = window.routeDetailsMarkers[pointIndex];
         marker.openPopup();
-        window.routeDetailsMapInstance.panTo(marker.getLatLng());
+        window.routeDetailsMapInstance.panTo(marker.getLatLng(), { animate: true });
+        
+        // Add subtle zoom animation
+        setTimeout(() => {
+            const currentZoom = window.routeDetailsMapInstance.getZoom();
+            window.routeDetailsMapInstance.setZoom(Math.max(currentZoom, 15), { animate: true });
+        }, 500);
     }
 }
 
