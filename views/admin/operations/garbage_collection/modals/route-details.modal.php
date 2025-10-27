@@ -201,13 +201,17 @@ let routePath;
 /**
  * Simple function to populate route details modal
  */
+/**
+ * BULLETPROOF: Populate route details modal
+ */
 function populateRouteDetailsModal(truck) {
     if (!truck) {
         console.error('No truck data provided');
         return;
     }
     
-    console.log('Loading route details for truck:', truck.plate_number);
+    console.log('🚀 Loading route details for truck:', truck.plate_number);
+    console.log('🔍 Full truck object:', truck);
     
     // Update basic information
     document.getElementById('details-plate-number').textContent = truck.plate_number || '-';
@@ -224,21 +228,31 @@ function populateRouteDetailsModal(truck) {
         </div>
     `;
     
-    // Initialize map immediately and fetch points
-    setTimeout(() => {
+    // IMMEDIATE EXECUTION - No setTimeout, no event listeners
+    console.log('🗺️ Initializing map immediately...');
     initializeMap();
-
-    const rid = String(truck.route_id || '').trim();
-    console.log('Final route_id value:', rid);
-
-    if (rid) {
-        fetchRoutePoints(rid);
+    
+    // Extract and validate route_id
+    const routeId = truck.route_id;
+    console.log('=== ROUTE ID CHECK ===');
+    console.log('truck.route_id:', routeId);
+    console.log('typeof truck.route_id:', typeof routeId);
+    console.log('Boolean check:', !!routeId);
+    console.log('String check:', String(routeId).trim());
+    
+    if (routeId && String(routeId).trim() !== '' && String(routeId).trim() !== '0') {
+        console.log('✅ Route ID is valid, calling fetchRoutePoints...');
+        
+        // Add a small delay for DOM readiness, then fetch
+        setTimeout(() => {
+            fetchRoutePoints(routeId);
+        }, 100);
     } else {
+        console.log('❌ Route ID is invalid or missing, showing no points');
         showNoRoutePoints();
     }
-    }, 300);
-
 }
+
 
 /**
  * Initialize the map
@@ -297,40 +311,62 @@ function initializeMap() {
 }
 
 /**
- * Fetch route points via AJAX
+ * Fetch route points via AJAX with extensive logging
  */
 function fetchRoutePoints(routeId) {
-  console.log('Fetching route points for route ID:', routeId);
-
-  const url = `/admin/operations/garbage_collection/get_route_points?route_id=${encodeURIComponent(routeId)}`;
-  console.log('Request URL:', url);
-
-  fetch(url, { headers: { 'Accept': 'application/json' } })
-    .then(async (response) => {
-      console.log('Response status:', response.status, response.statusText);
-      const text = await response.text();
-      console.log('Raw body length:', text.length);
-      // Try to parse even if there is stray whitespace
-      try {
-        const data = JSON.parse(text.trim());
-        console.log('Parsed JSON:', data);
-        if (data && Array.isArray(data.route_points) && data.route_points.length) {
-          displayRoutePoints(data.route_points);
-          addPointsToMap(data.route_points);
-        } else {
-          console.warn('No route_points array or empty');
-          showNoRoutePoints();
-        }
-      } catch (e) {
-        console.error('JSON parse error:', e, 'Raw body snippet:', text.slice(0, 500));
-        showErrorPoints();
-      }
-    })
-    .catch((error) => {
-      console.error('Fetch error:', error);
-      showErrorPoints();
-    });
+    console.log('🌐 === FETCH STARTING ===');
+    console.log('📍 Route ID:', routeId);
+    
+    const url = `/admin/operations/garbage_collection/get_route_points?route_id=${encodeURIComponent(routeId)}`;
+    console.log('🔗 Request URL:', url);
+    console.log('🕐 Timestamp:', new Date().toISOString());
+    
+    fetch(url)
+        .then(response => {
+            console.log('📥 Response received!');
+            console.log('📊 Status:', response.status, response.statusText);
+            console.log('📋 Headers:', Object.fromEntries(response.headers.entries()));
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.text(); // Get as text first for debugging
+        })
+        .then(text => {
+            console.log('📄 Raw response length:', text.length);
+            console.log('📄 Raw response preview:', text.substring(0, 200));
+            
+            try {
+                const data = JSON.parse(text);
+                console.log('✅ JSON parsed successfully:', data);
+                console.log('📍 Route points count:', data.route_points?.length || 0);
+                
+                if (data.route_points && data.route_points.length > 0) {
+                    console.log('🎯 Displaying route points...');
+                    displayRoutePoints(data.route_points);
+                    console.log('🗺️ Adding points to map...');
+                    addPointsToMap(data.route_points);
+                } else {
+                    console.warn('⚠️ No route points in response');
+                    showNoRoutePoints();
+                }
+            } catch (parseError) {
+                console.error('❌ JSON Parse Error:', parseError);
+                console.error('📄 Raw text that failed to parse:', text);
+                showErrorPoints();
+            }
+        })
+        .catch(error => {
+            console.error('❌ Fetch Error:', error);
+            console.error('🔍 Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
+            showErrorPoints();
+        });
 }
+
 
 
 /**
