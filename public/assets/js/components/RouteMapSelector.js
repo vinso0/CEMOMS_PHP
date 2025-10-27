@@ -45,6 +45,11 @@ class RouteMapSelector {
         }
         
         try {
+            // Clear any existing map instance
+            if (this.map) {
+                this.map.remove();
+            }
+            
             // Initialize Leaflet Map
             this.map = L.map(this.mapId, {
                 center: [this.options.defaultLat, this.options.defaultLng],
@@ -69,17 +74,16 @@ class RouteMapSelector {
                 this.map.invalidateSize();
             }, 100);
             
-            // Try to get user's current location
+            // Try to get user's current location (with better error handling)
             this.getCurrentLocation();
             
             console.log('Leaflet map initialized successfully');
             
         } catch (error) {
             console.error('Error creating Leaflet map:', error);
-            throw new Error('Failed to create map instance');
+            throw new Error(`Failed to create map instance: ${error.message}`);
         }
     }
-
 
     initEventListeners() {
         // Point mode selector
@@ -172,7 +176,8 @@ class RouteMapSelector {
     }
         
     reverseGeocode(lat, lng, type) {
-        this.reverseGeocodeWithFallback(lat, lng, type);
+        // Direct call to the enhanced version
+        this.reverseGeocodeWithFallback(lat, lng, type, 3000);
     }
 
     reverseGeocodeWithFallback(lat, lng, pointType, timeout = 3000) {
@@ -180,7 +185,10 @@ class RouteMapSelector {
                     pointType === 'mid' ? 'midPoint' : 'endPoint';
         const input = document.getElementById(inputId);
         
-        if (!input) return;
+        if (!input) {
+            console.error(`Input element not found: ${inputId}`);
+            return;
+        }
         
         // Show loading state immediately
         this.setAddressInput(pointType, '🔍 Looking up address...');
@@ -233,33 +241,10 @@ class RouteMapSelector {
                 // Optional: Try again after 2 seconds quietly
                 setTimeout(() => {
                     if (input.classList.contains('fallback')) {
-                        this.reverseGeocodeQuietRetry(lat, lng, input);
+                        this.reverseGeocodeQuietRetry(lat, lng, pointType);
                     }
                 }, 2000);
             });
-    }
-
-    /**
-     * Quiet retry for geocoding
-     */
-    reverseGeocodeQuietRetry(lat, lng, input) {
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16`, {
-            headers: { 'User-Agent': 'CEMOMS-PHP/1.0' }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data && data.display_name && input.classList.contains('fallback')) {
-                const parts = data.display_name.split(',').map(s => s.trim());
-                const friendlyAddress = parts.slice(0, 3).join(', ');
-                this.setAddressInput(data.pointType || 'unknown', friendlyAddress);
-                input.classList.remove('fallback');
-                input.classList.add('success');
-                console.log(`✅ Retry successful: ${friendlyAddress}`);
-            }
-        })
-        .catch(() => {
-            // Silent fail on retry
-        });
     }
 
     /**
@@ -279,6 +264,30 @@ class RouteMapSelector {
             }
         }
         return "Philippines";
+    }
+
+    /**
+     * Quiet retry for geocoding
+     */
+    reverseGeocodeQuietRetry(lat, lng, pointType) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16`, {
+            headers: { 'User-Agent': 'CEMOMS-PHP/1.0' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const input = document.getElementById(pointType === 'start' ? 'startPoint' : pointType === 'mid' ? 'midPoint' : 'endPoint');
+            if (data && data.display_name && input && input.classList.contains('fallback')) {
+                const parts = data.display_name.split(',').map(s => s.trim());
+                const friendlyAddress = parts.slice(0, 3).join(', ');
+                this.setAddressInput(pointType, friendlyAddress);
+                input.classList.remove('fallback');
+                input.classList.add('success');
+                console.log(`✅ Retry successful: ${friendlyAddress}`);
+            }
+        })
+        .catch(() => {
+            // Silent fail on retry
+        });
     }
 
 
@@ -377,12 +386,22 @@ class RouteMapSelector {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
                     
+                    // Only center if we're still near the default location
                     this.map.setView([lat, lng], 15);
+                    console.log('✅ Centered map on user location');
                 },
-                () => {
-                    console.log('Geolocation failed, using default location');
+                (error) => {
+                    console.log('ℹ️ Geolocation failed, using default Manila location');
+                    // Don't change map view, just log the info
+                },
+                {
+                    enableHighAccuracy: false,
+                    timeout: 5000,
+                    maximumAge: 300000
                 }
             );
+        } else {
+            console.log('ℹ️ Geolocation not supported, using default location');
         }
     }
 
@@ -412,4 +431,23 @@ class RouteMapSelector {
         
         return points;
     }
+
+    // Add this public method
+    refreshMapSize() {
+        if (this.map) {
+            setTimeout(() => {
+                this.map.invalidateSize();
+            }, 100);
+        }
+    }
+
+    // Also add a destroy method for cleanup
+    destroy() {
+        if (this.map) {
+            this.map.remove();
+            this.map = null;
+        }
+        this.markers = { start: null, mid: null, end: null };
+    }
+
 }

@@ -264,3 +264,26 @@
         </div>
     </div>
 </div>
+
+<script>
+// Initialize RouteMapSelector for add truck modal
+$('#addTruckModal').on('shown.bs.modal', function() {
+    if (!window.routeMapSelector) {
+        window.routeMapSelector = new RouteMapSelector('addRouteMap');
+    }
+    
+    // Refresh map after modal is fully shown
+    setTimeout(() => {
+        if (window.routeMapSelector) {
+            window.routeMapSelector.refreshMapSize();
+        }
+    }, 200);
+});
+
+// Clear form when modal is hidden
+$('#addTruckModal').on('hidden.bs.modal', function() {
+    if (window.routeMapSelector) {
+        window.routeMapSelector.clearAllMarkers();
+    }
+});
+</script>

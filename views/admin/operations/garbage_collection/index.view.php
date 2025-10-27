@@ -117,11 +117,14 @@ ob_start();
             <tbody id="trucks-tbody">
                 <?php if (!empty($trucks)): ?>
                     <?php foreach ($trucks as $truck): ?>
-                        <tr data-truck-id="<?= $truck['id'] ?>" 
-                            data-foreman-id="<?= $truck['foreman_id'] ?? '' ?>"
-                            data-status="<?= htmlspecialchars($truck['status'] ?? 'Parked') ?>">
-                            <td><strong><?= htmlspecialchars($truck['plate_number']) ?></strong></td>
-                            <td><?= htmlspecialchars($truck['body_number']) ?></td>
+                        <tr data-truck-id="<?= htmlspecialchars($truck['truck_id'] ?? '') ?>" 
+                            data-foreman-id="<?= htmlspecialchars($truck['foreman_id'] ?? '') ?>"
+                            data-status="<?= htmlspecialchars($truck['status'] ?? 'Parked') ?>"
+                            data-route-id="<?= htmlspecialchars($truck['route_id'] ?? '') ?>">
+                            
+                            <td><strong><?= htmlspecialchars($truck['plate_number'] ?? 'N/A') ?></strong></td>
+                            <td><?= htmlspecialchars($truck['body_number'] ?? 'N/A') ?></td>
+                            
                             <td>
                                 <?php if (!empty($truck['route_name'])): ?>
                                     <strong><?= htmlspecialchars($truck['route_name']) ?></strong><br>
@@ -129,13 +132,16 @@ ob_start();
                                     <span class="text-muted">Not Assigned</span>
                                 <?php endif; ?>
                             </td>
+                            
                             <td><?= htmlspecialchars($truck['foreman_name'] ?? 'Not Assigned') ?></td>
                             <td><?= htmlspecialchars($truck['schedule'] ?? 'N/A') ?></td>
+                            
                             <td>
                                 <span class="status-badge status-<?= strtolower(str_replace(' ', '-', $truck['status'] ?? 'parked')) ?>">
                                     <?= ucfirst(htmlspecialchars($truck['status'] ?? 'Parked')) ?>
                                 </span>
                             </td>
+                            
                             <td>
                                 <div class="action-buttons">
                                     <button class="btn btn-sm btn-success" title="View"
@@ -160,6 +166,7 @@ ob_start();
                             </td>
                         </tr>
                     <?php endforeach; ?>
+
                 <?php else: ?>
                     <tr>
                         <td colspan="7" class="text-center">

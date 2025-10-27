@@ -19,33 +19,57 @@ class Truck
      */
     public function getGarbageCollectionTrucks()
     {
-        $sql = "SELECT 
-            t.*,
-            r.route_name,
-            r.start_point,
-            r.mid_point,  
-            r.end_point,
-            f.username as foreman_name,
-            os.route_id,
-            os.schedule_type as schedule,
-            os.operation_time,
-            os.status,
-            -- Get weekly days as comma-separated string
-            GROUP_CONCAT(sd.day_of_week ORDER BY 
-                FIELD(sd.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')
-                SEPARATOR ','
-            ) as weekly_days_str
-        FROM truck t
-        LEFT JOIN operation_schedule os ON t.truck_id = os.truck_id
-        LEFT JOIN route r ON os.route_id = r.route_id
-        LEFT JOIN foreman f ON t.foreman_id = f.foreman_id
-        LEFT JOIN schedule_days sd ON os.schedule_id = sd.schedule_id
-        GROUP BY t.truck_id
-        ORDER BY t.truck_id DESC
-        ";
-
-        return $this->db->query($sql)->get();
+        $query = "SELECT 
+                    t.truck_id,
+                    t.plate_number,     
+                    t.body_number,      
+                    t.foreman_id,
+                    
+                    -- ROUTE COLUMNS
+                    os.route_id,
+                    r.route_name,
+                    r.start_point,
+                    r.mid_point,
+                    r.end_point,
+                    
+                    -- FOREMAN COLUMNS
+                    f.username as foreman_name,
+                    
+                    -- SCHEDULE COLUMNS
+                    os.schedule_type as schedule,
+                    os.operation_time,
+                    os.status,
+                    
+                    -- WEEKLY DAYS (if needed)
+                    GROUP_CONCAT(sd.day_of_week ORDER BY 
+                        FIELD(sd.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')
+                        SEPARATOR ','
+                    ) as weekly_days_str
+                    
+                FROM truck t
+                LEFT JOIN operation_schedule os ON t.truck_id = os.truck_id
+                LEFT JOIN route r ON os.route_id = r.route_id
+                LEFT JOIN foreman f ON t.foreman_id = f.foreman_id
+                LEFT JOIN schedule_days sd ON os.schedule_id = sd.schedule_id
+                GROUP BY t.truck_id, t.plate_number, t.body_number, t.foreman_id, os.route_id, r.route_name, f.username, os.schedule_type, os.operation_time, os.status
+                ORDER BY t.truck_id DESC";
+        
+        $trucks = $this->db->query($query)->get();
+        
+        // Process weekly days for each truck
+        foreach ($trucks as &$truck) {
+            if (!empty($truck['weekly_days_str'])) {
+                $truck['weekly_days'] = explode(',', $truck['weekly_days_str']);
+            } else {
+                $truck['weekly_days'] = [];
+            }
+            // Remove the temporary string field
+            unset($truck['weekly_days_str']);
+        }
+        
+        return $trucks;
     }
+
     /**
      * Get all trucks with their assignments and schedules
      */

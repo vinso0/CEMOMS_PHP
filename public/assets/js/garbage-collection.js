@@ -336,60 +336,86 @@ function populateRouteDetailsModal(truckData) {
 }
 
 
-// FIXED: Initialize route details map
+/**
+ * ENHANCED: Initialize route details map with tile loading fixes
+ */
 function initializeRouteDetailsMap() {
-    const mapElement = document.getElementById('route-map');
-    if (!mapElement) {
-        console.error('route-map element not found');
+    const mapContainer = document.getElementById('route-map');
+    
+    if (!mapContainer) {
+        console.error('❌ Route map container not found');
         return;
     }
     
-    // Remove existing map if any
+    // Clean up existing map instance
     if (window.routeDetailsMapInstance) {
-        window.routeDetailsMapInstance.remove();
-        window.routeDetailsMapInstance = null;
+        try {
+            window.routeDetailsMapInstance.remove();
+        } catch (e) {
+            console.warn('Map cleanup warning:', e);
+        }
     }
     
-    // Clear map container
-    mapElement.innerHTML = '';
+    // ENHANCED: Initialize map with better tile loading options
+    window.routeDetailsMapInstance = L.map('route-map', {
+        center: [14.6091, 121.0223],
+        zoom: 12,
+        zoomControl: true,
+        attributionControl: true,
+        
+        // TILE LOADING FIXES
+        preferCanvas: false,
+        worldCopyJump: false,
+        maxBoundsViscosity: 1.0,
+        
+        // Prevent loading issues
+        fadeAnimation: false,
+        zoomAnimation: false,
+        markerZoomAnimation: false
+    });
     
-    try {
-        console.log('🗺️ Creating map instance...');
+    // ENHANCED: Add tile layer with better loading options
+    const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
         
-        // Initialize map
-        window.routeDetailsMapInstance = L.map('route-map', {
-            center: [14.5995, 120.9842], // Manila
-            zoom: 12,
-            zoomControl: true,
-            scrollWheelZoom: true
-        });
+        // TILE LOADING OPTIMIZATIONS
+        keepBuffer: 2,
+        updateWhenZooming: false,
+        updateWhenIdle: true,
+        crossOrigin: true,
         
-        // Add tile layer
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(window.routeDetailsMapInstance);
+        // Retry failed tiles
+        errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+    });
+    
+    tileLayer.addTo(window.routeDetailsMapInstance);
+    
+    // Initialize arrays
+    window.routeDetailsMarkers = [];
+    window.routeDetailsPath = null;
+    
+    // FORCE tile loading after map is ready
+    window.routeDetailsMapInstance.whenReady(() => {
+        console.log('✅ Route details map is ready');
         
-        // Fix map size
+        // Force invalidate size multiple times
         setTimeout(() => {
-            if (window.routeDetailsMapInstance) {
-                window.routeDetailsMapInstance.invalidateSize();
-            }
-        }, 200);
+            window.routeDetailsMapInstance.invalidateSize(true);
+        }, 100);
         
-        console.log('✅ Route details map initialized successfully');
+        setTimeout(() => {
+            window.routeDetailsMapInstance.invalidateSize(true);
+            // Force tile refresh
+            tileLayer.redraw();
+        }, 300);
         
-    } catch (error) {
-        console.error('❌ Error initializing route details map:', error);
-        mapElement.innerHTML = `
-            <div class="d-flex align-items-center justify-content-center h-100 text-center text-danger">
-                <div>
-                    <i class="fas fa-exclamation-triangle mb-2"></i>
-                    <p class="mb-0">Error loading map</p>
-                </div>
-            </div>
-        `;
-    }
+        setTimeout(() => {
+            window.routeDetailsMapInstance.invalidateSize(true);
+        }, 500);
+    });
+    
+    console.log('🗺️ Route details map initialized with tile loading fixes');
 }
 
 // FIXED: Fetch route points via AJAX
@@ -436,42 +462,6 @@ function fetchRoutePoints(routeId) {
             console.error('❌ Fetch Error:', error);
             showErrorPoints();
         });
-}
-
-// FIXED: Display route points
-function displayRoutePoints(routePoints) {
-    const pointsList = document.getElementById('route-points-list');
-    
-    if (!pointsList) {
-        console.error('route-points-list element not found');
-        return;
-    }
-    
-    if (!routePoints || routePoints.length === 0) {
-        showNoRoutePoints();
-        return;
-    }
-    
-    let pointsHTML = '';
-    routePoints.forEach((point, index) => {
-        const pointType = index === 0 ? 'start' : 
-                         index === routePoints.length - 1 ? 'end' : 'collection';
-        
-        pointsHTML += `
-            <div class="point-item" onclick="highlightRoutePoint(${index})" data-point-index="${index}">
-                <div class="d-flex align-items-start">
-                    <span class="point-number ${pointType}">${index + 1}</span>
-                    <div class="flex-grow-1">
-                        <div class="point-name">${point.name}</div>
-                        <div class="point-address">${point.address}</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    pointsList.innerHTML = pointsHTML;
-    console.log('✅ Route points displayed successfully');
 }
 
 /**
@@ -545,6 +535,114 @@ function addPointsToRouteDetailsMap(routePoints) {
     }
     
     console.log(`✅ Added ${window.routeDetailsMarkers.length} markers to map`);
+}
+
+/**
+ * Load route points from server and display them
+ */
+function loadRoutePoints(routeId) {
+    console.log('🗺️ Loading route points for route ID:', routeId);
+    
+    if (!routeId) {
+        console.warn('⚠️ No route ID provided');
+        document.getElementById('route-points-list').innerHTML = `
+            <div class="empty-points text-center p-4">
+                <i class="fas fa-exclamation-circle text-warning mb-2" style="font-size: 2rem;"></i>
+                <h6>No Route Assigned</h6>
+                <p class="text-muted mb-0">This truck has no route assigned yet.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Show loading state
+    document.getElementById('route-points-list').innerHTML = `
+        <div class="loading-points text-center p-4">
+            <i class="fas fa-spinner fa-spin text-muted mb-2"></i>
+            <p class="text-muted mb-0">Loading route points...</p>
+        </div>
+    `;
+    
+    // Fetch route points from server
+    fetch(`/admin/operations/garbage_collection/get_route_points?route_id=${routeId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('📍 Route points received:', data);
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            if (!data.route_points || data.route_points.length === 0) {
+                document.getElementById('route-points-list').innerHTML = `
+                    <div class="empty-points text-center p-4">
+                        <i class="fas fa-map-pin text-muted mb-2" style="font-size: 2rem;"></i>
+                        <h6>No Route Points</h6>
+                        <p class="text-muted mb-0">This route has no points defined.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Display route points in the list
+            displayRoutePointsList(data.route_points);
+            
+            // Add points to map
+            addPointsToRouteDetailsMap(data.route_points);
+            
+        })
+        .catch(error => {
+            console.error('❌ Error loading route points:', error);
+            document.getElementById('route-points-list').innerHTML = `
+                <div class="empty-points text-center p-4">
+                    <i class="fas fa-exclamation-triangle text-danger mb-2" style="font-size: 2rem;"></i>
+                    <h6>Error Loading Route Points</h6>
+                    <p class="text-muted mb-0">${error.message}</p>
+                </div>
+            `;
+        });
+}
+
+/**
+ * Display route points in the sidebar list
+ */
+function displayRoutePointsList(routePoints) {
+    const pointsList = document.getElementById('route-points-list');
+    
+    if (!routePoints || routePoints.length === 0) {
+        pointsList.innerHTML = `
+            <div class="empty-points text-center p-4">
+                <i class="fas fa-map-pin text-muted mb-2" style="font-size: 2rem;"></i>
+                <h6>No Route Points</h6>
+                <p class="text-muted mb-0">This route has no points defined.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let pointsHtml = '';
+    
+    routePoints.forEach((point, index) => {
+        const pointClass = point.name.toLowerCase().includes('start') ? 'start' : 
+                          point.name.toLowerCase().includes('end') ? 'end' : 'mid';
+        
+        pointsHtml += `
+            <div class="point-item" data-point-index="${index}" onclick="highlightRoutePoint(${index})">
+                <div class="point-number ${pointClass}">${index + 1}</div>
+                <div class="point-info">
+                    <div class="point-name">${point.name}</div>
+                    <div class="point-address">${point.address}</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    pointsList.innerHTML = pointsHtml;
 }
 
 // FIXED: Show states
