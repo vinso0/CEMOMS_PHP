@@ -28,7 +28,7 @@ $router->get('/admin/operations/garbage_collection', 'controllers/admin/operatio
 $router->post('/admin/operations/garbage_collection/store', 'controllers/admin/operations/garbage_collection/store.php');
 $router->post('/admin/operations/garbage_collection/update', 'controllers/admin/operations/garbage_collection/update.php');
 $router->post('/admin/operations/garbage_collection/delete', 'controllers/admin/operations/garbage_collection/delete.php');
-$router->get('/admin/operations/garbage_collection/get_route_points', 'controllers/admin/operations/garbage_collection/get_route_points.php');
+//$router->get('/admin/operations/garbage_collection/get_route_points', 'controllers/admin/operations/garbage_collection/get_route_points.php');
 
 
 // Street Sweeping

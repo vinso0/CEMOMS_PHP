@@ -19,33 +19,48 @@ class Truck
      */
     public function getGarbageCollectionTrucks()
     {
-        $sql = "SELECT 
-                    t.truck_id as id,
-                    t.plate_number,
-                    t.body_number,
-                    t.foreman_id,
-                    f.username as foreman_name,
-                    r.route_id,
-                    r.route_name,
-                    r.start_point,
-                    r.mid_point,
-                    r.end_point,
-                    os.schedule_id,
-                    os.schedule_type as schedule,
-                    os.status,
-                    os.dispatch_time,
-                    os.return_time
-                FROM truck t
-                LEFT JOIN foreman f ON t.foreman_id = f.foreman_id
-                LEFT JOIN operation_schedule os ON t.truck_id = os.truck_id
-                LEFT JOIN operation o ON os.operation_id = o.operation_id
-                LEFT JOIN route r ON os.route_id = r.route_id
-                WHERE o.operation_type_id = 1 AND os.route_id IS NOT NULL
-                ORDER BY t.plate_number";
+        $sql = "WITH RankedSchedules AS (
+                    -- This is your original query, but with a new column 'rn'
+                    SELECT 
+                        t.truck_id as id,
+                        t.plate_number,
+                        t.body_number,
+                        t.foreman_id,
+                        f.username as foreman_name,
+                        r.route_id,
+                        r.route_name,
+                        r.start_point,
+                        r.mid_point,
+                        r.end_point,
+                        os.schedule_id,
+                        os.schedule_type as schedule,
+                        os.status,
+                        os.dispatch_time,
+                        os.return_time,
+                        
+                        -- This assigns a rank to each schedule per truck,
+                        -- with '1' being the most recent (DESC) schedule_id
+                        ROW_NUMBER() OVER(
+                            PARTITION BY t.truck_id 
+                            ORDER BY os.schedule_id DESC
+                        ) as rn
+                        
+                    FROM truck t
+                    LEFT JOIN foreman f ON t.foreman_id = f.foreman_id
+                    LEFT JOIN operation_schedule os ON t.truck_id = os.truck_id
+                    LEFT JOIN operation o ON os.operation_id = o.operation_id
+                    LEFT JOIN route r ON os.route_id = r.route_id
+                    WHERE o.operation_type_id = 1 AND os.route_id IS NOT NULL
+                )
+                -- Now, select all columns from that data,
+                -- but *only* where the rank ('rn') is 1
+                SELECT *
+                FROM RankedSchedules
+                WHERE rn = 1
+                ORDER BY plate_number";
         
         return $this->db->query($sql)->get();
     }
-
     /**
      * Get all trucks with their assignments and schedules
      */
