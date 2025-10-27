@@ -754,3 +754,144 @@ function resetFilters() {
         window.garbageCollectionManager.resetFilters();
     }
 }
+
+/**
+ * Toggle weekly days section visibility
+ */
+function toggleWeeklyDays() {
+    const scheduleType = document.getElementById('scheduleType').value;
+    const weeklySection = document.getElementById('weeklyDaysSection');
+    
+    if (scheduleType === 'weekly') {
+        weeklySection.style.display = 'block';
+        // Make at least one day required for weekly schedules
+        const dayCheckboxes = document.querySelectorAll('input[name="schedule_days[]"]');
+        dayCheckboxes.forEach(checkbox => checkbox.required = true);
+    } else {
+        weeklySection.style.display = 'none';
+        // Remove day requirements for daily schedules
+        const dayCheckboxes = document.querySelectorAll('input[name="schedule_days[]"]');
+        dayCheckboxes.forEach(checkbox => {
+            checkbox.required = false;
+            checkbox.checked = false;
+        });
+        clearWeeklyDaysValidation();
+    }
+}
+
+/**
+ * Quick select functions for days
+ */
+function selectWeekdays() {
+    // Clear all first
+    clearDays();
+    // Select Monday to Friday
+    ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].forEach(day => {
+        document.getElementById(day).checked = true;
+    });
+    clearWeeklyDaysValidation();
+}
+
+function selectAllDays() {
+    const dayCheckboxes = document.querySelectorAll('input[name="schedule_days[]"]');
+    dayCheckboxes.forEach(checkbox => checkbox.checked = true);
+    clearWeeklyDaysValidation();
+}
+
+function clearDays() {
+    const dayCheckboxes = document.querySelectorAll('input[name="schedule_days[]"]');
+    dayCheckboxes.forEach(checkbox => checkbox.checked = false);
+}
+
+function clearWeeklyDaysValidation() {
+    const errorDiv = document.getElementById('weeklyDaysError');
+    const dayCheckboxes = document.querySelectorAll('input[name="schedule_days[]"]');
+    
+    if (errorDiv) {
+        errorDiv.textContent = '';
+    }
+    
+    dayCheckboxes.forEach(checkbox => {
+        checkbox.classList.remove('is-invalid');
+    });
+}
+
+/**
+ * Validate weekly days selection
+ */
+function validateWeeklyDays() {
+    const scheduleType = document.getElementById('scheduleType').value;
+    
+    if (scheduleType === 'weekly') {
+        const selectedDays = document.querySelectorAll('input[name="schedule_days[]"]:checked');
+        const errorDiv = document.getElementById('weeklyDaysError');
+        const dayCheckboxes = document.querySelectorAll('input[name="schedule_days[]"]');
+        
+        if (selectedDays.length === 0) {
+            errorDiv.textContent = 'Please select at least one day for weekly schedule.';
+            dayCheckboxes.forEach(checkbox => checkbox.classList.add('is-invalid'));
+            return false;
+        } else {
+            clearWeeklyDaysValidation();
+            return true;
+        }
+    }
+    return true;
+}
+
+// Enhanced form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const addTruckForm = document.getElementById('addTruckForm');
+    if (addTruckForm) {
+        addTruckForm.addEventListener('submit', function(e) {
+            let isValid = true;
+            
+            // Validate required fields
+            const requiredFields = addTruckForm.querySelectorAll('[required]:not([name="schedule_days[]"])');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    const feedback = field.parentElement.querySelector('.invalid-feedback');
+                    if (feedback) feedback.textContent = 'This field is required.';
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            // Validate route points
+            const startLat = document.getElementById('startLat').value;
+            const startLon = document.getElementById('startLon').value;
+            const endLat = document.getElementById('endLat').value;
+            const endLon = document.getElementById('endLon').value;
+            
+            if (!startLat || !startLon) {
+                const startField = document.getElementById('startPoint');
+                startField.classList.add('is-invalid');
+                const feedback = startField.parentElement.querySelector('.invalid-feedback');
+                if (feedback) feedback.textContent = 'Please select a start point on the map.';
+                isValid = false;
+            }
+            
+            if (!endLat || !endLon) {
+                const endField = document.getElementById('endPoint');
+                endField.classList.add('is-invalid');
+                const feedback = endField.parentElement.querySelector('.invalid-feedback');
+                if (feedback) feedback.textContent = 'Please select an end point on the map.';
+                isValid = false;
+            }
+            
+            // Validate weekly days
+            if (!validateWeeklyDays()) {
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            addTruckForm.classList.add('was-validated');
+        });
+    }
+});

@@ -70,12 +70,63 @@
                             
                             <div class="col-md-6 mb-3">
                                 <label for="scheduleType" class="form-label required">Schedule Type</label>
-                                <select class="form-select" id="scheduleType" name="schedule_type" required>
+                                <select class="form-select" id="scheduleType" name="schedule_type" required onchange="toggleWeeklyDays()">
                                     <option value="">Select Schedule</option>
                                     <option value="daily">Daily</option>
                                     <option value="weekly">Weekly</option>
                                 </select>
                                 <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- ENHANCED: Weekly Schedule Days Selection -->
+                        <div class="row" id="weeklyDaysSection" style="display: none;">
+                            <div class="col-12">
+                                <label class="form-label required">Select Days of the Week</label>
+                                <div class="weekly-days-container">
+                                    <div class="day-checkboxes">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="monday" name="schedule_days[]" value="Monday">
+                                            <label class="form-check-label" for="monday">Mon</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="tuesday" name="schedule_days[]" value="Tuesday">
+                                            <label class="form-check-label" for="tuesday">Tue</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="wednesday" name="schedule_days[]" value="Wednesday">
+                                            <label class="form-check-label" for="wednesday">Wed</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="thursday" name="schedule_days[]" value="Thursday">
+                                            <label class="form-check-label" for="thursday">Thu</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="friday" name="schedule_days[]" value="Friday">
+                                            <label class="form-check-label" for="friday">Fri</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="saturday" name="schedule_days[]" value="Saturday">
+                                            <label class="form-check-label" for="saturday">Sat</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="sunday" name="schedule_days[]" value="Sunday">
+                                            <label class="form-check-label" for="sunday">Sun</label>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectWeekdays()">
+                                            <i class="fas fa-business-time me-1"></i>Weekdays Only
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-success" onclick="selectAllDays()">
+                                            <i class="fas fa-calendar-week me-1"></i>All Days
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearDays()">
+                                            <i class="fas fa-times me-1"></i>Clear
+                                        </button>
+                                    </div>
+                                    <div class="invalid-feedback" id="weeklyDaysError"></div>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -101,28 +152,6 @@
 
                         <!-- Route Points -->
                         <div class="route-points-container">
-                            <div class="route-controls mb-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="route-mode-selector">
-                                        <label class="form-label">Select Point:</label>
-                                        <div class="btn-group" role="group">
-                                            <input type="radio" class="btn-check" name="pointMode" id="startMode" value="start" checked>
-                                            <label class="btn btn-outline-primary btn-sm" for="startMode">Start</label>
-                                            
-                                            <input type="radio" class="btn-check" name="pointMode" id="midMode" value="mid">
-                                            <label class="btn btn-outline-secondary btn-sm" for="midMode">Mid</label>
-                                            
-                                            <input type="radio" class="btn-check" name="pointMode" id="endMode" value="end">
-                                            <label class="btn btn-outline-danger btn-sm" for="endMode">End</label>
-                                        </div>
-                                    </div>
-                                    
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="clearRouteBtn">
-                                        <i class="fas fa-undo me-1"></i>Clear Route
-                                    </button>
-                                </div>
-                            </div>
-                        
                             <div class="row">
                                 <div class="col-md-4 mb-3">
                                     <label for="startPoint" class="form-label required">Start Point</label>
@@ -165,6 +194,28 @@
                                     <input type="hidden" id="endLat" name="end_lat">
                                     <input type="hidden" id="endLon" name="end_lon">
                                     <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="route-controls mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="route-mode-selector">
+                                        <label class="form-label">Select Point:</label>
+                                        <div class="btn-group" role="group">
+                                            <input type="radio" class="btn-check" name="pointMode" id="startMode" value="start" checked>
+                                            <label class="btn btn-outline-primary btn-sm" for="startMode">Start</label>
+                                            
+                                            <input type="radio" class="btn-check" name="pointMode" id="midMode" value="mid">
+                                            <label class="btn btn-outline-secondary btn-sm" for="midMode">Mid</label>
+                                            
+                                            <input type="radio" class="btn-check" name="pointMode" id="endMode" value="end">
+                                            <label class="btn btn-outline-danger btn-sm" for="endMode">End</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="clearRouteBtn">
+                                        <i class="fas fa-undo me-1"></i>Clear Route
+                                    </button>
                                 </div>
                             </div>
                         </div>

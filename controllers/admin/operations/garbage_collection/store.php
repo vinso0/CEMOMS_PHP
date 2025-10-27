@@ -87,6 +87,20 @@ if (!in_array($scheduleType, ['daily', 'weekly'])) {
     $errors[] = 'Invalid schedule type.';
 }
 
+// ENHANCED: Validate weekly schedule days
+if ($scheduleType === 'weekly') {
+    if (empty($_POST['schedule_days']) || !is_array($_POST['schedule_days'])) {
+        $errors[] = 'Please select at least one day for weekly schedule.';
+    } else {
+        $validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        foreach ($_POST['schedule_days'] as $day) {
+            if (!in_array($day, $validDays)) {
+                $errors[] = 'Invalid day selected: ' . htmlspecialchars($day);
+            }
+        }
+    }
+}
+
 if (count($errors) === 0) {
     try {
         // Get database connection for transaction
@@ -116,10 +130,10 @@ if (count($errors) === 0) {
         
         // Step 2: Create route with coordinates
         $routeId = $routeModel->createRouteWithCoordinates(
-        $routeName,
-        $startPoint, $startLat, $startLon,
-        $endPoint, $endLat, $endLon,
-        $midPoint, $midLat, $midLon
+            $routeName,
+            $startPoint, $startLat, $startLon,
+            $endPoint, $endLat, $endLon,
+            $midPoint, $midLat, $midLon
         );
         
         // Check if route was created successfully
@@ -152,6 +166,19 @@ if (count($errors) === 0) {
         // Check if schedule was created successfully
         if (!$scheduleId || $scheduleId == 0) {
             throw new \Exception('Failed to create schedule record');
+        }
+        
+        // ENHANCED: Step 5 - Handle weekly schedule days
+        if ($scheduleType === 'weekly' && !empty($_POST['schedule_days']) && is_array($_POST['schedule_days'])) {
+            foreach ($_POST['schedule_days'] as $dayOfWeek) {
+                $db->query(
+                    "INSERT INTO schedule_days (schedule_id, day_of_week) VALUES (:schedule_id, :day_of_week)",
+                    [
+                        ':schedule_id' => $scheduleId,
+                        ':day_of_week' => $dayOfWeek
+                    ]
+                );
+            }
         }
         
         // Commit transaction
