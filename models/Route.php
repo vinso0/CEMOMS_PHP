@@ -46,7 +46,7 @@ class Route
     }
 
     /**
-     * Create route with coordinates stored in route_points table
+     * FIXED: Create route with coordinates AND store address strings
      */
     public function createRouteWithCoordinates(
         $routeName, 
@@ -63,12 +63,18 @@ class Route
         try {
             $this->db->connection->beginTransaction();
 
-            // Insert route
-            $sql = "INSERT INTO route (route_name) VALUES (:route_name)";
-            $this->db->query($sql, [':route_name' => $routeName]);
+            // FIXED: Insert route WITH the address strings you typed
+            $sql = "INSERT INTO route (route_name, start_point, mid_point, end_point) 
+                    VALUES (:route_name, :start_point, :mid_point, :end_point)";
+            $this->db->query($sql, [
+                ':route_name' => $routeName,
+                ':start_point' => $startPoint,  // Save the address text
+                ':mid_point' => $midPoint ?: null,
+                ':end_point' => $endPoint       // Save the address text
+            ]);
             $routeId = $this->db->connection->lastInsertId();
 
-            // Insert start point
+            // Insert coordinate points
             $this->insertRoutePoint($routeId, $startLat, $startLon, 1);
 
             // Insert mid point if provided
@@ -90,9 +96,8 @@ class Route
         }
     }
 
-
     /**
-     * Insert a route point
+     * Insert a route point (coordinates only)
      */
     private function insertRoutePoint($routeId, $lat, $lon, $order)
     {
@@ -171,7 +176,7 @@ class Route
         $midLat = null,
         $midLon = null
     ) {
-        // Update main route
+        // Update main route WITH addresses
         $query = "UPDATE route 
                   SET route_name = :route_name,
                       start_point = :start_point,

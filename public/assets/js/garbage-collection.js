@@ -258,7 +258,6 @@ class GarbageCollectionManager {
     }
 }
 
-// FIXED: Updated populateRouteDetailsModal function with proper null checks
 // FIXED: Updated populateRouteDetailsModal function that actually works
 function populateRouteDetailsModal(truck) {
     if (!truck) {

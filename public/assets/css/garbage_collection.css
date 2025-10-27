@@ -587,6 +587,39 @@
     border-color: #6c757d;
 }
 
+/* Address input loading states */
+input.loading {
+    background: linear-gradient(90deg, #f8f9fa 25%, #e9ecef 37%, #f8f9fa 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.2s ease-in-out infinite;
+    color: #007bff;
+    font-style: italic;
+}
+
+input.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    animation: successPulse 0.8s ease-out;
+}
+
+input.fallback {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+    color: #856404;
+    font-style: italic;
+}
+
+@keyframes shimmer {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+
+@keyframes successPulse {
+    0% { background-color: #d4edda; }
+    100% { background-color: #fff; }
+}
+
+
 /* ===== RESPONSIVE ADJUSTMENTS ===== */
 @media (max-width: 768px) {
     .filter-item {

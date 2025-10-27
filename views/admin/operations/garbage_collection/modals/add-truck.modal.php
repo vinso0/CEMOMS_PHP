@@ -101,6 +101,28 @@
 
                         <!-- Route Points -->
                         <div class="route-points-container">
+                            <div class="route-controls mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="route-mode-selector">
+                                        <label class="form-label">Select Point:</label>
+                                        <div class="btn-group" role="group">
+                                            <input type="radio" class="btn-check" name="pointMode" id="startMode" value="start" checked>
+                                            <label class="btn btn-outline-primary btn-sm" for="startMode">Start</label>
+                                            
+                                            <input type="radio" class="btn-check" name="pointMode" id="midMode" value="mid">
+                                            <label class="btn btn-outline-secondary btn-sm" for="midMode">Mid</label>
+                                            
+                                            <input type="radio" class="btn-check" name="pointMode" id="endMode" value="end">
+                                            <label class="btn btn-outline-danger btn-sm" for="endMode">End</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="clearRouteBtn">
+                                        <i class="fas fa-undo me-1"></i>Clear Route
+                                    </button>
+                                </div>
+                            </div>
+                        
                             <div class="row">
                                 <div class="col-md-4 mb-3">
                                     <label for="startPoint" class="form-label required">Start Point</label>
@@ -143,28 +165,6 @@
                                     <input type="hidden" id="endLat" name="end_lat">
                                     <input type="hidden" id="endLon" name="end_lon">
                                     <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="route-controls mb-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="route-mode-selector">
-                                        <label class="form-label">Select Point:</label>
-                                        <div class="btn-group" role="group">
-                                            <input type="radio" class="btn-check" name="pointMode" id="startMode" value="start" checked>
-                                            <label class="btn btn-outline-primary btn-sm" for="startMode">Start</label>
-                                            
-                                            <input type="radio" class="btn-check" name="pointMode" id="midMode" value="mid">
-                                            <label class="btn btn-outline-secondary btn-sm" for="midMode">Mid</label>
-                                            
-                                            <input type="radio" class="btn-check" name="pointMode" id="endMode" value="end">
-                                            <label class="btn btn-outline-danger btn-sm" for="endMode">End</label>
-                                        </div>
-                                    </div>
-                                    
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="clearRouteBtn">
-                                        <i class="fas fa-undo me-1"></i>Clear Route
-                                    </button>
                                 </div>
                             </div>
                         </div>

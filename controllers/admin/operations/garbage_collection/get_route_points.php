@@ -25,32 +25,49 @@ if (!$routeId) {
 try {
     $routeModel = new Route();
     $routePoints = $routeModel->getRoutePoints($routeId);
-    
-    // Also get the route details for better names
     $routeDetails = $routeModel->getRouteById($routeId);
     
-    // Format points for JavaScript with meaningful names
+    if (!$routeDetails) {
+        throw new Exception('Route not found');
+    }
+    
+    // Format points using the EXACT stored addresses
     $formattedPoints = [];
+    
     foreach ($routePoints as $point) {
         $lat = (float)$point['latitude'];
         $lng = (float)$point['longitude'];
         $order = (int)$point['point_order'];
         
-        // Determine point type and use route's stored addresses
-        if ($order === 1) {
-            $pointName = 'Start Point';
-            $address = $routeDetails['start_point'] ?? 'Starting location';
-        } elseif ($order === 2 && !empty($routeDetails['mid_point'])) {
-            $pointName = 'Collection Point';
-            $address = $routeDetails['mid_point'] ?? 'Collection area';
-        } else {
-            $pointName = 'End Point';
-            $address = $routeDetails['end_point'] ?? 'Final destination';
-        }
-        
-        // If address is empty or too generic, create a descriptive one
-        if (empty($address) || $address === 'Route point ' . $order) {
-            $address = getSimpleLocationName($lat, $lng, $pointName);
+        // Map point order to the exact stored addresses
+        switch ($order) {
+            case 1:
+                $pointName = 'Start Point';
+                $address = $routeDetails['start_point'] ?: 'Starting location';
+                break;
+                
+            case 2:
+                if (!empty($routeDetails['mid_point'])) {
+                    // This is actually the mid point
+                    $pointName = 'Collection Point';
+                    $address = $routeDetails['mid_point'];
+                } else {
+                    // No mid point, so this is the end point
+                    $pointName = 'End Point';
+                    $address = $routeDetails['end_point'] ?: 'Final destination';
+                }
+                break;
+                
+            case 3:
+                // This is definitely the end point (when mid exists)
+                $pointName = 'End Point';
+                $address = $routeDetails['end_point'] ?: 'Final destination';
+                break;
+                
+            default:
+                $pointName = 'Route Point';
+                $address = 'Point ' . $order;
+                break;
         }
         
         $formattedPoints[] = [
@@ -72,27 +89,4 @@ try {
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Failed to fetch route points: ' . $e->getMessage()]);
-}
-
-/**
- * Generate a simple location name based on coordinates
- */
-function getSimpleLocationName($lat, $lng, $pointType) {
-    // Philippines coordinate ranges for basic area detection
-    if ($lat >= 14.4 && $lat <= 14.8 && $lng >= 120.9 && $lng <= 121.1) {
-        // Metro Manila area
-        if ($lat >= 14.55 && $lat <= 14.65) {
-            $area = "Manila City";
-        } elseif ($lat >= 14.5 && $lat < 14.55) {
-            $area = "Pasay/Makati Area";
-        } elseif ($lat > 14.65) {
-            $area = "Quezon City Area";
-        } else {
-            $area = "Metro Manila";
-        }
-    } else {
-        $area = "Philippines";
-    }
-    
-    return $pointType . " - " . $area;
 }
