@@ -69,15 +69,15 @@ class Route
             $routeId = $this->db->connection->lastInsertId();
 
             // Insert start point
-            $this->insertRoutePoint($routeId, $startLat, $startLon, 1, $startPoint);
+            $this->insertRoutePoint($routeId, $startLat, $startLon, 1);
 
             // Insert mid point if provided
             if ($midPoint && $midLat && $midLon) {
-                $this->insertRoutePoint($routeId, $midLat, $midLon, 2, $midPoint);
+                $this->insertRoutePoint($routeId, $midLat, $midLon, 2);
             }
 
             // Insert end point
-            $this->insertRoutePoint($routeId, $endLat, $endLon, 3, $endPoint);
+            $this->insertRoutePoint($routeId, $endLat, $endLon, 3);
 
             $this->db->connection->commit();
             return $routeId;
@@ -94,17 +94,16 @@ class Route
     /**
      * Insert a route point
      */
-    private function insertRoutePoint($routeId, $lat, $lon, $order, $label)
+    private function insertRoutePoint($routeId, $lat, $lon, $order)
     {
-        $sql = "INSERT INTO route_points (route_id, latitude, longitude, point_order, label) 
-                VALUES (:route_id, :lat, :lon, :order, :label)";
+        $sql = "INSERT INTO route_points (route_id, latitude, longitude, point_order) 
+                VALUES (:route_id, :lat, :lon, :order)";
         
         $this->db->query($sql, [
             ':route_id' => $routeId,
             ':lat' => $lat,
             ':lon' => $lon,
-            ':order' => $order,
-            ':label' => $label
+            ':order' => $order
         ]);
     }
 
@@ -192,13 +191,13 @@ class Route
         $this->deleteRoutePoints($routeId);
         
         // Insert new route points
-        $this->insertRoutePoint($routeId, $startLat, $startLon, 1, 'Start');
+        $this->insertRoutePoint($routeId, $startLat, $startLon, 1);
         
         if ($midPoint && $midLat && $midLon) {
-            $this->insertRoutePoint($routeId, $midLat, $midLon, 2, 'Midpoint');
-            $this->insertRoutePoint($routeId, $endLat, $endLon, 3, 'End');
+            $this->insertRoutePoint($routeId, $midLat, $midLon, 2);
+            $this->insertRoutePoint($routeId, $endLat, $endLon, 3);
         } else {
-            $this->insertRoutePoint($routeId, $endLat, $endLon, 2, 'End');
+            $this->insertRoutePoint($routeId, $endLat, $endLon, 2);
         }
     }
 

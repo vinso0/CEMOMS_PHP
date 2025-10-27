@@ -40,7 +40,7 @@ class Truck
                 LEFT JOIN operation_schedule os ON t.truck_id = os.truck_id
                 LEFT JOIN operation o ON os.operation_id = o.operation_id
                 LEFT JOIN route r ON os.route_id = r.route_id
-                WHERE o.operation_type_id = 1
+                WHERE o.operation_type_id = 1 AND os.route_id IS NOT NULL
                 ORDER BY t.plate_number";
         
         return $this->db->query($sql)->get();
