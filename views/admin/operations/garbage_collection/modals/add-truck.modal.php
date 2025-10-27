@@ -129,6 +129,24 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Operation Time Section -->
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="operationTime" class="form-label required">Operation Time</label>
+                                <input 
+                                    type="time" 
+                                    class="form-control" 
+                                    id="operationTime" 
+                                    name="operation_time" 
+                                    required>
+                                <div class="form-text">
+                                    <i class="fas fa-clock me-1"></i>
+                                    What time should this garbage collection operation start?
+                                </div>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
                     </section>
 
                     <!-- Route Configuration Section -->

@@ -19,38 +19,29 @@ class Truck
      */
     public function getGarbageCollectionTrucks()
     {
-        $sql = "SELECT
-        t.truck_id AS id,
-        t.plate_number,
-        t.body_number,
-        t.foreman_id,
-        f.username AS foreman_name,
-        r.route_id,
-        r.route_name,
-        r.start_point,
-        r.mid_point,
-        r.end_point,
-        os.schedule_id,
-        os.schedule_type AS schedule,
-        os.status,
-        os.dispatch_time,
-        os.return_time
+        $sql = "SELECT 
+            t.*,
+            r.route_name,
+            r.start_point,
+            r.mid_point,  
+            r.end_point,
+            f.username as foreman_name,
+            os.route_id,
+            os.schedule_type as schedule,
+            os.operation_time,
+            os.status,
+            -- Get weekly days as comma-separated string
+            GROUP_CONCAT(sd.day_of_week ORDER BY 
+                FIELD(sd.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')
+                SEPARATOR ','
+            ) as weekly_days_str
         FROM truck t
-        LEFT JOIN foreman f ON t.foreman_id = f.foreman_id
-        LEFT JOIN (
-        SELECT s.*
-        FROM operation_schedule s
-        INNER JOIN operation o ON s.operation_id = o.operation_id
-        WHERE o.operation_type_id = 1
-        AND s.route_id IS NOT NULL
-        AND s.schedule_id = (
-        SELECT MAX(s2.schedule_id)
-        FROM operation_schedule s2
-        WHERE s2.truck_id = s.truck_id
-        )
-        ) os ON os.truck_id = t.truck_id
+        LEFT JOIN operation_schedule os ON t.truck_id = os.truck_id
         LEFT JOIN route r ON os.route_id = r.route_id
-        ORDER BY t.plate_number
+        LEFT JOIN foreman f ON t.foreman_id = f.foreman_id
+        LEFT JOIN schedule_days sd ON os.schedule_id = sd.schedule_id
+        GROUP BY t.truck_id
+        ORDER BY t.truck_id DESC
         ";
 
         return $this->db->query($sql)->get();

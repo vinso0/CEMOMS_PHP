@@ -258,59 +258,83 @@ class GarbageCollectionManager {
     }
 }
 
-// FIXED: Updated populateRouteDetailsModal function that actually works
-function populateRouteDetailsModal(truck) {
-    if (!truck) {
-        console.error('No truck data provided to populateRouteDetailsModal');
-        return;
+/**
+ * ENHANCED: Populate route details modal with schedule info
+ */
+function populateRouteDetailsModal(truckData) {
+    console.log('🚛 Opening route details for truck:', truckData);
+    
+    // Clear previous data
+    document.getElementById('route-points-list').innerHTML = `
+        <div class="loading-points text-center p-4">
+            <i class="fas fa-spinner fa-spin text-muted mb-2"></i>
+            <p class="text-muted mb-0">Loading route points...</p>
+        </div>
+    `;
+    
+    // Clear map
+    if (window.routeDetailsMapInstance) {
+        window.routeDetailsMapInstance.remove();
+        window.routeDetailsMapInstance = null;
     }
     
-    console.log('🚀 Loading route details for truck:', truck.plate_number);
-    console.log('🔍 Full truck object:', truck);
+    // Populate truck and route information
+    document.getElementById('details-plate-number').textContent = truckData.plate_number || '-';
+    document.getElementById('details-body-number').textContent = truckData.body_number || '-';
+    document.getElementById('details-route-name').textContent = truckData.route_name || '-';
+    document.getElementById('details-foreman').textContent = truckData.foreman_name || '-';
     
-    // Update basic information
-    const plateElement = document.getElementById('details-plate-number');
-    const bodyElement = document.getElementById('details-body-number');
-    const routeElement = document.getElementById('details-route-name');
-    const foremanElement = document.getElementById('details-foreman');
+    // ENHANCED: Populate schedule information
+    document.getElementById('details-schedule-type').textContent = 
+        truckData.schedule ? (truckData.schedule.charAt(0).toUpperCase() + truckData.schedule.slice(1)) : '-';
     
-    if (plateElement) plateElement.textContent = truck.plate_number || '-';
-    if (bodyElement) bodyElement.textContent = truck.body_number || '-';
-    if (routeElement) routeElement.textContent = truck.route_name || 'Not Assigned';
-    if (foremanElement) foremanElement.textContent = truck.foreman_name || 'Not Assigned';
+    // Format and display operation time
+    let operationTime = truckData.operation_time || '-';
+    if (operationTime !== '-' && operationTime) {
+        // Convert 24-hour to 12-hour format
+        const time = new Date(`2000-01-01 ${operationTime}`);
+        operationTime = time.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit', 
+            hour12: true 
+        });
+    }
+    document.getElementById('details-operation-time').textContent = operationTime;
     
-    // Reset points list to loading state
-    const pointsList = document.getElementById('route-points-list');
-    if (pointsList) {
-        pointsList.innerHTML = `
-            <div class="loading-points text-center p-4">
-                <i class="fas fa-spinner fa-spin text-muted mb-2"></i>
-                <p class="text-muted mb-0">Loading route points...</p>
+    // Handle weekly days display
+    const weeklyContainer = document.getElementById('weekly-days-container');
+    const weeklyDaysElement = document.getElementById('details-weekly-days');
+    
+    if (truckData.schedule === 'weekly' && truckData.weekly_days && truckData.weekly_days.length > 0) {
+        weeklyContainer.style.display = 'block';
+        
+        // Create day badges
+        const dayBadges = truckData.weekly_days.map(day => 
+            `<span class="badge bg-primary me-1 mb-1">${day.substring(0, 3)}</span>`
+        ).join('');
+        
+        weeklyDaysElement.innerHTML = dayBadges;
+    } else {
+        weeklyContainer.style.display = 'none';
+    }
+    
+    // Initialize map
+    initializeRouteDetailsMap();
+    
+    // Load route points
+    if (truckData.route_id) {
+        loadRoutePoints(truckData.route_id);
+    } else {
+        document.getElementById('route-points-list').innerHTML = `
+            <div class="empty-points text-center p-4">
+                <i class="fas fa-exclamation-circle text-warning mb-2" style="font-size: 2rem;"></i>
+                <h6>No Route Assigned</h6>
+                <p class="text-muted mb-0">This truck has no route assigned yet.</p>
             </div>
         `;
     }
-    
-    // Initialize map and fetch points immediately
-    console.log('🗺️ Starting map initialization...');
-    setTimeout(() => {
-        initializeRouteDetailsMap();
-        
-        // Extract and validate route_id
-        const routeId = truck.route_id;
-        console.log('=== ROUTE ID CHECK ===');
-        console.log('truck.route_id:', routeId);
-        console.log('typeof truck.route_id:', typeof routeId);
-        console.log('Boolean check:', !!routeId);
-        
-        if (routeId && String(routeId).trim() !== '' && String(routeId).trim() !== '0') {
-            console.log('✅ Route ID is valid, calling fetchRoutePoints...');
-            fetchRoutePoints(routeId);
-        } else {
-            console.log('❌ Route ID is invalid, showing no points');
-            showNoRoutePoints();
-        }
-    }, 300);
 }
+
 
 // FIXED: Initialize route details map
 function initializeRouteDetailsMap() {

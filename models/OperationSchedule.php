@@ -17,24 +17,24 @@ class OperationSchedule
     /**
      * Create operation schedule
      */
-    public function create($operationId, $routeId, $areaId, $truckId, $adminId, $foremanId, $scheduleType, $status)
+    public function create($operationId, $routeId, $areaId, $truckId, $adminId, $foremanId, $scheduleType, $status, $operationTime = null)
     {
-        $sql = "INSERT INTO operation_schedule 
-                (operation_id, route_id, area_id, truck_id, admin_id, foreman_id, schedule_type, status)
-                VALUES (:operation_id, :route_id, :area_id, :truck_id, :admin_id, :foreman_id, :schedule_type, :status)";
-        
-        $this->db->query($sql, [
-            ':operation_id' => $operationId,
-            ':route_id' => $routeId,
-            ':area_id' => $areaId,
-            ':truck_id' => $truckId,
-            ':admin_id' => $adminId,
-            ':foreman_id' => $foremanId,
-            ':schedule_type' => $scheduleType,
-            ':status' => $status
-        ]);
-        
-        return $this->db->connection->lastInsertId();
+    $query = "INSERT INTO operation_schedule (operation_id, route_id, area_id, truck_id, admin_id, foreman_id, schedule_type, status, operation_time) 
+                VALUES (:operation_id, :route_id, :area_id, :truck_id, :admin_id, :foreman_id, :schedule_type, :status, :operation_time)";
+
+    $this->db->query($query, [
+        ':operation_id' => $operationId,
+        ':route_id' => $routeId,
+        ':area_id' => $areaId,
+        ':truck_id' => $truckId,
+        ':admin_id' => $adminId,
+        ':foreman_id' => $foremanId,
+        ':schedule_type' => $scheduleType,
+        ':status' => $status,
+        ':operation_time' => $operationTime
+    ]);
+
+    return $this->db->connection->lastInsertId();
     }
 
     /**

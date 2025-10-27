@@ -1,6 +1,3 @@
-<?php
-// Route Details Modal - HTML only (CSS/JS handled globally)
-?>
 <div class="modal fade" id="routeDetailsModal" tabindex="-1" aria-labelledby="routeDetailsModalLabel">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -15,7 +12,7 @@
                     <!-- Truck Information & Route Assignment -->
                     <div class="info-section p-3 bg-light border-bottom">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <h6 class="text-primary mb-2">
                                     <i class="fas fa-truck me-1"></i>Truck Information
                                 </h6>
@@ -28,7 +25,7 @@
                                     <span id="details-body-number">-</span>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <h6 class="text-success mb-2">
                                     <i class="fas fa-route me-1"></i>Route Assignment
                                 </h6>
@@ -39,6 +36,25 @@
                                 <div class="info-item">
                                     <strong>Foreman:</strong> 
                                     <span id="details-foreman">-</span>
+                                </div>
+                            </div>
+                            <!-- ENHANCED: Schedule Information -->
+                            <div class="col-md-4">
+                                <h6 class="text-info mb-2">
+                                    <i class="fas fa-calendar-alt me-1"></i>Schedule Details
+                                </h6>
+                                <div class="info-item">
+                                    <strong>Type:</strong> 
+                                    <span id="details-schedule-type">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <strong>Operation Time:</strong> 
+                                    <span id="details-operation-time">-</span>
+                                </div>
+                                <!-- Weekly Days (shown only for weekly schedules) -->
+                                <div class="info-item" id="weekly-days-container" style="display: none;">
+                                    <strong>Days:</strong> 
+                                    <div id="details-weekly-days" class="mt-1"></div>
                                 </div>
                             </div>
                         </div>

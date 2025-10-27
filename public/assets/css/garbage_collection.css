@@ -674,6 +674,28 @@ input.fallback {
     color: #dc3545;
 }
 
+/* Weekly days badges */
+.badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.info-item {
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.info-item strong {
+    color: #495057;
+    font-weight: 600;
+}
+
+/* Schedule info section */
+.text-info {
+    color: #17a2b8 !important;
+}
+
+
 /* ===== RESPONSIVE ADJUSTMENTS ===== */
 @media (max-width: 768px) {
     .filter-item {

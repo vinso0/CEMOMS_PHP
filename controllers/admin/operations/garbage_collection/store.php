@@ -22,6 +22,7 @@ $plateNumber = trim($_POST['plate_number'] ?? '');
 $bodyNumber = trim($_POST['body_number'] ?? '');
 $foremanId = $_POST['foreman_id'] ?? null;
 $scheduleType = $_POST['schedule_type'] ?? 'daily';
+$operationTime = $_POST['operation_time'] ?? null;
 
 // Route data
 $routeName = trim($_POST['route_name'] ?? '');
@@ -101,6 +102,10 @@ if ($scheduleType === 'weekly') {
     }
 }
 
+if (empty($operationTime)) {
+    $errors[] = 'Operation time is required.';
+}
+
 if (count($errors) === 0) {
     try {
         // Get database connection for transaction
@@ -160,7 +165,8 @@ if (count($errors) === 0) {
             $adminId,
             $foremanId,
             $scheduleType,
-            'Parked' // Default status
+            'Parked', // Default status
+            $operationTime // Add this parameter
         );
         
         // Check if schedule was created successfully
