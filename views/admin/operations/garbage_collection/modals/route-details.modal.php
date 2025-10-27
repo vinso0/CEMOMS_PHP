@@ -161,6 +161,22 @@
     height: 100%;
 }
 
+/* Add this to your route-details.modal.php styles or main CSS */
+.leaflet-container {
+    height: 100%;
+    width: 100%;
+    background: #f0f0f0;
+}
+
+.leaflet-tile {
+    filter: none !important;
+}
+
+#route-map .leaflet-container {
+    min-height: 360px;
+}
+
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .modal-dialog.modal-lg {
