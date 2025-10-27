@@ -200,15 +200,11 @@ class RouteMapSelector {
         });
         
         // Create fetch promise
-        const fetchPromise = fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
-            {
-                headers: { 'User-Agent': 'CEMOMS-PHP/1.0' }
-            }
-        ).then(response => {
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.json();
-        });
+        const fetchPromise = fetch(`/api/geocode_proxy?lat=${lat}&lng=${lng}`)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
+            });
         
         // Race between fetch and timeout
         Promise.race([fetchPromise, timeoutPromise])
@@ -238,7 +234,7 @@ class RouteMapSelector {
                 input.classList.remove('loading');
                 input.classList.add('fallback');
                 
-                // Optional: Try again after 2 seconds quietly
+                // Optional: Try again after 3 seconds quietly
                 setTimeout(() => {
                     if (input.classList.contains('fallback')) {
                         this.reverseGeocodeQuietRetry(lat, lng, pointType);

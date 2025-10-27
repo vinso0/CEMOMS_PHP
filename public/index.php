@@ -28,6 +28,10 @@ if ($uri === '/admin/operations/garbage_collection/get_route_points' && $_SERVER
     exit;
 }
 
+if ($uri === '/api/geocode_proxy' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    require base_path('controllers/api/geocode_proxy.php');
+    exit;
+}
 
 $method = $_POST['_method'] ?? $_SERVER['REQUEST_METHOD'];
 $router->route($uri, $method);
