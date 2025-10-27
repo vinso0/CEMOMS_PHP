@@ -28,8 +28,8 @@ try {
     $formattedPoints = [];
     foreach ($routePoints as $point) {
         $formattedPoints[] = [
-            'name' => $point['label'] ?: 'Point ' . $point['point_order'],
-            'address' => $point['label'] ?: 'Route point',
+            'name' => 'Point ' . $point['point_order'],
+            'address' => 'Route point ' . $point['point_order'],
             'lat' => (float)$point['latitude'],
             'lng' => (float)$point['longitude'],
             'order' => (int)$point['point_order']

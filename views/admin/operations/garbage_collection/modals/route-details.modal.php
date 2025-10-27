@@ -224,21 +224,24 @@ function populateRouteDetailsModal(truck) {
         </div>
     `;
     
-    // Initialize map when modal is shown
-    const modal = document.getElementById('routeDetailsModal');
-    modal.addEventListener('shown.bs.modal', function modalShownHandler() {
+    // Initialize map immediately and fetch points
+    setTimeout(() => {
         initializeMap();
         
         // Fetch route points if route exists
+        console.log('=== ROUTE ID CHECK ===');
+        console.log('truck.route_id:', truck.route_id);
+        console.log('typeof truck.route_id:', typeof truck.route_id);
+        
         if (truck.route_id) {
+            console.log('✅ Route ID found, calling fetchRoutePoints...');
             fetchRoutePoints(truck.route_id);
         } else {
+            console.log('❌ No route ID, showing no points');
             showNoRoutePoints();
         }
-        
-        // Remove event listener after first use
-        modal.removeEventListener('shown.bs.modal', modalShownHandler);
-    });
+    }, 300); // Small delay to ensure modal DOM is ready
+
 }
 
 /**
