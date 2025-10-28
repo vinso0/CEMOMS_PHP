@@ -14,12 +14,36 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <!-- CSS Files -->
-    <link rel="stylesheet" href="/public/assets/css/base.css">
-    <link rel="stylesheet" href="/public/assets/css/layout.css">
-    <link rel="stylesheet" href="/public/assets/css/admin.css">
-    <link rel="stylesheet" href="/public/assets/css/foreman.css">
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/layout.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+    <link rel="stylesheet" href="/assets/css/foreman.css">
 
-    <!-- DEBUG VERSION - Replace your script section with this -->
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Additional page-specific styles -->
+    <?= $additionalStyles ?? '' ?>
+</head>
+<body>
+    <div class="app-layout">
+        <?php require base_path('views/partials/sidebar.php'); ?>
+        
+        <div class="main-content">
+            <?php require base_path('views/partials/navbar.php'); ?>
+            
+            <div class="page-content">
+                <?= $content ?? '' ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/layout.js"></script>
+    
+    <!-- Additional page-specific scripts -->
+    <?= $additionalScripts ?? '' ?>
 <script>
 console.log('🔍 === COMPONENT LOADING DEBUG ===');
 console.log('🔍 Testing each component for errors...');

@@ -263,15 +263,14 @@ $additionalStyles = '
     <link rel="stylesheet" href="/assets/css/garbage_collection.css">
 ';
 
-/* JavaScript Files
+// JavaScript Files
 $additionalScripts = '
-    <script src="/public/assets/js/components/RouteMapSelector.js"></script>
-    <script src="/public/assets/js/components/Filters.js"></script>
-    <script src="/public/assets/js/components/AddTruckView.js"></script>
-    <script src="/public/assets/js/components/EditTruckView.js"></script>
-    <script src="/public/assets/js/components/RouteDetailsView.js"></script>
-    <script type="text/javascript" src="/public/assets/js/boot-garbage-collection.js"></script>
+    <script src="/assets/js/components/RouteMapSelector.js"></script>
+    <script src="/assets/js/components/Filters.js"></script>
+    <script src="/assets/js/components/AddTruckView.js"></script>
+    <script src="/assets/js/components/EditTruckView.js"></script>
+    <script src="/assets/js/components/RouteDetailsView.js"></script>
+    <script type="text/javascript" src="/assets/js/boot-garbage-collection.js"></script>
 ';
-*/
 require base_path('views/layout.php');
 ?>
