@@ -267,6 +267,7 @@ $additionalStyles = '
 $additionalScripts = '
     <script src="/assets/js/components/RouteMapSelector.js"></script>
     <script src="/assets/js/garbage-collection.js"></script>
+    <script type="module" src="/public/assets/js/boot-garbage-collection.js"></script>
 ';
 
 require base_path('views/layout.php');
