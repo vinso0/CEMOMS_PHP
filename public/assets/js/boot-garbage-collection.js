@@ -1,4 +1,3 @@
-// Remove all import statements and use global classes
 console.log('🔍 Debug: Script loading check');
 console.log('L (Leaflet):', typeof L);
 console.log('RouteMapSelector:', typeof window.RouteMapSelector);
