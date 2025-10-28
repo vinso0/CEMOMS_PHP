@@ -12,6 +12,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- 2. Load all component classes -->
+    <script src="/public/assets/js/components/RouteMapSelector.js"></script>
+    <script src="/public/assets/js/components/AddTruckView.js"></script>
+    <script src="/public/assets/js/components/EditTruckView.js"></script>
+    <script src="/public/assets/js/components/RouteDetailsView.js"></script>
+    <script src="/public/assets/js/components/Filters.js"></script>
+
+    <!-- 3. Load initialization script last -->
+    <script src="/public/assets/js/boot-garbage-collection.js"></script>
     
     <!-- CSS Files -->
     <link rel="stylesheet" href="/public/assets/css/base.css">

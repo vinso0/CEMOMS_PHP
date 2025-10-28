@@ -32,7 +32,6 @@ class RouteMapSelector {
         }
     }
 
-    // Replace the initMap method with this:
     initMap() {
         const mapContainer = document.getElementById(this.mapId);
         
@@ -40,17 +39,27 @@ class RouteMapSelector {
             throw new Error(`Map container with id '${this.mapId}' not found`);
         }
         
+        // CRITICAL: Clear existing Leaflet instances
+        if (mapContainer._leaflet_id) {
+            mapContainer._leaflet = false;
+            mapContainer._leaflet_id = null;
+        }
+        
+        // Clear any existing map instance
+        if (this.map) {
+            this.map.remove();
+            this.map = null;
+        }
+        
+        // Clear container completely
+        mapContainer.innerHTML = '';
+        
         if (typeof L === 'undefined') {
             throw new Error('Leaflet library not loaded');
         }
         
         try {
-            // Clear any existing map instance
-            if (this.map) {
-                this.map.remove();
-            }
-            
-            // Initialize Leaflet Map
+            // Initialize fresh map instance
             this.map = L.map(this.mapId, {
                 center: [this.options.defaultLat, this.options.defaultLng],
                 zoom: this.options.defaultZoom,
@@ -58,32 +67,30 @@ class RouteMapSelector {
                 attributionControl: true
             });
             
-            // Add OpenStreetMap tile layer
+            // Rest of initialization...
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
                 maxZoom: 19
             }).addTo(this.map);
             
-            // Add map click listener
+            // Add event listeners
             this.map.on('click', (event) => {
                 this.handleMapClick(event);
             });
             
-            // Force map to resize properly after modal is shown
+            // Force resize after modal shown
             setTimeout(() => {
                 this.map.invalidateSize();
             }, 100);
             
-            // Try to get user's current location (with better error handling)
-            this.getCurrentLocation();
-            
-            console.log('Leaflet map initialized successfully');
+            console.log('✅ Map initialized successfully');
             
         } catch (error) {
-            console.error('Error creating Leaflet map:', error);
-            throw new Error(`Failed to create map instance: ${error.message}`);
+            console.error('❌ Map initialization failed:', error);
+            throw error;
         }
     }
+
 
     initEventListeners() {
         // Point mode selector

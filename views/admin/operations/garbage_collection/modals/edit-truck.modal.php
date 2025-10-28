@@ -273,35 +273,3 @@
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const editTruckModal = document.getElementById('editTruckModal');
-    if (editTruckModal) {
-        editTruckModal.addEventListener('shown.bs.modal', function() {
-            console.log('🔧 Edit truck modal shown');
-            
-            // Initialize map first
-            if (!window.editRouteMapSelector) {
-                window.editRouteMapSelector = new RouteMapSelector('editRouteMap');
-                console.log('✅ Edit RouteMapSelector initialized');
-            }
-            
-            // Refresh map size
-            setTimeout(() => {
-                if (window.editRouteMapSelector) {
-                    window.editRouteMapSelector.refreshMapSize();
-                }
-            }, 150);
-        });
-
-        // Clear form when modal is hidden
-        editTruckModal.addEventListener('hidden.bs.modal', function() {
-            console.log('🔧 Edit truck modal hidden');
-            if (window.editRouteMapSelector) {
-                window.editRouteMapSelector.clearAllMarkers();
-            }
-        });
-        }
-});
-</script>

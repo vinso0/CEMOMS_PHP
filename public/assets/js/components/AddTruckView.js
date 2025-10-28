@@ -34,18 +34,31 @@ class AddTruckView {
 
   initMap() {
     const container = document.getElementById(this.mapId);
-    if (!container) return;
+    if (!container) {
+        console.error(`Map container ${this.mapId} not found`);
+        return;
+    }
 
-    // Use global RouteMapSelector instead of import
-    this.selector = new window.RouteMapSelector(this.mapId, {
-      defaultLat: 14.5995,
-      defaultLng: 120.9842,
-      defaultZoom: 13
-    });
+    // Check if RouteMapSelector is available
+    if (!window.RouteMapSelector) {
+        console.error('RouteMapSelector class not available');
+        return;
+    }
 
-    setTimeout(() => this.selector?.refreshMapSize(), 150);
-    container.classList.add('map-loaded');
-  }
+    try {
+        this.selector = new window.RouteMapSelector(this.mapId, {
+            defaultLat: 14.5995,
+            defaultLng: 120.9842,
+            defaultZoom: 13
+        });
+
+        setTimeout(() => this.selector?.refreshMapSize(), 150);
+        container.classList.add('map-loaded');
+    } catch (error) {
+        console.error('Failed to initialize RouteMapSelector:', error);
+    }
+  } 
+
 
   resetForm() {
     const form = document.getElementById('addTruckForm');
