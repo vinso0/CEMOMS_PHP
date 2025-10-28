@@ -445,10 +445,4 @@ class RouteMapSelector {
     }
 }
 
-// Export to global scope
-try {
-    window.RouteMapSelector = RouteMapSelector;
-    console.log('✅ RouteMapSelector successfully exported to window');
-} catch (e) {
-    console.error('❌ Failed to export RouteMapSelector:', e);
-}
+window.RouteMapSelector = RouteMapSelector;
