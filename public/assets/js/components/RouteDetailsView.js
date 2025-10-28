@@ -17,11 +17,24 @@ class RouteDetailsView {
     });
     this.modal.addEventListener('hidden.bs.modal', () => this.cleanup());
 
-    // expose for external calls
-    window.populateRouteDetailsModal = (t) => this.open(t);
-  }
+    // Event delegation for buttons
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.route-details-btn');
+        if (btn) {
+            console.log('🔍 Route details button clicked'); // DEBUG
+            const truckData = JSON.parse(btn.dataset.truckData);
+            console.log('🔍 Truck data parsed:', truckData); // DEBUG
+            setTimeout(() => {
+                console.log('🔍 Calling open() method'); // DEBUG
+                this.open(truckData);
+            }, 200);
+        }
+    });
+}
+
 
   open(truckData) {
+    console.log('🔍 RouteDetailsView.open called with:', truckData);
     // populate header
     const txt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || '-'; };
     txt('details-plate-number', truckData.plate_number);
@@ -198,6 +211,11 @@ class RouteDetailsView {
   }
 
   cleanup() {
+    // Blur any focused elements before cleanup
+    if (document.activeElement && document.activeElement.closest('#routeDetailsModal')) {
+        document.activeElement.blur();
+    }
+    
     if (this.map) { try { this.map.remove(); } catch{} this.map = null; }
     this.markers = []; this.path = null;
     document.querySelectorAll('.point-item').forEach(i => i.classList.remove('active'));

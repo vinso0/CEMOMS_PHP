@@ -144,10 +144,10 @@ ob_start();
                             
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn btn-sm btn-success" title="View"
+                                    <button class="btn btn-sm btn-success route-details-btn" title="View"
                                             data-bs-toggle="modal"
                                             data-bs-target="#routeDetailsModal"
-                                            onclick="populateRouteDetailsModal(<?= htmlspecialchars(json_encode($truck)) ?>)">
+                                            data-truck-data="<?= htmlspecialchars(json_encode($truck)) ?>">
                                         <i class="fa-solid fa-expand"></i>
                                     </button>
                                     

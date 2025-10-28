@@ -34,7 +34,7 @@ class EditTruckView {
     });
 
     // expose for inline calls if needed
-    window.populateEditModal = (data) => this.populate(data);
+    window.populateEditModal = (d) => this.populate(d);
 
     // weekly helpers
     window.toggleEditWeeklyDays = () => this.toggleWeeklyDays();

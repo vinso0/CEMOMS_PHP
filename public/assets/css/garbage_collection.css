@@ -397,3 +397,8 @@ input.fallback {
   .points-section { height: 200px; }
   #route-map, #addRouteMap, #editRouteMap { height: 300px !important; }
 }
+
+.modal[aria-hidden="true"] button:focus,
+.modal[aria-hidden="true"] [tabindex]:focus {
+    outline: none;
+}
