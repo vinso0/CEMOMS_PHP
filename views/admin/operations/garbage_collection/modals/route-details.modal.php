@@ -96,3 +96,74 @@
     </div>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize route details map when modal is shown
+    const routeDetailsModal = document.getElementById('routeDetailsModal');
+    if (routeDetailsModal) {
+        routeDetailsModal.addEventListener('shown.bs.modal', function() {
+            console.log('🗺️ Route details modal shown');
+            
+            // Multiple initialization attempts for stubborn tiles
+            setTimeout(() => {
+                try {
+                    initializeRouteDetailsMap();
+                    console.log('✅ Route details map initialized (attempt 1)');
+                } catch (error) {
+                    console.error('❌ Map init failed (attempt 1):', error);
+                }
+            }, 100);
+            
+            // Second attempt after modal fully rendered
+            setTimeout(() => {
+                if (window.routeDetailsMapInstance) {
+                    window.routeDetailsMapInstance.invalidateSize(true);
+                    
+                    // Force tile layer refresh
+                    window.routeDetailsMapInstance.eachLayer(function(layer) {
+                        if (layer._url) { // This is a tile layer
+                            layer.redraw();
+                        }
+                    });
+                    
+                    console.log('🔄 Route map refreshed (attempt 2)');
+                }
+            }, 400);
+            
+            // Final attempt - aggressive refresh
+            setTimeout(() => {
+                if (window.routeDetailsMapInstance) {
+                    window.routeDetailsMapInstance.invalidateSize(true);
+                    
+                    // Pan slightly to trigger tile loading
+                    const center = window.routeDetailsMapInstance.getCenter();
+                    window.routeDetailsMapInstance.panTo([center.lat + 0.0001, center.lng + 0.0001]);
+                    
+                    setTimeout(() => {
+                        window.routeDetailsMapInstance.panTo(center); // Pan back
+                    }, 100);
+                    
+                    console.log('🔄 Route map final refresh (attempt 3)');
+                }
+            }, 800);
+        });
+
+        // Clean up when modal is hidden
+        routeDetailsModal.addEventListener('hidden.bs.modal', function() {
+            console.log('🗺️ Route details modal hidden');
+            
+            if (window.routeDetailsMapInstance) {
+                try {
+                    window.routeDetailsMapInstance.remove();
+                    window.routeDetailsMapInstance = null;
+                    window.routeDetailsMarkers = [];
+                    window.routeDetailsPath = null;
+                    console.log('🧹 Route details map cleaned up');
+                } catch (error) {
+                    console.warn('⚠️ Error cleaning up map:', error);
+                }
+            }
+        });
+    }
+});
+</script>

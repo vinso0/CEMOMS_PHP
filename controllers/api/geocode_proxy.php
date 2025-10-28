@@ -1,38 +1,59 @@
 <?php
 // controllers/api/geocode_proxy.php
 
-header('Content-Type: application/json');
+// CORS and JSON headers for the browser response
+header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 header('Access-Control-Allow-Headers: Content-Type');
 
-$lat = $_GET['lat'] ?? null;
-$lng = $_GET['lng'] ?? null;
+// Validate inputs
+$lat = isset($_GET['lat']) ? trim($_GET['lat']) : null;
+$lng = isset($_GET['lng']) ? trim($_GET['lng']) : null;
 
-if (!$lat || !$lng) {
+if ($lat === null || $lng === null) {
     http_response_code(400);
     echo json_encode(['error' => 'Missing lat or lng parameter']);
     exit;
 }
 
-$url = "https://nominatim.openstreetmap.org/reverse?format=json&lat={$lat}&lon={$lng}&zoom=18&addressdetails=1";
+// Build Nominatim URL (HTTPS)
+$nominatimUrl = sprintf(
+    'https://nominatim.openstreetmap.org/reverse?format=json&lat=%s&lon=%s&zoom=18&addressdetails=1',
+    urlencode($lat),
+    urlencode($lng)
+);
 
-$context = stream_context_create([
-    'http' => [
-        'header' => [
-            'User-Agent: CEMOMS-PHP/1.0',
-            'Accept: application/json'
-        ],
-        'timeout' => 5
-    ]
+// Use curl for better control (timeouts + headers)
+$ch = curl_init($nominatimUrl);
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HEADER => false,
+    CURLOPT_TIMEOUT => 5,                // seconds
+    CURLOPT_CONNECTTIMEOUT => 3,
+    CURLOPT_HTTPHEADER => [
+        'User-Agent: CEMOMS-PHP/1.0',    // REQUIRED by Nominatim usage policy
+        'Accept: application/json'
+    ],
 ]);
 
-$result = file_get_contents($url, false, $context);
+$result = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$curlErr  = curl_error($ch);
+curl_close($ch);
 
+// Handle curl/network errors
 if ($result === false) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Failed to fetch geocoding data']);
-} else {
-    echo $result;
+    http_response_code(502);
+    echo json_encode(['error' => 'Failed to reach geocoding service', 'detail' => $curlErr]);
+    exit;
 }
-?>
+
+// Pass through successful JSON or wrap error
+if ($httpCode >= 200 && $httpCode < 300) {
+    // Optionally sanitize/validate JSON here
+    echo $result;
+} else {
+    http_response_code($httpCode ?: 502);
+    echo json_encode(['error' => 'Geocoding service error', 'status' => $httpCode, 'raw' => $result]);
+}

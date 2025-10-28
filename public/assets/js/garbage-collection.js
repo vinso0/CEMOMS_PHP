@@ -23,9 +23,19 @@ class GarbageCollectionManager {
                 this.resetAddTruckForm();
             });
         }
+
+        const editTruckModal = document.getElementById('editTruckModal');
+        if (editTruckModal) {
+            editTruckModal.addEventListener('shown.bs.modal', () => {
+                this.initEditTruckMap();
+            });
+            
+            editTruckModal.addEventListener('hidden.bs.modal', () => {
+                this.resetEditTruckForm();
+            });
+        }
     }
     
-    // Replace the existing initAddTruckMap method with this:
     initAddTruckMap() {
         const mapContainer = document.getElementById('addRouteMap');
         
@@ -62,6 +72,39 @@ class GarbageCollectionManager {
         } catch (error) {
             console.error('Error initializing map:', error);
             this.showMapError('Failed to load map. Please try again.');
+        }
+    }
+
+    initEditTruckMap() {
+        const mapContainer = document.getElementById('editRouteMap');
+        
+        if (!mapContainer) return;
+        
+        try {
+            setTimeout(() => {
+                if (!window.editRouteMapSelector) {
+                    window.editRouteMapSelector = new RouteMapSelector('editRouteMap', {
+                        defaultLat: 14.5995,
+                        defaultLng: 120.9842,
+                        defaultZoom: 13
+                    });
+                }
+                mapContainer.classList.add('map-loaded');
+            }, 200);
+        } catch (error) {
+            console.error('Error initializing edit map:', error);
+        }
+    }
+
+    resetEditTruckForm() {
+        const form = document.getElementById('editTruckForm');
+        if (form) {
+            form.reset();
+            form.classList.remove('was-validated');
+        }
+        
+        if (window.editRouteMapSelector) {
+            window.editRouteMapSelector.clearAllMarkers();
         }
     }
 
@@ -1017,3 +1060,266 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// For Editing Truck Modal
+
+// Add this to your garbage-collection.js file
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎯 Setting up edit truck button handlers...');
+    
+    // Handle edit truck button clicks using event delegation
+    document.addEventListener('click', function(e) {
+        const editButton = e.target.closest('.edit-truck-btn');
+        if (editButton) {
+            e.preventDefault();
+            console.log('🔧 Edit button clicked');
+            
+            // Extract data from button attributes
+            const truckData = {
+                truck_id: editButton.dataset.truckId || '',
+                plate_number: editButton.dataset.plateNumber || '',
+                body_number: editButton.dataset.bodyNumber || '',
+                route_name: editButton.dataset.routeName || '',
+                route_id: editButton.dataset.routeId || '',
+                foreman_id: editButton.dataset.foremanId || '',
+                foreman_name: editButton.dataset.foremanName || '',
+                schedule: editButton.dataset.schedule || '',
+                schedule_id: editButton.dataset.scheduleId || '',
+                operation_time: editButton.dataset.operationTime || '',
+                weekly_days: JSON.parse(editButton.dataset.weeklyDays || '[]')
+            };
+            
+            console.log('📋 Truck data extracted:', truckData);
+            
+            // Wait a bit for modal to be shown, then populate
+            setTimeout(() => {
+                populateEditModal(truckData);
+            }, 200);
+        }
+    });
+});
+
+
+/**
+ * ENHANCED: Populate edit modal with existing truck data and route points
+ */
+function populateEditModal(truckData) {
+    console.log('🔧 Populating edit modal with:', truckData);
+    
+    // Clear any previous validation errors
+    const form = document.getElementById('editTruckForm');
+    if (form) {
+        form.classList.remove('was-validated');
+        form.querySelectorAll('.is-invalid').forEach(field => {
+            field.classList.remove('is-invalid');
+        });
+    }
+    
+    // Populate basic truck information
+    document.getElementById('editTruckId').value = truckData.truck_id || '';
+    document.getElementById('editScheduleId').value = truckData.schedule_id || '';
+    document.getElementById('editRouteId').value = truckData.route_id || '';
+    
+    document.getElementById('editPlateNumber').value = truckData.plate_number || '';
+    document.getElementById('editBodyNumber').value = truckData.body_number || '';
+    document.getElementById('editRouteName').value = truckData.route_name || '';
+    
+    // Populate foreman selection
+    const foremanSelect = document.getElementById('editAssignedForeman');
+    if (foremanSelect && truckData.foreman_id) {
+        foremanSelect.value = truckData.foreman_id;
+    }
+    
+    // Populate schedule type
+    const scheduleSelect = document.getElementById('editScheduleType');
+    if (scheduleSelect && truckData.schedule) {
+        scheduleSelect.value = truckData.schedule;
+        // Trigger the weekly days toggle
+        toggleEditWeeklyDays();
+    }
+    
+    // Populate operation time
+    const operationTimeInput = document.getElementById('editOperationTime');
+    if (operationTimeInput && truckData.operation_time) {
+        operationTimeInput.value = truckData.operation_time;
+    }
+    
+    // Populate weekly days if schedule is weekly
+    if (truckData.schedule === 'weekly' && truckData.weekly_days) {
+        // Clear all checkboxes first
+        clearEditDays();
+        
+        const weeklyDays = Array.isArray(truckData.weekly_days) ? 
+                          truckData.weekly_days : 
+                          truckData.weekly_days.split(',');
+        
+        weeklyDays.forEach(day => {
+            const dayName = day.trim();
+            const checkbox = document.getElementById(`edit${dayName}`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+    }
+    
+    // IMPORTANT: Load route points after modal is shown and map is initialized
+    setTimeout(() => {
+        if (truckData.route_id) {
+            loadEditRoutePoints(truckData.route_id);
+        } else {
+            console.warn('No route_id found for truck');
+            clearEditRouteInputs();
+        }
+    }, 500); // Wait for modal and map to be ready
+}
+
+/**
+ * Load existing route points for editing
+ */
+function loadEditRoutePoints(routeId) {
+    console.log('📍 Loading route points for editing, Route ID:', routeId);
+    
+    fetch(`/admin/operations/garbage_collection/get_route_points?route_id=${routeId}`)
+        .then(response => {
+            console.log('📡 Route points response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('📍 Route points data received:', data);
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            if (data.route_points && data.route_points.length > 0) {
+                populateEditRoutePoints(data.route_points);
+            } else {
+                console.warn('⚠️ No route points found');
+                clearEditRouteInputs();
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error loading route points for editing:', error);
+            clearEditRouteInputs();
+        });
+}
+
+/**
+ * Populate route points in edit modal map and inputs
+ */
+function populateEditRoutePoints(routePoints) {
+    console.log('🗺️ Populating edit route points:', routePoints);
+    
+    if (!window.editRouteMapSelector) {
+        console.error('❌ Edit route map selector not initialized');
+        return;
+    }
+    
+    // Clear existing markers first
+    window.editRouteMapSelector.clearAllMarkers();
+    
+    // Clear inputs first
+    clearEditRouteInputs();
+    
+    routePoints.forEach(point => {
+        if (!point.lat || !point.lng) {
+            console.warn('⚠️ Invalid coordinates for point:', point);
+            return;
+        }
+        
+        // Determine point type based on the point order or name
+        let pointType;
+        if (point.name && point.name.toLowerCase().includes('start')) {
+            pointType = 'start';
+        } else if (point.name && point.name.toLowerCase().includes('end')) {
+            pointType = 'end';
+        } else {
+            pointType = 'mid';
+        }
+        
+        console.log(`📌 Setting ${pointType} point:`, point.address);
+        
+        // Set point on map with address
+        window.editRouteMapSelector.setPoint(pointType, point.lat, point.lng, point.address);
+        
+        // Manually populate form fields since setPoint might not do this
+        const inputId = pointType === 'start' ? 'editStartPoint' :
+                       pointType === 'mid' ? 'editMidPoint' : 'editEndPoint';
+        const latId = pointType === 'start' ? 'editStartLat' :
+                     pointType === 'mid' ? 'editMidLat' : 'editEndLat';
+        const lonId = pointType === 'start' ? 'editStartLon' :
+                     pointType === 'mid' ? 'editMidLon' : 'editEndLon';
+        
+        const addressInput = document.getElementById(inputId);
+        const latInput = document.getElementById(latId);
+        const lonInput = document.getElementById(lonId);
+        
+        if (addressInput) addressInput.value = point.address || '';
+        if (latInput) latInput.value = point.lat;
+        if (lonInput) lonInput.value = point.lng;
+        
+        console.log(`✅ Populated ${pointType} fields:`, {
+            address: point.address,
+            lat: point.lat,
+            lng: point.lng
+        });
+    });
+    
+    console.log('✅ All route points populated successfully');
+}
+
+/**
+ * Clear edit route inputs
+ */
+function clearEditRouteInputs() {
+    ['Start', 'Mid', 'End'].forEach(type => {
+        const addressInput = document.getElementById(`edit${type}Point`);
+        const latInput = document.getElementById(`edit${type}Lat`);
+        const lonInput = document.getElementById(`edit${type}Lon`);
+        
+        if (addressInput) addressInput.value = '';
+        if (latInput) latInput.value = '';
+        if (lonInput) lonInput.value = '';
+    });
+}
+
+
+// Helper functions for edit modal
+function toggleEditWeeklyDays() {
+    const scheduleType = document.getElementById('editScheduleType').value;
+    const weeklySection = document.getElementById('editWeeklyDaysSection');
+    
+    if (scheduleType === 'weekly') {
+        weeklySection.style.display = 'block';
+    } else {
+        weeklySection.style.display = 'none';
+        clearEditDays();
+    }
+}
+
+function selectEditWeekdays() {
+    clearEditDays();
+    ['editMonday', 'editTuesday', 'editWednesday', 'editThursday', 'editFriday'].forEach(id => {
+        document.getElementById(id).checked = true;
+    });
+}
+
+function selectEditAllDays() {
+    const dayCheckboxes = document.querySelectorAll('#editTruckModal input[name="schedule_days[]"]');
+    dayCheckboxes.forEach(checkbox => checkbox.checked = true);
+}
+
+function clearEditDays() {
+    const dayCheckboxes = document.querySelectorAll('#editTruckModal input[name="schedule_days[]"]');
+    dayCheckboxes.forEach(checkbox => checkbox.checked = false);
+}
+
+function clearEditRoute() {
+    if (window.editRouteMapSelector) {
+        window.editRouteMapSelector.clearAllMarkers();
+    }
+}
+

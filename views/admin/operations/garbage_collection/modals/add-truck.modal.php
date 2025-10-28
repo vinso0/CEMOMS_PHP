@@ -265,3 +265,40 @@
     </div>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize add truck map when modal is shown
+    const addTruckModal = document.getElementById('addTruckModal');
+    if (addTruckModal) {
+        addTruckModal.addEventListener('shown.bs.modal', function() {
+            console.log('🚛 Add truck modal shown');
+            
+            // Initialize the map selector if not already done
+            if (!window.routeMapSelector) {
+                try {
+                    window.routeMapSelector = new RouteMapSelector('addRouteMap');
+                    console.log('✅ RouteMapSelector initialized');
+                } catch (error) {
+                    console.error('❌ Failed to initialize RouteMapSelector:', error);
+                }
+            }
+            
+            // Refresh map size to fix rendering issues
+            setTimeout(() => {
+                if (window.routeMapSelector && typeof window.routeMapSelector.refreshMapSize === 'function') {
+                    window.routeMapSelector.refreshMapSize();
+                    console.log('🔄 Map size refreshed');
+                }
+            }, 150);
+        });
+        
+        // Clean up when modal is hidden
+        addTruckModal.addEventListener('hidden.bs.modal', function() {
+            console.log('🚛 Add truck modal hidden');
+            if (window.routeMapSelector && typeof window.routeMapSelector.clearAllMarkers === 'function') {
+                window.routeMapSelector.clearAllMarkers();
+            }
+        });
+    }
+});
+</script>

@@ -150,12 +150,25 @@ ob_start();
                                             onclick="populateRouteDetailsModal(<?= htmlspecialchars(json_encode($truck)) ?>)">
                                         <i class="fa-solid fa-expand"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-warning" title="Edit" 
+                                    
+                                    <button type="button" 
+                                            class="btn btn-sm btn-warning edit-truck-btn" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#editTruckModal"
-                                            onclick="populateEditModal(<?= htmlspecialchars(json_encode($truck)) ?>)">
+                                            data-truck-id="<?= htmlspecialchars((string)($truck['id'] ?? '')) ?>"
+                                            data-plate-number="<?= htmlspecialchars((string)($truck['plate_number'] ?? '')) ?>"
+                                            data-body-number="<?= htmlspecialchars((string)($truck['body_number'] ?? '')) ?>"
+                                            data-route-name="<?= htmlspecialchars((string)($truck['route_name'] ?? '')) ?>"
+                                            data-route-id="<?= htmlspecialchars((string)($truck['route_id'] ?? '')) ?>"
+                                            data-foreman-id="<?= htmlspecialchars((string)($truck['foreman_id'] ?? '')) ?>"
+                                            data-foreman-name="<?= htmlspecialchars((string)($truck['foreman_name'] ?? '')) ?>"
+                                            data-schedule="<?= htmlspecialchars((string)($truck['schedule'] ?? '')) ?>"
+                                            data-schedule-id="<?= htmlspecialchars((string)($truck['schedule_id'] ?? '')) ?>"
+                                            data-operation-time="<?= htmlspecialchars((string)($truck['operation_time'] ?? '')) ?>"
+                                            data-weekly-days="<?= htmlspecialchars(json_encode($truck['weekly_days'] ?? [])) ?>">
                                         <i class="fas fa-edit"></i>
                                     </button>
+
                                     <button class="btn btn-sm btn-danger" title="Delete"
                                             data-bs-toggle="modal"
                                             data-bs-target="#deleteTruckModal"

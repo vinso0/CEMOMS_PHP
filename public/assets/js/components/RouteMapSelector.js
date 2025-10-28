@@ -266,25 +266,25 @@ class RouteMapSelector {
      * Quiet retry for geocoding
      */
     reverseGeocodeQuietRetry(lat, lng, pointType) {
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16`, {
-            headers: { 'User-Agent': 'CEMOMS-PHP/1.0' }
-        })
-        .then(response => response.json())
+    fetch(`/api/geocode_proxy?lat=${lat}&lng=${lng}`)
+        .then(r => r.json())
         .then(data => {
-            const input = document.getElementById(pointType === 'start' ? 'startPoint' : pointType === 'mid' ? 'midPoint' : 'endPoint');
-            if (data && data.display_name && input && input.classList.contains('fallback')) {
-                const parts = data.display_name.split(',').map(s => s.trim());
-                const friendlyAddress = parts.slice(0, 3).join(', ');
-                this.setAddressInput(pointType, friendlyAddress);
-                input.classList.remove('fallback');
-                input.classList.add('success');
-                console.log(`✅ Retry successful: ${friendlyAddress}`);
-            }
+        const input = document.getElementById(
+            pointType === 'start' ? 'startPoint' :
+            pointType === 'mid' ? 'midPoint' : 'endPoint'
+        );
+        if (data && data.display_name && input && input.classList.contains('fallback')) {
+            const parts = data.display_name.split(',').map(s => s.trim());
+            const friendlyAddress = parts.slice(0, 3).join(', ');
+            this.setAddressInput(pointType, friendlyAddress);
+            input.classList.remove('fallback');
+            input.classList.add('success');
+            console.log(`✅ Retry via proxy successful: ${friendlyAddress}`);
+        }
         })
-        .catch(() => {
-            // Silent fail on retry
-        });
+        .catch(() => { /* silent */ });
     }
+
 
 
     setAddressInput(type, value) {
