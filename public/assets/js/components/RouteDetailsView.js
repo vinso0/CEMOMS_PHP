@@ -1,4 +1,5 @@
-export class RouteDetailsView {
+
+class RouteDetailsView {
   constructor(modalId = 'routeDetailsModal', mapId = 'route-map') {
     this.modal = document.getElementById(modalId);
     this.mapId = mapId;
@@ -202,3 +203,5 @@ export class RouteDetailsView {
     document.querySelectorAll('.point-item').forEach(i => i.classList.remove('active'));
   }
 }
+
+window.RouteDetailsView = RouteDetailsView;

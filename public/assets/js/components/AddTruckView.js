@@ -1,6 +1,5 @@
-import { RouteMapSelector } from './RouteMapSelector.js';
 
-export class AddTruckView {
+class AddTruckView {
   constructor(modalId = 'addTruckModal', mapId = 'addRouteMap') {
     this.modal = document.getElementById(modalId);
     this.mapId = mapId;
@@ -37,8 +36,8 @@ export class AddTruckView {
     const container = document.getElementById(this.mapId);
     if (!container) return;
 
-    // Recreate instance each time to avoid stale state
-    this.selector = new RouteMapSelector(this.mapId, {
+    // Use global RouteMapSelector instead of import
+    this.selector = new window.RouteMapSelector(this.mapId, {
       defaultLat: 14.5995,
       defaultLng: 120.9842,
       defaultZoom: 13
@@ -141,3 +140,5 @@ export class AddTruckView {
     return true;
   }
 }
+
+window.AddTruckView = AddTruckView;

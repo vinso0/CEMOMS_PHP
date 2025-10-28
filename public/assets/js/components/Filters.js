@@ -1,4 +1,5 @@
-export class Filters {
+
+class Filters {
   constructor() {
     this.wire();
   }
@@ -88,3 +89,5 @@ export class Filters {
     console.log(`Showing ${visibleRows.length} trucks`);
   }
 }
+
+window.Filters = Filters;

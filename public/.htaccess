@@ -6,3 +6,9 @@ RewriteCond %{REQUEST_FILENAME} !-d
 
 # Redirect everything to index.php
 RewriteRule ^ index.php [QSA,L]
+
+# .htaccess - Fix MIME types for ES modules
+<IfModule mod_mime.c>
+    AddType application/javascript .js
+    AddType application/javascript .mjs
+</IfModule>

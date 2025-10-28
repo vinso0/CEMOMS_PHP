@@ -1,13 +1,10 @@
-import { AddTruckView } from './components/AddTruckView.js';
-import { EditTruckView } from './components/EditTruckView.js';
-import { RouteDetailsView } from './components/RouteDetailsView.js';
-import { Filters } from './components/Filters.js';
-
+// Remove all import statements and use global classes
 document.addEventListener('DOMContentLoaded', () => {
-  new AddTruckView('addTruckModal', 'addRouteMap');
-  new EditTruckView('editTruckModal', 'editRouteMap');
-  new RouteDetailsView('routeDetailsModal', 'route-map');
-  new Filters();
+  // Classes will be loaded as globals from individual script tags
+  if (window.AddTruckView) new AddTruckView('addTruckModal', 'addRouteMap');
+  if (window.EditTruckView) new EditTruckView('editTruckModal', 'editRouteMap');  
+  if (window.RouteDetailsView) new RouteDetailsView('routeDetailsModal', 'route-map');
+  if (window.Filters) new Filters();
   
   console.log('🎯 Garbage Collection system initialized');
 });

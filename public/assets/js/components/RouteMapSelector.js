@@ -285,8 +285,6 @@ class RouteMapSelector {
         .catch(() => { /* silent */ });
     }
 
-
-
     setAddressInput(type, value) {
         const inputId = type === 'start' ? 'startPoint' :
                     type === 'mid' ? 'midPoint' : 'endPoint';
@@ -445,5 +443,6 @@ class RouteMapSelector {
         }
         this.markers = { start: null, mid: null, end: null };
     }
-
 }
+
+window.RouteMapSelector = RouteMapSelector;

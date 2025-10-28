@@ -1,6 +1,5 @@
-import { RouteMapSelector } from './RouteMapSelector.js';
 
-export class EditTruckView {
+class EditTruckView {
   constructor(modalId = 'editTruckModal', mapId = 'editRouteMap') {
     this.modal = document.getElementById(modalId);
     this.mapId = mapId;
@@ -147,3 +146,5 @@ export class EditTruckView {
 
   clearRoute() { this.selector?.clearAllMarkers(); this.clearRouteInputs(); }
 }
+
+window.EditTruckView = EditTruckView;
