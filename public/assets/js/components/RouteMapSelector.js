@@ -266,23 +266,23 @@ class RouteMapSelector {
      * Quiet retry for geocoding
      */
     reverseGeocodeQuietRetry(lat, lng, pointType) {
-    fetch(`/api/geocode_proxy?lat=${lat}&lng=${lng}`)
-        .then(r => r.json())
-        .then(data => {
-        const input = document.getElementById(
-            pointType === 'start' ? 'startPoint' :
-            pointType === 'mid' ? 'midPoint' : 'endPoint'
-        );
-        if (data && data.display_name && input && input.classList.contains('fallback')) {
-            const parts = data.display_name.split(',').map(s => s.trim());
-            const friendlyAddress = parts.slice(0, 3).join(', ');
-            this.setAddressInput(pointType, friendlyAddress);
-            input.classList.remove('fallback');
-            input.classList.add('success');
-            console.log(`✅ Retry via proxy successful: ${friendlyAddress}`);
-        }
-        })
-        .catch(() => { /* silent */ });
+        fetch(`/api/geocode_proxy?lat=${lat}&lng=${lng}`)
+            .then(r => r.json())
+            .then(data => {
+                const input = document.getElementById(
+                    pointType === 'start' ? 'startPoint' :
+                    pointType === 'mid' ? 'midPoint' : 'endPoint'
+                );
+                if (data && data.display_name && input && input.classList.contains('fallback')) {
+                    const parts = data.display_name.split(',').map(s => s.trim());
+                    const friendlyAddress = parts.slice(0, 3).join(', ');
+                    this.setAddressInput(pointType, friendlyAddress);
+                    input.classList.remove('fallback');
+                    input.classList.add('success');
+                    console.log(`✅ Retry via proxy successful: ${friendlyAddress}`);
+                }
+            }) // ← ADD THIS MISSING CLOSING BRACE
+            .catch(() => { /* silent */ });
     }
 
     setAddressInput(type, value) {
