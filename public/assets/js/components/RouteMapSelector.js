@@ -16,14 +16,19 @@ class RouteMapSelector {
         };
         
         this.currentMode = 'start';
+        this.isInitialized = false;
         
         this.init();
     }
     
-    // Replace the init method with this:
     init() {
         try {
-            this.initMap();
+            // Wait for DOM to be ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => this.initMap());
+            } else {
+                this.initMap();
+            }
             this.initEventListeners();
             console.log('RouteMapSelector initialized successfully');
         } catch (error) {
@@ -36,81 +41,187 @@ class RouteMapSelector {
         const mapContainer = document.getElementById(this.mapId);
         
         if (!mapContainer) {
-            throw new Error(`Map container with id '${this.mapId}' not found`);
+            console.warn(`Map container '${this.mapId}' not found, will retry when modal opens`);
+            return;
         }
         
-        // CRITICAL: Clear existing Leaflet instances
-        if (mapContainer._leaflet_id) {
-            mapContainer._leaflet = false;
-            mapContainer._leaflet_id = null;
+        // CRITICAL FIX: Ensure container is visible and has dimensions
+        if (mapContainer.offsetWidth === 0 || mapContainer.offsetHeight === 0) {
+            console.warn('Map container has no dimensions, deferring initialization');
+            return;
         }
         
-        // Clear any existing map instance
-        if (this.map) {
-            this.map.remove();
-            this.map = null;
-        }
-        
-        // Clear container completely
-        mapContainer.innerHTML = '';
+        // CRITICAL: Clean up any existing Leaflet instances
+        this.cleanupExistingMap(mapContainer);
         
         if (typeof L === 'undefined') {
             throw new Error('Leaflet library not loaded');
         }
         
         try {
-            // Initialize fresh map instance
+            // Initialize fresh map instance with error handling
             this.map = L.map(this.mapId, {
                 center: [this.options.defaultLat, this.options.defaultLng],
                 zoom: this.options.defaultZoom,
                 zoomControl: true,
-                attributionControl: true
+                attributionControl: true,
+                // CRITICAL: Ensure dragging is enabled
+                dragging: true,
+                touchZoom: true,
+                doubleClickZoom: true,
+                scrollWheelZoom: true,
+                boxZoom: true,
+                keyboard: true
             });
             
-            // Rest of initialization...
+            // Add tile layer with error handling
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                maxZoom: 19
+                maxZoom: 19,
+                errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
             }).addTo(this.map);
             
-            // Add event listeners
+            // Add map click handler
             this.map.on('click', (event) => {
                 this.handleMapClick(event);
             });
             
-            // Force resize after modal shown
-            setTimeout(() => {
-                this.map.invalidateSize();
-            }, 100);
+            // CRITICAL: Proper size invalidation
+            this.invalidateMapSize();
             
-            console.log('✅ Map initialized successfully');
+            this.isInitialized = true;
+            console.log('✅ Map initialized successfully with dragging enabled');
             
         } catch (error) {
             console.error('❌ Map initialization failed:', error);
+            this.isInitialized = false;
             throw error;
         }
     }
 
+    // CRITICAL: New method to clean up existing maps
+    cleanupExistingMap(container) {
+        // Remove existing Leaflet instance
+        if (container._leaflet_id) {
+            try {
+                // Get the existing map instance
+                const existingMap = container._leaflet;
+                if (existingMap && existingMap.remove) {
+                    existingMap.remove();
+                }
+            } catch (e) {
+                console.warn('Error cleaning up existing map:', e);
+            }
+            
+            // Clear Leaflet properties
+            container._leaflet_id = null;
+            container._leaflet = null;
+        }
+        
+        // Clear any existing map instance
+        if (this.map) {
+            try {
+                this.map.remove();
+            } catch (e) {
+                console.warn('Error removing existing map instance:', e);
+            }
+            this.map = null;
+        }
+        
+        // Clear container completely
+        container.innerHTML = '';
+    }
+
+    // Method for proper size invalidation
+    invalidateMapSize() {
+        if (!this.map) return;
+        
+        // Multiple attempts to ensure proper sizing
+        setTimeout(() => {
+            if (this.map) {
+                this.map.invalidateSize(true);
+            }
+        }, 50);
+        
+        setTimeout(() => {
+            if (this.map) {
+                this.map.invalidateSize(true);
+            }
+        }, 200);
+        
+        setTimeout(() => {
+            if (this.map) {
+                this.map.invalidateSize(true);
+            }
+        }, 500);
+    }
+
+    // modal-specific initialization
+    initializeForModal() {
+        const mapContainer = document.getElementById(this.mapId);
+        
+        if (!mapContainer) {
+            console.error(`Map container '${this.mapId}' not found`);
+            return false;
+        }
+        
+        // Wait for container to have proper dimensions
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        const checkAndInit = () => {
+            attempts++;
+            
+            if (mapContainer.offsetWidth > 0 && mapContainer.offsetHeight > 0) {
+                if (!this.isInitialized || !this.map) {
+                    this.initMap();
+                } else {
+                    this.invalidateMapSize();
+                }
+                return true;
+            } else if (attempts < maxAttempts) {
+                setTimeout(checkAndInit, 100);
+                return false;
+            } else {
+                console.error('Failed to initialize map: container has no dimensions after multiple attempts');
+                return false;
+            }
+        };
+        
+        return checkAndInit();
+    }
 
     initEventListeners() {
-        // Point mode selector
-        document.querySelectorAll('input[name="pointMode"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                this.currentMode = e.target.value;
-                this.updateModeIndicator();
+        // Point mode selector - handle both naming conventions
+        const selectors = ['input[name="pointMode"]', 'input[name="editPointMode"]'];
+        
+        selectors.forEach(selector => {
+            document.querySelectorAll(selector).forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    this.currentMode = e.target.value;
+                    this.updateModeIndicator();
+                });
             });
         });
         
-        // Clear route button
-        const clearBtn = document.getElementById('clearRouteBtn');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                this.clearAllMarkers();
-            });
-        }
+        // Clear route button - handle both add and edit modals
+        const clearBtns = ['clearRouteBtn', 'clearEditRouteBtn'];
+        clearBtns.forEach(btnId => {
+            const clearBtn = document.getElementById(btnId);
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    this.clearAllMarkers();
+                });
+            }
+        });
     }
 
     handleMapClick(event) {
+        if (!this.map || !this.isInitialized) {
+            console.warn('Map not properly initialized for click handling');
+            return;
+        }
+        
         const lat = event.latlng.lat;
         const lng = event.latlng.lng;
         
@@ -122,6 +233,11 @@ class RouteMapSelector {
     }
 
     setMarker(type, lat, lng) {
+        if (!this.map || !this.isInitialized) {
+            console.warn('Map not initialized, cannot set marker');
+            return;
+        }
+        
         // Remove existing marker
         if (this.markers[type]) {
             this.map.removeLayer(this.markers[type]);
@@ -132,7 +248,8 @@ class RouteMapSelector {
         
         this.markers[type] = L.marker([lat, lng], {
             icon: markerConfig.icon,
-            title: markerConfig.title
+            title: markerConfig.title,
+            draggable: false // Prevent marker dragging to avoid conflicts
         }).addTo(this.map);
         
         // Add popup with info
@@ -183,17 +300,31 @@ class RouteMapSelector {
     }
         
     reverseGeocode(lat, lng, type) {
-        // Direct call to the enhanced version
         this.reverseGeocodeWithFallback(lat, lng, type, 3000);
     }
 
     reverseGeocodeWithFallback(lat, lng, pointType, timeout = 3000) {
-        const inputId = pointType === 'start' ? 'startPoint' :
-                    pointType === 'mid' ? 'midPoint' : 'endPoint';
-        const input = document.getElementById(inputId);
+        // Handle both add and edit modal input naming
+        const inputMappings = {
+            start: ['startPoint', 'editStartPoint'],
+            mid: ['midPoint', 'editMidPoint'],
+            end: ['endPoint', 'editEndPoint']
+        };
+        
+        const possibleIds = inputMappings[pointType] || [];
+        let input = null;
+        
+        // Find the correct input element
+        for (const id of possibleIds) {
+            const element = document.getElementById(id);
+            if (element) {
+                input = element;
+                break;
+            }
+        }
         
         if (!input) {
-            console.error(`Input element not found: ${inputId}`);
+            console.error(`Input element not found for point type: ${pointType}`);
             return;
         }
         
@@ -250,9 +381,6 @@ class RouteMapSelector {
             });
     }
 
-    /**
-     * Get area hint based on coordinates
-     */
     getAreaHint(lat, lng) {
         // Philippines Metro Manila rough boundaries
         if (lat >= 14.4 && lat <= 14.8 && lng >= 120.9 && lng <= 121.1) {
@@ -269,17 +397,28 @@ class RouteMapSelector {
         return "Philippines";
     }
 
-    /**
-     * Quiet retry for geocoding
-     */
     reverseGeocodeQuietRetry(lat, lng, pointType) {
         fetch(`/api/geocode_proxy?lat=${lat}&lng=${lng}`)
             .then(r => r.json())
             .then(data => {
-                const input = document.getElementById(
-                    pointType === 'start' ? 'startPoint' :
-                    pointType === 'mid' ? 'midPoint' : 'endPoint'
-                );
+                // Handle both add and edit modal inputs
+                const inputMappings = {
+                    start: ['startPoint', 'editStartPoint'],
+                    mid: ['midPoint', 'editMidPoint'],
+                    end: ['endPoint', 'editEndPoint']
+                };
+                
+                const possibleIds = inputMappings[pointType] || [];
+                let input = null;
+                
+                for (const id of possibleIds) {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        input = element;
+                        break;
+                    }
+                }
+                
                 if (data && data.display_name && input && input.classList.contains('fallback')) {
                     const parts = data.display_name.split(',').map(s => s.trim());
                     const friendlyAddress = parts.slice(0, 3).join(', ');
@@ -288,14 +427,28 @@ class RouteMapSelector {
                     input.classList.add('success');
                     console.log(`✅ Retry via proxy successful: ${friendlyAddress}`);
                 }
-            }) // ← ADD THIS MISSING CLOSING BRACE
+            })
             .catch(() => { /* silent */ });
     }
 
     setAddressInput(type, value) {
-        const inputId = type === 'start' ? 'startPoint' :
-                    type === 'mid' ? 'midPoint' : 'endPoint';
-        const input = document.getElementById(inputId);
+        // Handle both add and edit modal inputs
+        const inputMappings = {
+            start: ['startPoint', 'editStartPoint'],
+            mid: ['midPoint', 'editMidPoint'], 
+            end: ['endPoint', 'editEndPoint']
+        };
+        
+        const possibleIds = inputMappings[type] || [];
+        let input = null;
+        
+        for (const id of possibleIds) {
+            const element = document.getElementById(id);
+            if (element) {
+                input = element;
+                break;
+            }
+        }
         
         if (input) {
             input.value = value;
@@ -311,13 +464,33 @@ class RouteMapSelector {
         }
     }
 
-
     setCoordinates(type, lat, lng) {
-        const latInput = document.getElementById(`${type}Lat`);
-        const lngInput = document.getElementById(`${type}Lon`);
+        // Handle both add and edit modal coordinate inputs
+        const latMappings = {
+            start: ['startLat', 'editStartLat'],
+            mid: ['midLat', 'editMidLat'],
+            end: ['endLat', 'editEndLat']
+        };
         
-        if (latInput) latInput.value = lat;
-        if (lngInput) lngInput.value = lng;
+        const lngMappings = {
+            start: ['startLon', 'editStartLon'],
+            mid: ['midLon', 'editMidLon'],
+            end: ['endLon', 'editEndLon']
+        };
+        
+        // Set latitude
+        const latIds = latMappings[type] || [];
+        latIds.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) input.value = lat;
+        });
+        
+        // Set longitude  
+        const lngIds = lngMappings[type] || [];
+        lngIds.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) input.value = lng;
+        });
     }
 
     advanceMode() {
@@ -326,17 +499,25 @@ class RouteMapSelector {
         
         if (currentIndex < modes.length - 1) {
             const nextMode = modes[currentIndex + 1];
-            const nextRadio = document.getElementById(`${nextMode}Mode`);
             
-            if (nextRadio) {
-                nextRadio.checked = true;
-                this.currentMode = nextMode;
-                this.updateModeIndicator();
+            // Handle both add and edit modals
+            const nextRadioIds = [`${nextMode}Mode`, `edit${nextMode.charAt(0).toUpperCase() + nextMode.slice(1)}Mode`];
+            
+            for (const radioId of nextRadioIds) {
+                const nextRadio = document.getElementById(radioId);
+                if (nextRadio) {
+                    nextRadio.checked = true;
+                    this.currentMode = nextMode;
+                    this.updateModeIndicator();
+                    break;
+                }
             }
         }
     }
 
     updateModeIndicator() {
+        if (!this.map || !this.isInitialized) return;
+        
         // Update map cursor style
         const mapContainer = this.map.getContainer();
         mapContainer.style.cursor = this.currentMode === 'start' ? 'crosshair' : 
@@ -344,6 +525,8 @@ class RouteMapSelector {
     }
 
     fitMapToMarkers() {
+        if (!this.map || !this.isInitialized) return;
+        
         const markerPositions = [];
         
         Object.values(this.markers).forEach(marker => {
@@ -353,29 +536,38 @@ class RouteMapSelector {
         });
         
         if (markerPositions.length > 0) {
-            const group = new L.featureGroup(Object.values(this.markers).filter(m => m));
-            this.map.fitBounds(group.getBounds().pad(0.1));
+            try {
+                const group = new L.featureGroup(Object.values(this.markers).filter(m => m));
+                this.map.fitBounds(group.getBounds().pad(0.1));
+            } catch (error) {
+                console.warn('Error fitting map to markers:', error);
+            }
         }
     }
 
     clearAllMarkers() {
         Object.keys(this.markers).forEach(type => {
-            if (this.markers[type]) {
+            if (this.markers[type] && this.map) {
                 this.map.removeLayer(this.markers[type]);
                 this.markers[type] = null;
             }
             
-            // Clear form inputs
+            // Clear form inputs for both add and edit modals
             this.setAddressInput(type, '');
             this.setCoordinates(type, '', '');
         });
         
         // Reset to start mode
         this.currentMode = 'start';
-        const startRadio = document.getElementById('startMode');
-        if (startRadio) {
-            startRadio.checked = true;
-        }
+        
+        // Handle both add and edit modals
+        const startRadioIds = ['startMode', 'editStartMode'];
+        startRadioIds.forEach(radioId => {
+            const startRadio = document.getElementById(radioId);
+            if (startRadio) {
+                startRadio.checked = true;
+            }
+        });
         
         this.updateModeIndicator();
     }
@@ -387,13 +579,13 @@ class RouteMapSelector {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
                     
-                    // Only center if we're still near the default location
-                    this.map.setView([lat, lng], 15);
-                    console.log('✅ Centered map on user location');
+                    if (this.map && this.isInitialized) {
+                        this.map.setView([lat, lng], 15);
+                        console.log('✅ Centered map on user location');
+                    }
                 },
                 (error) => {
                     console.log('ℹ️ Geolocation failed, using default Manila location');
-                    // Don't change map view, just log the info
                 },
                 {
                     enableHighAccuracy: false,
@@ -408,6 +600,11 @@ class RouteMapSelector {
 
     // Public method to set a specific point programmatically
     setPoint(type, lat, lng, address = null) {
+        if (!this.isInitialized) {
+            console.warn('Map not initialized, cannot set point');
+            return;
+        }
+        
         this.setMarker(type, lat, lng);
         
         if (address) {
@@ -433,22 +630,28 @@ class RouteMapSelector {
         return points;
     }
 
-    // Add this public method
+    // Refresh method
     refreshMapSize() {
-        if (this.map) {
-            setTimeout(() => {
-                this.map.invalidateSize();
-            }, 100);
+        if (this.map && this.isInitialized) {
+            this.invalidateMapSize();
+        } else if (!this.isInitialized) {
+            // Try to initialize if not already done
+            this.initializeForModal();
         }
     }
 
-    // Also add a destroy method for cleanup
+    // Destroy method
     destroy() {
         if (this.map) {
-            this.map.remove();
+            try {
+                this.map.remove();
+            } catch (error) {
+                console.warn('Error destroying map:', error);
+            }
             this.map = null;
         }
         this.markers = { start: null, mid: null, end: null };
+        this.isInitialized = false;
     }
 }
 
