@@ -1,4 +1,3 @@
-
 class AddTruckView {
   constructor(modalId = 'addTruckModal', mapId = 'addRouteMap') {
     this.modal = document.getElementById(modalId);
@@ -39,6 +38,9 @@ class AddTruckView {
         return;
     }
 
+    // Clean up any existing map instance first
+    this.cleanupMap();
+
     // Check if RouteMapSelector is available
     if (!window.RouteMapSelector) {
         console.error('RouteMapSelector class not available');
@@ -57,8 +59,30 @@ class AddTruckView {
     } catch (error) {
         console.error('Failed to initialize RouteMapSelector:', error);
     }
-  } 
+  }
 
+  // Add proper cleanup method
+  cleanupMap() {
+    if (this.selector) {
+      try {
+        this.selector.destroy();
+      } catch (error) {
+        console.warn('Error destroying map selector:', error);
+      }
+      this.selector = null;
+    }
+
+    // Clear container Leaflet data
+    const container = document.getElementById(this.mapId);
+    if (container) {
+      if (container._leaflet_id) {
+        container._leaflet = false;
+        container._leaflet_id = null;
+      }
+      container.innerHTML = '';
+      container.classList.remove('map-loaded');
+    }
+  }
 
   resetForm() {
     const form = document.getElementById('addTruckForm');
@@ -67,12 +91,12 @@ class AddTruckView {
       form.classList.remove('was-validated');
       form.querySelectorAll('.is-invalid').forEach(f => f.classList.remove('is-invalid'));
     }
-    this.selector?.clearAllMarkers();
-    const container = document.getElementById(this.mapId);
-    if (container) container.classList.remove('map-loaded');
+    
+    // Properly cleanup map before clearing markers
+    this.cleanupMap();
   }
 
-  validate(form) {
+    validate(form) {
     let ok = true;
 
     // required fields
@@ -85,73 +109,91 @@ class AddTruckView {
       }
     });
 
-    // route points
-    const startLat = document.getElementById('startLat')?.value;
-    const startLon = document.getElementById('startLon')?.value;
-    const endLat = document.getElementById('endLat')?.value;
-    const endLon = document.getElementById('endLon')?.value;
+        // route points
+        const startLat = document.getElementById('startLat')?.value;
+        const startLon = document.getElementById('startLon')?.value;
+        const endLat = document.getElementById('endLat')?.value;
+        const endLon = document.getElementById('endLon')?.value;
 
-    if (!startLat || !startLon) {
-      const f = document.getElementById('startPoint');
-      if (f) { this.setErr(f, 'Please select a start point on the map'); ok = false; }
+        if (!startLat || !startLon) {
+        const f = document.getElementById('startPoint');
+        if (f) { this.setErr(f, 'Please select a start point on the map'); ok = false; }
+        }
+        if (!endLat || !endLon) {
+        const f = document.getElementById('endPoint');
+        if (f) { this.setErr(f, 'Please select an end point on the map'); ok = false; }
+        }
+
+        if (!this.validateWeeklyDays()) ok = false;
+
+        return ok;
     }
-    if (!endLat || !endLon) {
-      const f = document.getElementById('endPoint');
-      if (f) { this.setErr(f, 'Please select an end point on the map'); ok = false; }
+
+    setErr(field, msg) {
+        field.classList.add('is-invalid');
+        const fb = field.parentElement.querySelector('.invalid-feedback');
+        if (fb) fb.textContent = msg;
+    }
+    
+    clearErr(field) {
+        field.classList.remove('is-invalid');
+        const fb = field.parentElement.querySelector('.invalid-feedback');
+        if (fb) fb.textContent = '';
     }
 
-    if (!this.validateWeeklyDays()) ok = false;
-
-    return ok;
-  }
-
-  setErr(field, msg) {
-    field.classList.add('is-invalid');
-    const fb = field.parentElement.querySelector('.invalid-feedback');
-    if (fb) fb.textContent = msg;
-  }
-  clearErr(field) {
-    field.classList.remove('is-invalid');
-    const fb = field.parentElement.querySelector('.invalid-feedback');
-    if (fb) fb.textContent = '';
-  }
-
-  // Weekly days helpers
-  toggleWeeklyDays() {
-    const type = document.getElementById('scheduleType')?.value;
-    const section = document.getElementById('weeklyDaysSection');
-    if (!section) return;
-    const checks = document.querySelectorAll('input[name="schedule_days[]"]');
-    if (type === 'Weekly') {
-      section.style.display = 'block';
-      checks.forEach(c => c.required = true);
-    } else {
-      section.style.display = 'none';
-      checks.forEach(c => { c.required = false; c.checked = false; });
-      this.clearWeeklyDaysValidation();
+    toggleWeeklyDays() {
+        const type = document.getElementById('scheduleType')?.value;
+        const section = document.getElementById('weeklyDaysSection');
+        if (!section) return;
+        const checks = document.querySelectorAll('input[name="schedule_days[]"]');
+        if (type === 'Weekly') {
+            section.style.display = 'block';
+            checks.forEach(c => c.required = true);
+        } else {
+            section.style.display = 'none';
+            checks.forEach(c => { c.required = false; c.checked = false; });
+            this.clearWeeklyDaysValidation();
+        }
     }
-  }
-  selectWeekdays() { this.clearDays(); ['monday','tuesday','wednesday','thursday','friday'].forEach(d => document.getElementById(d).checked = true); this.clearWeeklyDaysValidation(); }
-  selectAllDays() { document.querySelectorAll('input[name="schedule_days[]"]').forEach(c => c.checked = true); this.clearWeeklyDaysValidation(); }
-  clearDays() { document.querySelectorAll('input[name="schedule_days[]"]').forEach(c => c.checked = false); }
-  clearWeeklyDaysValidation() {
-    const err = document.getElementById('weeklyDaysError'); if (err) err.textContent = '';
-    document.querySelectorAll('input[name="schedule_days[]"]').forEach(c => c.classList.remove('is-invalid'));
-  }
-  validateWeeklyDays() {
-    const type = document.getElementById('scheduleType')?.value;
-    if (type === 'Weekly') {
-      const selected = document.querySelectorAll('input[name="schedule_days[]"]:checked');
-      const err = document.getElementById('weeklyDaysError');
-      if (selected.length === 0) {
-        if (err) err.textContent = 'Please select at least one day for Weekly schedule.';
-        document.querySelectorAll('input[name="schedule_days[]"]').forEach(c => c.classList.add('is-invalid'));
-        return false;
-      }
-      this.clearWeeklyDaysValidation();
+    
+    selectWeekdays() { 
+        this.clearDays(); 
+        ['monday','tuesday','wednesday','thursday','friday'].forEach(d => {
+            const checkbox = document.getElementById(d);
+            if (checkbox) checkbox.checked = true;
+        }); 
+        this.clearWeeklyDaysValidation(); 
     }
-    return true;
-  }
+    
+    selectAllDays() { 
+        document.querySelectorAll('input[name="schedule_days[]"]').forEach(c => c.checked = true); 
+        this.clearWeeklyDaysValidation(); 
+    }
+    
+    clearDays() { 
+        document.querySelectorAll('input[name="schedule_days[]"]').forEach(c => c.checked = false); 
+    }
+    
+    clearWeeklyDaysValidation() {
+        const err = document.getElementById('weeklyDaysError'); 
+        if (err) err.textContent = '';
+        document.querySelectorAll('input[name="schedule_days[]"]').forEach(c => c.classList.remove('is-invalid'));
+    }
+    
+    validateWeeklyDays() {
+        const type = document.getElementById('scheduleType')?.value;
+        if (type === 'Weekly') {
+            const selected = document.querySelectorAll('input[name="schedule_days[]"]:checked');
+            const err = document.getElementById('weeklyDaysError');
+            if (selected.length === 0) {
+                if (err) err.textContent = 'Please select at least one day for Weekly schedule.';
+                document.querySelectorAll('input[name="schedule_days[]"]').forEach(c => c.classList.add('is-invalid'));
+                return false;
+            }
+            this.clearWeeklyDaysValidation();
+        }
+        return true;
+    }
 }
 
 window.AddTruckView = AddTruckView;

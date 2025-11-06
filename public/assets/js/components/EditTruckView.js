@@ -1,4 +1,3 @@
-
 class EditTruckView {
   constructor(modalId = 'editTruckModal', mapId = 'editRouteMap') {
     this.modal = document.getElementById(modalId);
@@ -45,20 +44,67 @@ class EditTruckView {
   }
 
   initMap() {
-    if (!this.selector) {
-      this.selector = new RouteMapSelector(this.mapId, {
-        defaultLat: 14.5995, defaultLng: 120.9842, defaultZoom: 13
-      });
-    }
-    setTimeout(() => this.selector?.refreshMapSize(), 150);
+    // Clean up any existing map instance first
+    this.cleanupMap();
+
     const container = document.getElementById(this.mapId);
-    if (container) container.classList.add('map-loaded');
+    if (!container) {
+      console.error(`Map container ${this.mapId} not found`);
+      return;
+    }
+
+    // Check if RouteMapSelector is available
+    if (!window.RouteMapSelector) {
+      console.error('RouteMapSelector class not available');
+      return;
+    }
+
+    try {
+      this.selector = new window.RouteMapSelector(this.mapId, {
+        defaultLat: 14.5995, 
+        defaultLng: 120.9842, 
+        defaultZoom: 13
+      });
+
+      setTimeout(() => this.selector?.refreshMapSize(), 150);
+      container.classList.add('map-loaded');
+    } catch (error) {
+      console.error('Failed to initialize RouteMapSelector:', error);
+    }
+  }
+
+  // Add proper cleanup method
+  cleanupMap() {
+    if (this.selector) {
+      try {
+        this.selector.destroy();
+      } catch (error) {
+        console.warn('Error destroying map selector:', error);
+      }
+      this.selector = null;
+    }
+
+    // Clear container Leaflet data
+    const container = document.getElementById(this.mapId);
+    if (container) {
+      if (container._leaflet_id) {
+        container._leaflet = false;
+        container._leaflet_id = null;
+      }
+      container.innerHTML = '';
+      container.classList.remove('map-loaded');
+    }
   }
 
   reset() {
     const form = document.getElementById('editTruckForm');
-    if (form) { form.reset(); form.classList.remove('was-validated'); }
-    this.selector?.clearAllMarkers();
+    if (form) { 
+      form.reset(); 
+      form.classList.remove('was-validated'); 
+    }
+    
+    // Properly cleanup map
+    this.cleanupMap();
   }
 
   populate(data) {
