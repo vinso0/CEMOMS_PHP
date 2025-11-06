@@ -3,36 +3,24 @@ class AddTruckView {
     this.modal = document.getElementById(modalId);
     this.mapId = mapId;
     this.selector = null;
-    this.isDragging = false;
     this.wire();
   }
 
   wire() {
     if (!this.modal) return;
 
-    // CRITICAL FIX: Prevent modal hide during drag
-    this.modal.addEventListener('hide.bs.modal', (e) => {
-      if (this.isDragging) {
-        console.log('🛑 Preventing modal hide during drag');
-        e.preventDefault();
-        // Stop interaction and retry hide
-        if (this.selector?.map) {
-          this.selector.map.stop();
-        }
-        this.isDragging = false;
-        setTimeout(() => {
-          const modalInstance = bootstrap.Modal.getInstance(this.modal);
-          if (modalInstance) modalInstance.hide();
-        }, 50);
-        return;
-      }
+    this.modal.addEventListener('hide.bs.modal', () => {
       this.preCleanup();
     });
 
-    this.modal.addEventListener('shown.bs.modal', () => this.initMap());
-    this.modal.addEventListener('hidden.bs.modal', () => this.resetForm());
+    this.modal.addEventListener('shown.bs.modal', () => {
+      this.initMap();
+    });
+    
+    this.modal.addEventListener('hidden.bs.modal', () => {
+      this.resetForm();
+    });
 
-    // Form validation
     const form = document.getElementById('addTruckForm');
     if (form) {
       form.addEventListener('submit', (e) => {
@@ -44,7 +32,6 @@ class AddTruckView {
       });
     }
 
-    // Quick select day helpers
     window.selectWeekdays = () => this.selectWeekdays();
     window.selectAllDays = () => this.selectAllDays();
     window.clearDays = () => this.clearDays();
@@ -52,43 +39,28 @@ class AddTruckView {
   }
 
   preCleanup() {
-    console.log('🧹 Pre-cleanup starting...');
     if (this.selector) {
       try {
         this.selector.destroy();
-        console.log('✅ Map destroyed in pre-cleanup');
       } catch (error) {
-        console.warn('⚠️ Error during pre-cleanup:', error);
+        console.warn('Cleanup error:', error);
       }
       this.selector = null;
     }
-    this.isDragging = false;
   }
 
   initMap() {
     const container = document.getElementById(this.mapId);
-    if (!container) {
-        console.error(`Map container ${this.mapId} not found`);
-        return;
-    }
+    if (!container) return;
 
-    console.log('🗺️ Initializing map...');
-
-    // Ensure clean slate
     this.preCleanup();
 
-    // Clear container
     container.innerHTML = '';
     if (container._leaflet_id) {
-      container._leaflet_id = null;
-      container._leaflet = false;
+      delete container._leaflet_id;
     }
 
-    // Check if RouteMapSelector is available
-    if (!window.RouteMapSelector) {
-        console.error('RouteMapSelector class not available');
-        return;
-    }
+    if (!window.RouteMapSelector) return;
 
     try {
         this.selector = new window.RouteMapSelector(this.mapId, {
@@ -97,43 +69,29 @@ class AddTruckView {
             defaultZoom: 13
         });
 
-        // CRITICAL FIX: Track dragging state
-        if (this.selector.map) {
-          this.selector.map.on('dragstart', () => {
-            this.isDragging = true;
-          });
-          this.selector.map.on('dragend', () => {
-            this.isDragging = false;
-          });
-        }
-
-        setTimeout(() => this.selector?.refreshMapSize(), 200);
-        container.classList.add('map-loaded');
-        console.log('✅ Map initialized successfully');
+        setTimeout(() => {
+          if (this.selector && !this.selector._destroyed) {
+            this.selector.refreshMapSize();
+          }
+        }, 200);
+        
+        console.log('✅ Add map initialized');
     } catch (error) {
-        console.error('❌ Failed to initialize RouteMapSelector:', error);
+        console.error('❌ Add map init failed:', error);
     }
   }
 
   resetForm() {
-    console.log('📋 Resetting form...');
     const form = document.getElementById('addTruckForm');
     if (form) {
       form.reset();
       form.classList.remove('was-validated');
-      form.querySelectorAll('.is-invalid').forEach(f => f.classList.remove('is-invalid'));
     }
     
-    // Final cleanup
     this.preCleanup();
-    
-    const container = document.getElementById(this.mapId);
-    if (container) {
-      container.classList.remove('map-loaded');
-    }
   }
 
-  // ... rest of your validation methods (keep unchanged)
+  // Keep all your validation methods unchanged...
   validate(form) {
     let ok = true;
 

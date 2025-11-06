@@ -16,7 +16,6 @@ class RouteMapSelector {
         };
         
         this.currentMode = 'start';
-        this.isDragging = false;
         this._destroyed = false;
         
         this.init();
@@ -26,9 +25,9 @@ class RouteMapSelector {
         try {
             this.initMap();
             this.initEventListeners();
-            console.log('RouteMapSelector initialized successfully');
+            console.log('✅ RouteMapSelector initialized');
         } catch (error) {
-            console.error('RouteMapSelector initialization failed:', error);
+            console.error('❌ RouteMapSelector init failed:', error);
             throw error;
         }
     }
@@ -37,16 +36,15 @@ class RouteMapSelector {
         const mapContainer = document.getElementById(this.mapId);
         
         if (!mapContainer) {
-            throw new Error(`Map container with id '${this.mapId}' not found`);
+            throw new Error(`Map container '${this.mapId}' not found`);
         }
         
-        // CRITICAL: Clear existing Leaflet instances safely
-        this.destroy();
+        // Clean existing instance
+        this.destroyMapInstance();
         
-        // Clear container completely
+        // Clear Leaflet references
         if (mapContainer._leaflet_id) {
-            mapContainer._leaflet = false;
-            mapContainer._leaflet_id = null;
+            mapContainer._leaflet_id = undefined;
         }
         mapContainer.innerHTML = '';
         
@@ -55,80 +53,50 @@ class RouteMapSelector {
         }
         
         try {
-            // Initialize fresh map instance
+            // CRITICAL FIX: Simple, direct initialization like RouteDetailsView
             this.map = L.map(this.mapId, {
                 center: [this.options.defaultLat, this.options.defaultLng],
                 zoom: this.options.defaultZoom,
                 zoomControl: true,
                 attributionControl: true,
-                dragging: true,
+                dragging: true,           // ✅ Enable dragging
+                touchZoom: true,
                 scrollWheelZoom: true,
-                doubleClickZoom: true
+                doubleClickZoom: true,
+                boxZoom: true,
+                keyboard: true,
+                tap: true
             });
             
             // Add tile layer
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
                 maxZoom: 19
             }).addTo(this.map);
             
-            // CRITICAL FIX: Add drag safety checks
-            this.map.on('dragstart', () => {
-                this.isDragging = true;
-                // Check if container is still valid during drag
-                const el = this.map.getContainer();
-                if (!el || !document.body.contains(el) || el.offsetParent === null) {
-                    console.warn('Map container detached during drag, stopping interaction');
-                    this.map.stop();
-                    this.isDragging = false;
-                    return false;
+            // Map click handler for point selection
+            this.map.on('click', (event) => {
+                if (!this._destroyed) {
+                    this.handleMapClick(event);
                 }
             });
             
-            this.map.on('dragend', () => {
-                this.isDragging = false;
-            });
-            
-            // Map click handler
-            this.map.on('click', (event) => {
-                this.handleMapClick(event);
-            });
-            
-            // CRITICAL FIX: Safe resize with container validation
+            // Safe resize after map is ready
             this.map.whenReady(() => {
-                this.safeInvalidateSize();
+                setTimeout(() => {
+                    if (!this._destroyed && this.map) {
+                        this.map.invalidateSize();
+                    }
+                }, 100);
             });
             
             console.log('✅ Map initialized successfully');
             
         } catch (error) {
-            console.error('❌ Map initialization failed:', error);
+            console.error('❌ Map init failed:', error);
+            this._destroyed = true;
             throw error;
         }
-    }
-
-    // CRITICAL FIX: Safe resize method
-    safeInvalidateSize() {
-        if (this._destroyed || !this.map) return;
-        
-        const doResize = () => {
-            if (this._destroyed || !this.map) return;
-            
-            const el = this.map.getContainer();
-            if (el && el.offsetParent !== null && document.body.contains(el)) {
-                try {
-                    this.map.invalidateSize();
-                    console.log('✅ Map size invalidated safely');
-                } catch (error) {
-                    console.warn('Error during map resize:', error);
-                }
-            } else {
-                // Container not ready, try again
-                requestAnimationFrame(doResize);
-            }
-        };
-        
-        requestAnimationFrame(doResize);
     }
 
     initEventListeners() {
@@ -150,17 +118,19 @@ class RouteMapSelector {
     }
 
     handleMapClick(event) {
+        if (this._destroyed) return;
+        
         const lat = event.latlng.lat;
         const lng = event.latlng.lng;
         
         this.setMarker(this.currentMode, lat, lng);
         this.reverseGeocode(lat, lng, this.currentMode);
-        
-        // Auto-advance to next mode
         this.advanceMode();
     }
 
     setMarker(type, lat, lng) {
+        if (this._destroyed || !this.map) return;
+        
         // Remove existing marker
         if (this.markers[type]) {
             this.map.removeLayer(this.markers[type]);
@@ -174,13 +144,12 @@ class RouteMapSelector {
             title: markerConfig.title
         }).addTo(this.map);
         
-        // Add popup with info
         this.markers[type].bindPopup(markerConfig.title).openPopup();
         
         // Store coordinates
         this.setCoordinates(type, lat, lng);
         
-        // Update map bounds to include all markers
+        // Update bounds
         this.fitMapToMarkers();
     }
 
@@ -232,28 +201,21 @@ class RouteMapSelector {
                     pointType === 'mid' ? 'midPoint' : 'endPoint';
         const input = document.getElementById(inputId);
         
-        if (!input) {
-            console.error(`Input element not found: ${inputId}`);
-            return;
-        }
+        if (!input) return;
         
-        // Show loading state immediately
         this.setAddressInput(pointType, '🔍 Looking up address...');
         input.classList.add('loading');
         
-        // Create timeout promise
         const timeoutPromise = new Promise((_, reject) => {
             setTimeout(() => reject(new Error('Timeout')), timeout);
         });
         
-        // Create fetch promise
         const fetchPromise = fetch(`/api/geocode_proxy?lat=${lat}&lng=${lng}`)
             .then(response => {
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 return response.json();
             });
         
-        // Race between fetch and timeout
         Promise.race([fetchPromise, timeoutPromise])
             .then(data => {
                 if (this._destroyed) return;
@@ -265,16 +227,12 @@ class RouteMapSelector {
                     this.setAddressInput(pointType, friendlyAddress);
                     input.classList.remove('loading');
                     input.classList.add('success');
-                    
-                    console.log(`✅ Address resolved for ${pointType}: ${friendlyAddress}`);
                 } else {
                     throw new Error('No address found');
                 }
             })
             .catch(error => {
                 if (this._destroyed) return;
-                
-                console.warn(`⚠️ Geocoding failed for ${pointType}:`, error.message);
                 
                 const coordStr = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
                 const areaHint = this.getAreaHint(lat, lng);
@@ -287,15 +245,10 @@ class RouteMapSelector {
 
     getAreaHint(lat, lng) {
         if (lat >= 14.4 && lat <= 14.8 && lng >= 120.9 && lng <= 121.1) {
-            if (lat >= 14.55 && lat <= 14.65) {
-                return "Manila City";
-            } else if (lat >= 14.5 && lat < 14.55) {
-                return "Makati/Pasay";
-            } else if (lat > 14.65) {
-                return "Quezon City";
-            } else {
-                return "Metro Manila";
-            }
+            if (lat >= 14.55 && lat <= 14.65) return "Manila City";
+            else if (lat >= 14.5 && lat < 14.55) return "Makati/Pasay";
+            else if (lat > 14.65) return "Quezon City";
+            else return "Metro Manila";
         }
         return "Philippines";
     }
@@ -345,7 +298,7 @@ class RouteMapSelector {
     }
 
     updateModeIndicator() {
-        if (!this.map) return;
+        if (!this.map || this._destroyed) return;
         const mapContainer = this.map.getContainer();
         if (mapContainer) {
             mapContainer.style.cursor = this.currentMode === 'start' ? 'crosshair' : 
@@ -354,58 +307,48 @@ class RouteMapSelector {
     }
 
     fitMapToMarkers() {
-        if (!this.map) return;
+        if (!this.map || this._destroyed) return;
         
-        const markerPositions = [];
-        Object.values(this.markers).forEach(marker => {
-            if (marker) {
-                markerPositions.push(marker.getLatLng());
-            }
-        });
+        const validMarkers = Object.values(this.markers).filter(m => m);
         
-        if (markerPositions.length > 0) {
-            const group = new L.featureGroup(Object.values(this.markers).filter(m => m));
+        if (validMarkers.length > 0) {
+            const group = new L.featureGroup(validMarkers);
             this.map.fitBounds(group.getBounds().pad(0.1));
         }
     }
 
     clearAllMarkers() {
+        if (this._destroyed) return;
+        
         Object.keys(this.markers).forEach(type => {
-            if (this.markers[type]) {
+            if (this.markers[type] && this.map) {
                 this.map.removeLayer(this.markers[type]);
                 this.markers[type] = null;
             }
             
-            // Clear form inputs
             this.setAddressInput(type, '');
             this.setCoordinates(type, '', '');
         });
         
-        // Reset to start mode
         this.currentMode = 'start';
         const startRadio = document.getElementById('startMode');
-        if (startRadio) {
-            startRadio.checked = true;
-        }
+        if (startRadio) startRadio.checked = true;
         
         this.updateModeIndicator();
     }
 
     getCurrentLocation() {
-        if (navigator.geolocation) {
+        if (navigator.geolocation && !this._destroyed) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
+                    if (this._destroyed || !this.map) return;
+                    
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
                     
-                    if (this.map) {
-                        this.map.setView([lat, lng], 15);
-                        console.log('✅ Centered map on user location');
-                    }
+                    this.map.setView([lat, lng], 15);
                 },
-                (error) => {
-                    console.log('ℹ️ Geolocation failed, using default Manila location');
-                },
+                () => {},
                 {
                     enableHighAccuracy: false,
                     timeout: 5000,
@@ -416,6 +359,8 @@ class RouteMapSelector {
     }
 
     setPoint(type, lat, lng, address = null) {
+        if (this._destroyed) return;
+        
         this.setMarker(type, lat, lng);
         
         if (address) {
@@ -441,39 +386,48 @@ class RouteMapSelector {
     }
 
     refreshMapSize() {
-        if (this.map && !this._destroyed) {
-            this.safeInvalidateSize();
+        if (!this._destroyed && this.map) {
+            setTimeout(() => {
+                if (!this._destroyed && this.map) {
+                    this.map.invalidateSize();
+                }
+            }, 100);
         }
     }
 
-    // CRITICAL FIX: Enhanced destroy method
-    destroy() {
-        console.log('🧹 Destroying RouteMapSelector...');
-        this._destroyed = true;
-        this.isDragging = false;
+    destroyMapInstance() {
+        if (!this.map) return;
         
-        if (this.map) {
-            try {
-                // Remove all event listeners
-                this.map.off();
-                
-                // Remove all markers
-                Object.values(this.markers).forEach(marker => {
-                    if (marker) {
-                        this.map.removeLayer(marker);
-                    }
-                });
-                
-                // Destroy map instance
-                this.map.remove();
-                console.log('✅ Map destroyed successfully');
-            } catch (error) {
-                console.warn('⚠️ Error during map destruction:', error);
-            }
-            this.map = null;
+        try {
+            this.map.eachLayer(layer => {
+                this.map.removeLayer(layer);
+            });
+            
+            this.map.off();
+            this.map.remove();
+        } catch (error) {
+            console.warn('Error destroying map:', error);
         }
         
+        this.map = null;
+    }
+
+    destroy() {
+        if (this._destroyed) return;
+        
+        console.log('🧹 Destroying RouteMapSelector');
+        this._destroyed = true;
+        
+        Object.values(this.markers).forEach(marker => {
+            if (marker && this.map) {
+                try {
+                    this.map.removeLayer(marker);
+                } catch (e) {}
+            }
+        });
         this.markers = { start: null, mid: null, end: null };
+        
+        this.destroyMapInstance();
     }
 }
 
