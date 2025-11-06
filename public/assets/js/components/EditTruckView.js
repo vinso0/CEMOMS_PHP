@@ -3,11 +3,30 @@ class EditTruckView {
     this.modal = document.getElementById(modalId);
     this.mapId = mapId;
     this.selector = null;
+    this.isDragging = false;
     this.wire();
   }
 
   wire() {
     if (!this.modal) return;
+
+    // CRITICAL FIX: Prevent modal hide during drag
+    this.modal.addEventListener('hide.bs.modal', (e) => {
+      if (this.isDragging) {
+        console.log('🛑 Preventing modal hide during drag');
+        e.preventDefault();
+        if (this.selector?.map) {
+          this.selector.map.stop();
+        }
+        this.isDragging = false;
+        setTimeout(() => {
+          const modalInstance = bootstrap.Modal.getInstance(this.modal);
+          if (modalInstance) modalInstance.hide();
+        }, 50);
+        return;
+      }
+      this.preCleanup();
+    });
 
     this.modal.addEventListener('shown.bs.modal', () => this.initMap());
     this.modal.addEventListener('hidden.bs.modal', () => this.reset());
@@ -43,9 +62,25 @@ class EditTruckView {
     window.clearEditRoute = () => this.clearRoute();
   }
 
+  preCleanup() {
+    console.log('🧹 Edit: Pre-cleanup starting...');
+    if (this.selector) {
+      try {
+        this.selector.destroy();
+        console.log('✅ Edit: Map destroyed in pre-cleanup');
+      } catch (error) {
+        console.warn('⚠️ Edit: Error during pre-cleanup:', error);
+      }
+      this.selector = null;
+    }
+    this.isDragging = false;
+  }
+
   initMap() {
-    // Clean up any existing map instance first
-    this.cleanupMap();
+    console.log('🗺️ Edit: Initializing map...');
+    
+    // Ensure clean slate
+    this.preCleanup();
 
     const container = document.getElementById(this.mapId);
     if (!container) {
@@ -53,7 +88,13 @@ class EditTruckView {
       return;
     }
 
-    // Check if RouteMapSelector is available
+    // Clear container
+    container.innerHTML = '';
+    if (container._leaflet_id) {
+      container._leaflet_id = null;
+      container._leaflet = false;
+    }
+
     if (!window.RouteMapSelector) {
       console.error('RouteMapSelector class not available');
       return;
@@ -66,51 +107,45 @@ class EditTruckView {
         defaultZoom: 13
       });
 
-      setTimeout(() => this.selector?.refreshMapSize(), 150);
+      // CRITICAL FIX: Track dragging state
+      if (this.selector.map) {
+        this.selector.map.on('dragstart', () => {
+          this.isDragging = true;
+        });
+        this.selector.map.on('dragend', () => {
+          this.isDragging = false;
+        });
+      }
+
+      setTimeout(() => this.selector?.refreshMapSize(), 200);
       container.classList.add('map-loaded');
+      console.log('✅ Edit: Map initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize RouteMapSelector:', error);
-    }
-  }
-
-  // Add proper cleanup method
-  cleanupMap() {
-    if (this.selector) {
-      try {
-        this.selector.destroy();
-      } catch (error) {
-        console.warn('Error destroying map selector:', error);
-      }
-      this.selector = null;
-    }
-
-    // Clear container Leaflet data
-    const container = document.getElementById(this.mapId);
-    if (container) {
-      if (container._leaflet_id) {
-        container._leaflet = false;
-        container._leaflet_id = null;
-      }
-      container.innerHTML = '';
-      container.classList.remove('map-loaded');
+      console.error('❌ Edit: Failed to initialize RouteMapSelector:', error);
     }
   }
 
   reset() {
+    console.log('📋 Edit: Resetting...');
     const form = document.getElementById('editTruckForm');
     if (form) { 
       form.reset(); 
       form.classList.remove('was-validated'); 
     }
     
-    // Properly cleanup map
-    this.cleanupMap();
+    this.preCleanup();
+    
+    const container = document.getElementById(this.mapId);
+    if (container) {
+      container.classList.remove('map-loaded');
+    }
   }
 
+  // ... rest of your existing methods remain unchanged
   populate(data) {
     if (!data?.truck_id) {
       console.warn('Missing truck_id in EditTruckView.populate payload:', data);
-      return; // don’t proceed; prevents empty hidden input
+      return;
     }
 
     const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
@@ -133,7 +168,6 @@ class EditTruckView {
         .forEach(day => { const cb = document.getElementById(`edit${day}`); if (cb) cb.checked = true; });
     }
 
-    // Load points after map ready
     setTimeout(() => {
       if (data.route_id) this.loadRoutePoints(data.route_id);
       else this.clearRouteInputs();
@@ -165,7 +199,7 @@ class EditTruckView {
       if (n.includes('start')) type = 'start';
       else if (n.includes('end')) type = 'end';
 
-      this.selector.setPoint(type, p.lat, p.lng, p.address); // avoid reverse geocode
+      this.selector.setPoint(type, p.lat, p.lng, p.address);
       const id = type.charAt(0).toUpperCase() + type.slice(1);
       const set = (suffix, v) => { const el = document.getElementById(`edit${id}${suffix}`); if (el) el.value = v || ''; };
       set('Point', p.address || '');
@@ -183,7 +217,6 @@ class EditTruckView {
     });
   }
 
-  // Weekly helpers
   toggleWeeklyDays() {
     const type = document.getElementById('editScheduleType')?.value;
     const section = document.getElementById('editWeeklyDaysSection');
@@ -191,11 +224,16 @@ class EditTruckView {
     if (type === 'Weekly') section.style.display = 'block';
     else { section.style.display = 'none'; this.clearDays(); }
   }
-  selectWeekdays() { this.clearDays(); ['editMonday','editTuesday','editWednesday','editThursday','editFriday'].forEach(id => document.getElementById(id).checked = true); }
+  selectWeekdays() { this.clearDays(); ['editMonday','editTuesday','editWednesday','editThursday','editFriday'].forEach(id => { const el = document.getElementById(id); if (el) el.checked = true; }); }
   selectAllDays() { document.querySelectorAll('#editTruckModal input[name="schedule_days[]"]').forEach(cb => cb.checked = true); }
   clearDays() { document.querySelectorAll('#editTruckModal input[name="schedule_days[]"]').forEach(cb => cb.checked = false); }
 
-  clearRoute() { this.selector?.clearAllMarkers(); this.clearRouteInputs(); }
+  clearRoute() { 
+    if (this.selector) {
+      this.selector.clearAllMarkers(); 
+    }
+    this.clearRouteInputs(); 
+  }
 }
 
 window.EditTruckView = EditTruckView;

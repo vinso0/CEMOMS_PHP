@@ -344,6 +344,29 @@ input.fallback {
 .empty-points .fa-map-pin { font-size: 2rem; margin-bottom: 1rem; }
 
 /* Map section + header */
+.modal .route-map {
+  position: relative;
+  min-height: 400px;
+}
+
+.modal .route-map .leaflet-container {
+  touch-action: pan-x pan-y;
+  height: 100% !important;
+}
+
+.modal.fade.show .route-map {
+  pointer-events: auto;
+}
+
+/* Prevent layout shifts during modal transitions */
+.modal-body .route-map {
+  overflow: hidden;
+}
+
+.route-map.map-loaded {
+  background-color: #f8f9fa;
+}
+
 .map-section { position: relative; height: 400px; }
 .map-header {
   background: #343a40 !important;
