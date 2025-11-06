@@ -1,3 +1,6 @@
+/* =====================================
+   CEMOMS - GARBAGE COLLECTION STYLES
+   ===================================== */
 
 /* 1) LAYOUT & PAGE STRUCTURE */
 .section-header {
@@ -113,27 +116,23 @@
   font-size: 0.875rem;
 }
 
-/* =====================================
-   5) MODAL & MAP SYSTEM INTEGRATION
-   ===================================== */
-
-/* Modal optimizations for map functionality */
+/* 5) MODAL WIDTH FIX - SAFE VERSION */
 .modal { z-index: 1050; }
 .modal-backdrop { z-index: 1040; }
 
-/* Enhanced modal sizing */
+/* Simply make modal-lg wider */
 .modal-lg { 
     max-width: 1100px !important; 
 }
 
-/* Modal body enhancements for maps */
+/* Increase modal body padding for better spacing */
 .modal-body {
     max-height: calc(100vh - 210px);
     overflow-y: auto;
-    padding: 1.5rem;
+    padding: 1.5rem; /* Increased from default */
 }
 
-/* CRITICAL: Disable problematic transforms that break Leaflet */
+/* Disable transforms/animations that can break Leaflet inside modals */
 #routeDetailsModal .modal-dialog,
 #routeDetailsModal .modal-content,
 #routeDetailsModal .modal-body,
@@ -147,815 +146,282 @@
     animation: none !important;
 }
 
-/* =====================================
-   6) MAP CONTAINER SYSTEM
-   ===================================== */
-
-/* Core map container styling */
-.route-map,
-#addRouteMap,
-#editRouteMap,
-#route-map {
-    height: 400px !important;
-    width: 100% !important;
-    min-height: 400px;
-    position: relative;
-    border: 2px solid #dee2e6;
-    border-radius: 8px;
-    background-color: #f8f9fa;
-    overflow: hidden;
-    z-index: 1;
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .modal-lg { 
+        max-width: 95%; 
+        margin: 10px; 
+    }
+    .modal-dialog.modal-lg { 
+        margin: 0.5rem; 
+        max-width: none; 
+    }
 }
 
-/* Ensure map containers are properly sized in modals */
-.modal .route-map,
-.modal #addRouteMap,
-.modal #editRouteMap,
-.modal #route-map {
-    display: block !important;
-    visibility: visible !important;
-}
 
-/* Enhanced loading states with animations */
-.route-map:not(.map-loaded),
-#addRouteMap:not(.map-loaded),
-#editRouteMap:not(.map-loaded) {
-    background: linear-gradient(45deg, #f8f9fa 25%, transparent 25%, transparent 75%, #f8f9fa 75%, #f8f9fa),
-                linear-gradient(45deg, #f8f9fa 25%, transparent 25%, transparent 75%, #f8f9fa 75%, #f8f9fa);
-    background-size: 20px 20px;
-    background-position: 0 0, 10px 10px;
-    animation: loading-bg 2s linear infinite;
-}
-
-.route-map:not(.map-loaded)::before,
-#addRouteMap:not(.map-loaded)::before,
-#editRouteMap:not(.map-loaded)::before {
-    content: "🗺️ Loading map...";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 18px;
-    color: #6c757d;
-    z-index: 1000;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 10px 20px;
-    border-radius: 6px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-@keyframes loading-bg {
-    0% { background-position: 0 0, 10px 10px; }
-    100% { background-position: 20px 20px, 30px 30px; }
-}
-
-/* =====================================
-   7) LEAFLET MAP INTEGRATION
-   ===================================== */
-
-/* Core Leaflet container fixes */
+/* 6) MAPS - COMMON LEAFLET OVERRIDES */
 .leaflet-container {
-    height: 100% !important;
-    width: 100% !important;
-    z-index: 1;
-    font: inherit;
-    line-height: normal;
-    cursor: grab;
+  height: 100% !important;
+  width: 100% !important;
+  z-index: 1;
+  font: inherit;
+  line-height: normal;
 }
-
-.leaflet-container:active {
-    cursor: grabbing;
-}
-
-.leaflet-dragging .leaflet-container {
-    cursor: grabbing;
-}
-
-/* Leaflet control enhancements */
-.leaflet-top, .leaflet-bottom { 
-    z-index: 1000 !important; 
-}
-
-.leaflet-control-container {
-    pointer-events: auto;
-}
-
-.leaflet-control {
-    pointer-events: auto;
-}
-
-/* Leaflet tile and layer fixes */
+.leaflet-top, .leaflet-bottom { z-index: 1000 !important; }
 .leaflet-tile,
 .leaflet-image-layer,
 .leaflet-marker-pane img,
 .leaflet-shadow-pane img,
 .leaflet-overlay-pane svg {
-    max-width: none !important;
-    max-height: none !important;
-    image-rendering: auto;
-    visibility: visible !important;
+  max-width: none !important;
+  max-height: none !important;
+  image-rendering: auto;
+  visibility: visible !important;
 }
-
-/* Enhanced zoom controls */
 .leaflet-control-zoom {
-    border-radius: 6px !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.15) !important;
-    border: 1px solid #dee2e6 !important;
+  border-radius: 4px !important;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.65) !important;
 }
-
 .leaflet-control-zoom a {
-    background-color: #fff !important;
-    color: #495057 !important;
-    text-decoration: none !important;
-    width: 30px !important;
-    height: 30px !important;
-    line-height: 28px !important;
-    text-align: center !important;
-    border-bottom: 1px solid #dee2e6 !important;
-    font-weight: 600 !important;
-    transition: all 0.2s ease !important;
+  background-color: #fff !important;
+  color: #333 !important;
+  text-decoration: none !important;
+  width: 26px !important;
+  height: 26px !important;
+  line-height: 26px !important;
+  text-align: center !important;
+  border-bottom: 1px solid #ccc !important;
 }
-
-.leaflet-control-zoom a:hover { 
-    background-color: #f8f9fa !important;
-    color: #2196F3 !important;
-}
-
-.leaflet-control-zoom a:last-child {
-    border-bottom: none !important;
-}
-
-/* Enhanced popup styling */
+.leaflet-control-zoom a:hover { background-color: #f4f4f4 !important; }
 .leaflet-popup-content-wrapper {
-    background: #fff !important;
-    border-radius: 8px !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
-    padding: 0 !important;
+  background: #fff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.4) !important;
 }
-
-.leaflet-popup-content { 
-    margin: 12px 16px !important; 
-    font-family: inherit !important;
-    font-size: 14px !important;
-    line-height: 1.4 !important;
-}
-
-.leaflet-popup-tip {
-    background: #fff !important;
-}
-
+.leaflet-popup-content { margin: 10px 15px !important; font-family: inherit !important; }
 .leaflet-control-attribution {
-    background: rgba(255,255,255,0.8) !important;
-    font-size: 11px !important;
-    padding: 2px 5px !important;
-    border-radius: 3px !important;
+  background: rgba(255,255,255,0.8) !important;
+  font-size: 11px !important;
+  padding: 2px 5px !important;
 }
 
-/* =====================================
-   8) CUSTOM MARKER SYSTEM
-   ===================================== */
+/* 7) ADD TRUCK MAPS (#addRouteMap, #editRouteMap) */
+#addRouteMap,
+#editRouteMap {
+  height: 400px !important;
+  width: 100%;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  position: relative;
+  z-index: 1;
+}
+#addRouteMap::before,
+#editRouteMap::before {
+  content: 'Loading map...';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: #6c757d; font-size: 14px;
+  z-index: 0;
+}
+#addRouteMap.map-loaded::before,
+#editRouteMap.map-loaded::before { display: none; }
 
-/* Base marker styling */
+/* Custom Marker Styles (shared) */
 .custom-marker,
-.custom-route-marker { 
-    background: transparent !important; 
-    border: none !important; 
-}
-
+.custom-route-marker { background: transparent !important; border: none !important; }
 .marker-pin {
-    width: 30px;
-    height: 40px;
-    border-radius: 50% 50% 50% 0;
-    position: relative;
-    transform: rotate(-45deg);
-    left: 50%;
-    top: 50%;
-    margin: -20px 0 0 -15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-    transition: all 0.2s ease;
+  width: 30px; height: 40px;
+  border-radius: 50% 50% 50% 0;
+  position: relative; transform: rotate(-45deg);
+  left: 50%; top: 50%; margin: -20px 0 0 -15px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.3);
 }
-
-.marker-pin:hover {
-    transform: rotate(-45deg) scale(1.1);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-}
-
 .marker-pin::after {
-    content: '';
-    width: 8px;
-    height: 8px;
-    margin: 8px 0 0 8px;
-    background: rgba(255,255,255,0.3);
-    position: absolute;
-    border-radius: 50%;
+  content: '';
+  width: 8px; height: 8px;
+  margin: 8px 0 0 8px;
+  background: #fff; position: absolute; border-radius: 50%;
 }
+.marker-pin i { transform: rotate(45deg); color: #fff; font-size: 14px; z-index: 1; }
+.start-marker .marker-pin { background: #28a745; }
+.mid-marker .marker-pin { background: #007bff; }
+.end-marker .marker-pin { background: #dc3545; }
 
-.marker-pin i { 
-    transform: rotate(45deg); 
-    color: #fff; 
-    font-size: 12px; 
-    z-index: 1;
-}
-
-/* Marker type colors */
-.start-marker .marker-pin { 
-    background: linear-gradient(135deg, #28a745, #20c997);
-}
-
-.mid-marker .marker-pin { 
-    background: linear-gradient(135deg, #007bff, #6f42c1);
-}
-
-.end-marker .marker-pin { 
-    background: linear-gradient(135deg, #dc3545, #fd7e14);
-}
-
-/* =====================================
-   9) ROUTE POINT INPUT SYSTEM
-   ===================================== */
-
-/* Route points container */
-.route-points-container {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    border: 1px solid #e9ecef;
-}
-
-/* Route controls styling */
-.route-controls {
-    padding: 1rem;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    border: 1px solid #e9ecef;
-}
-
-.route-mode-selector {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.route-mode-selector label {
-    margin-bottom: 0;
-    font-weight: 600;
-    color: #495057;
-}
-
-.route-mode-selector .btn-group {
-    margin-left: 0.5rem;
-}
-
-/* Enhanced input states */
-.route-point-input {
-    transition: all 0.3s ease;
-}
-
-.route-point-input.loading {
-    background: linear-gradient(90deg, #f8f9fa 25%, #e9ecef 37%, #f8f9fa 63%);
-    background-size: 400% 100%;
-    animation: shimmer 1.2s ease-in-out infinite;
-    color: #007bff;
-    font-style: italic;
-    border-color: #bee5eb;
-}
-
-.route-point-input.success {
-    background-color: #d1edff;
-    border-color: #bee5eb;
-    animation: successPulse 0.8s ease-out;
-    color: #0056b3;
-}
-
-.route-point-input.fallback {
-    background-color: #fff3cd;
-    border-color: #ffeaa7;
-    color: #856404;
-    font-style: italic;
-}
-
+/* 8) ROUTE POINT INPUT STATES */
 .route-point-input.updated {
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-    animation: inputUpdate 1s ease-out;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  animation: inputUpdate 1s ease-out;
 }
+@keyframes inputUpdate { 0% { background-color: #d4edda; } 100% { background-color: #fff; } }
 
-/* Input animations */
-@keyframes shimmer { 
-    0% { background-position: 100% 0; } 
-    100% { background-position: -100% 0; } 
-}
-
-@keyframes successPulse { 
-    0% { background-color: #d1edff; border-color: #bee5eb; } 
-    100% { background-color: #fff; border-color: #ced4da; } 
-}
-
-@keyframes inputUpdate { 
-    0% { background-color: #d4edda; } 
-    100% { background-color: #fff; } 
-}
-
-/* Map instructions */
 .map-instructions {
-    padding: 12px;
-    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
-    border-left: 4px solid #2196f3;
-    border-radius: 0 6px 6px 0;
-    margin-bottom: 15px;
-    font-size: 14px;
-    color: #1565c0;
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  padding: 0.5rem;
+  border-radius: 0 4px 4px 0;
 }
-
-.map-instructions i {
-    color: #2196f3;
-    margin-right: 8px;
+.route-points-container {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
 }
+.route-controls { border-top: 1px solid #dee2e6; padding-top: 1rem; }
+.route-mode-selector .btn-group { margin-left: 0.5rem; }
 
-/* =====================================
-   10) ROUTE DETAILS MODAL
-   ===================================== */
-
-.route-details-container { 
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+/* Address input loading/success/fallback */
+input.loading {
+  background: linear-gradient(90deg, #f8f9fa 25%, #e9ecef 37%, #f8f9fa 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+  color: #007bff; font-style: italic;
 }
-
-#routeDetailsModal .modal-dialog { 
-    max-width: 90vw; 
+input.success {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  animation: successPulse 0.8s ease-out;
 }
+input.fallback {
+  background-color: #fff3cd;
+  border-color: #ffeaa7;
+  color: #856404;
+  font-style: italic;
+}
+@keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+@keyframes successPulse { 0% { background-color: #d4edda; } 100% { background-color: #fff; } }
+
+/* 9) ROUTE DETAILS MODAL (points + map) */
+.route-details-container { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+#routeDetailsModal .modal-dialog { max-width: 90vw; }
 
 /* Info section */
-.info-section .info-item { 
-    margin-bottom: 0.5rem; 
-    font-size: 0.9rem; 
-}
+.info-section .info-item { margin-bottom: 0.5rem; font-size: 0.9rem; }
 
 /* Points section */
 .points-section {
-    height: 400px;
-    display: flex;
-    flex-direction: column;
-    background: #f8f9fa;
-    border-radius: 8px;
-    overflow: hidden;
+  height: 400px;
+  display: flex; flex-direction: column;
+  background: #f8f9fa;
 }
-
 .points-header {
-    background: #6c757d !important;
-    color: #fff;
-    padding: 0.75rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border-bottom: 1px solid #495057;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  background: #6c757d !important;
+  color: #fff; padding: 0.5rem;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #495057;
 }
-
 .points-list {
-    flex: 1;
-    overflow-y: auto;
-    background: #f8f9fa;
-    position: relative;
-    padding: 0.25rem;
+  flex: 1;
+  overflow-y: auto; background: #f8f9fa;
+  position: relative;
 }
-
 .point-item {
-    padding: 0.75rem;
-    border-bottom: 1px solid #dee2e6;
-    background: #fff;
-    margin: 0.25rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border-left: 3px solid transparent;
+  padding: 0.75rem; border-bottom: 1px solid #dee2e6;
+  background: #fff; margin: 0.25rem; border-radius: 4px;
+  cursor: pointer; transition: background-color 0.2s;
 }
-
-.point-item:hover { 
-    background: #e3f2fd;
-    transform: translateX(2px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.point-item.active { 
-    background: #bbdefb;
-    border-left-color: #2196f3;
-    box-shadow: 0 2px 10px rgba(33, 150, 243, 0.2);
-}
-
+.point-item:hover { background: #e3f2fd; }
+.point-item.active { background: #bbdefb; border-left: 4px solid #2196f3; }
 .point-number {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    background: #007bff;
-    color: #fff;
-    text-align: center;
-    border-radius: 50%;
-    font-size: 0.75rem;
-    font-weight: bold;
-    line-height: 24px;
-    margin-right: 0.75rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: inline-block; width: 20px; height: 20px;
+  background: #007bff; color: #fff; text-align: center; border-radius: 50%;
+  font-size: 0.75rem; font-weight: bold; line-height: 20px; margin-right: 0.5rem;
 }
+.point-number.start { background: #28a745; }
+.point-number.end { background: #dc3545; }
+.point-name { font-weight: 600; color: #212529; font-size: 0.85rem; margin-bottom: 0.25rem; }
+.point-address { color: #6c757d; font-size: 0.75rem; line-height: 1.2; }
 
-.point-number.start { 
-    background: linear-gradient(135deg, #28a745, #20c997);
-}
-
-.point-number.end { 
-    background: linear-gradient(135deg, #dc3545, #fd7e14);
-}
-
-.point-name { 
-    font-weight: 600;
-    color: #212529;
-    font-size: 0.9rem;
-    margin-bottom: 0.25rem;
-}
-
-.point-address { 
-    color: #6c757d;
-    font-size: 0.8rem;
-    line-height: 1.3;
-}
-
-/* Loading and empty states */
+/* Loading / empty states */
 .loading-points, .empty-points {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: #6c757d;
-    text-align: center;
-    padding: 2rem;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; color: #6c757d; text-align: center; padding: 2rem;
 }
+.loading-points .fa-spinner { font-size: 1.5rem; margin-bottom: 1rem; }
+.empty-points .fa-map-pin { font-size: 2rem; margin-bottom: 1rem; }
 
-.loading-points .fa-spinner { 
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    animation: spin 1s linear infinite;
-}
-
-.empty-points .fa-map-pin { 
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: #adb5bd;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Map section */
-.map-section { 
-    position: relative;
-    height: 400px;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
+/* Map section + header */
+.map-section { position: relative; height: 400px; }
 .map-header {
-    background: #343a40 !important;
-    color: #fff;
-    padding: 0.75rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border-bottom: 1px solid #495057;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  background: #343a40 !important;
+  color: #fff; padding: 0.5rem; font-size: 0.85rem; border-bottom: 1px solid #495057;
 }
 
-/* =====================================
-   11) AUTOCOMPLETE SYSTEM
-   ===================================== */
+/* Route details map container (single source of truth) */
+#route-map {
+  width: 100% !important;
+  height: 400px !important;
+  background: #f8f9fa;
+  position: relative; z-index: 1; border: none;
+}
 
+/* 10) AUTOCOMPLETE (used in add-truck) */
 .autocomplete-suggestions {
-    position: absolute;
-    z-index: 1000;
-    background: #fff;
-    border: 1px solid #dee2e6;
-    border-top: none;
-    max-height: 250px;
-    overflow-y: auto;
-    width: calc(100% - 30px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    border-radius: 0 0 8px 8px;
-    display: none;
+  position: absolute; z-index: 1000; background: #fff;
+  border: 1px solid #ddd; border-top: none;
+  max-height: 250px; overflow-y: auto;
+  width: calc(100% - 30px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border-radius: 0 0 8px 8px;
+  display: none;
 }
-
 .autocomplete-suggestion {
-    padding: 12px 15px;
-    cursor: pointer;
-    border-bottom: 1px solid #f8f9fa;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    transition: all 0.2s ease;
+  padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0;
+  display: flex; align-items: flex-start; gap: 10px; transition: background-color 0.2s;
 }
-
-.autocomplete-suggestion:last-child { 
-    border-bottom: none; 
-}
-
+.autocomplete-suggestion:last-child { border-bottom: none; }
 .autocomplete-suggestion:hover,
-.autocomplete-suggestion.active { 
-    background-color: #f8f9fa;
-    transform: translateX(2px);
-}
-
-.autocomplete-suggestion i { 
-    color: #4CAF50;
-    margin-top: 2px;
-    flex-shrink: 0;
-}
-
-.autocomplete-suggestion .suggestion-text { 
-    flex: 1;
-    font-size: 0.9rem;
-    line-height: 1.4;
-}
-
+.autocomplete-suggestion.active { background-color: #f8f9fa; }
+.autocomplete-suggestion i { color: #4CAF50; margin-top: 2px; flex-shrink: 0; }
+.autocomplete-suggestion .suggestion-text { flex: 1; font-size: 0.9rem; line-height: 1.4; }
 .autocomplete-suggestion.loading,
 .autocomplete-suggestion.no-results,
 .autocomplete-suggestion.error {
-    justify-content: center;
-    color: #6c757d;
-    font-style: italic;
-    cursor: default;
+  justify-content: center; color: #666; font-style: italic; cursor: default;
 }
+.autocomplete-suggestion.loading { color: #2196F3; }
+.autocomplete-suggestion.error { color: #f44336; }
+.autocomplete-suggestions::-webkit-scrollbar { width: 8px; }
+.autocomplete-suggestions::-webkit-scrollbar-track { background: #f1f1f1; }
+.autocomplete-suggestions::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+.autocomplete-suggestions::-webkit-scrollbar-thumb:hover { background: #555; }
 
-.autocomplete-suggestion.loading { 
-    color: #2196F3; 
-}
+/* 11) RESET ROUTE BUTTON */
+.reset-route-btn { margin-top: 10px; }
+.reset-route-btn:hover { background-color: #6c757d; border-color: #6c757d; }
 
-.autocomplete-suggestion.error { 
-    color: #dc3545; 
-}
-
-/* Custom scrollbar for autocomplete */
-.autocomplete-suggestions::-webkit-scrollbar { 
-    width: 8px; 
-}
-
-.autocomplete-suggestions::-webkit-scrollbar-track { 
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.autocomplete-suggestions::-webkit-scrollbar-thumb { 
-    background: #adb5bd;
-    border-radius: 4px;
-}
-
-.autocomplete-suggestions::-webkit-scrollbar-thumb:hover { 
-    background: #6c757d; 
-}
-
-/* =====================================
-   12) WEEKLY SCHEDULE SYSTEM
-   ===================================== */
-
+/* 12) WEEKLY SCHEDULE DAYS (add-truck) */
 .Weekly-days-container {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-top: 0.5rem;
+  background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 1rem; margin-top: 0.5rem;
+}
+.day-checkboxes { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+.form-check-inline { margin-right: 0; min-width: 60px; }
+.form-check-input:checked { background-color: #28a745; border-color: #28a745; }
+.form-check-input.is-invalid { border-color: #dc3545; }
+.form-check-label { font-weight: 500; color: #495057; cursor: pointer; user-select: none; }
+.Weekly-days-container .btn-group { gap: 0.5rem; }
+.Weekly-days-container .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.875rem; }
+#weeklyDaysError {
+  display: block; width: 100%; margin-top: 0.25rem; font-size: 0.875rem; color: #dc3545;
+}
+.badge { font-size: 0.75rem; font-weight: 500; }
+
+/* 13) RESPONSIVE */
+@media (max-width: 768px) {
+  .filter-item { min-width: 100%; }
+  .action-buttons { flex-direction: column; }
+  .modal-lg { max-width: 95%; margin: 10px; }
+  .modal-dialog.modal-lg { margin: 0.5rem; max-width: none; }
+  .row.g-0 > .col-md-4,
+  .row.g-0 > .col-md-8 { flex: 0 0 100%; max-width: 100%; }
+  .points-section { height: 200px; }
+  #route-map, #addRouteMap, #editRouteMap { height: 300px !important; }
 }
 
-.day-checkboxes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.form-check-inline {
-    margin-right: 0;
-    min-width: 60px;
-}
-
-.form-check-input:checked {
-    background-color: #28a745;
-    border-color: #28a745;
-}
-
-.form-check-input.is-invalid {
-    border-color: #dc3545;
-}
-
-.form-check-label {
-    font-weight: 500;
-    color: #495057;
-    cursor: pointer;
-    user-select: none;
-}
-
-.Weekly-days-container .btn-group {
-    gap: 0.5rem;
-}
-
-.Weekly-days-container .btn-sm {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
-    border-radius: 6px;
-}
-
-#weeklyDaysError,
-#editWeeklyDaysError {
-    display: block;
-    width: 100%;
-    margin-top: 0.5rem;
-    font-size: 0.875rem;
-    color: #dc3545;
-    background: #f8d7da;
-    padding: 0.5rem;
-    border-radius: 4px;
-    border-left: 3px solid #dc3545;
-}
-
-/* =====================================
-   13) UTILITY CLASSES
-   ===================================== */
-
-.badge {
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 0.375rem 0.75rem;
-    border-radius: 6px;
-}
-
-.reset-route-btn {
-    margin-top: 10px;
-    transition: all 0.2s ease;
-}
-
-.reset-route-btn:hover {
-    background-color: #6c757d;
-    border-color: #6c757d;
-    transform: translateY(-1px);
-}
-
-/* Focus accessibility improvements */
 .modal[aria-hidden="true"] button:focus,
 .modal[aria-hidden="true"] [tabindex]:focus {
     outline: none;
-}
-
-.btn:focus,
-.form-control:focus,
-.form-select:focus {
-    box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
-}
-
-/* =====================================
-   14) RESPONSIVE DESIGN
-   ===================================== */
-
-@media (max-width: 768px) {
-    /* Filter adjustments */
-    .filter-item {
-        min-width: 100%;
-    }
-    
-    /* Action button adjustments */
-    .action-buttons {
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    /* Modal adjustments */
-    .modal-lg {
-        max-width: 95%;
-        margin: 10px;
-    }
-    
-    .modal-dialog.modal-lg {
-        margin: 0.5rem;
-        max-width: none;
-    }
-    
-    /* Route details responsive */
-    .row.g-0 > .col-md-4,
-    .row.g-0 > .col-md-8 {
-        flex: 0 0 100%;
-        max-width: 100%;
-    }
-    
-    /* Map height adjustments for mobile */
-    .points-section {
-        height: 250px;
-    }
-    
-    .route-map,
-    #route-map,
-    #addRouteMap,
-    #editRouteMap {
-        height: 300px !important;
-    }
-    
-    /* Route controls mobile layout */
-    .route-mode-selector {
-        flex-direction: column;
-        gap: 10px;
-        align-items: flex-start;
-    }
-    
-    .route-mode-selector .btn-group {
-        margin-left: 0;
-        width: 100%;
-    }
-    
-    .route-mode-selector .btn-group .btn {
-        flex: 1;
-    }
-    
-    /* Day checkboxes mobile layout */
-    .day-checkboxes {
-        gap: 0.5rem;
-        justify-content: center;
-    }
-    
-    .form-check-inline {
-        min-width: 45px;
-        font-size: 0.8rem;
-    }
-    
-    /* Autocomplete mobile adjustments */
-    .autocomplete-suggestions {
-        width: calc(100% - 2px);
-        max-height: 200px;
-    }
-    
-    .autocomplete-suggestion {
-        padding: 10px;
-        font-size: 0.85rem;
-    }
-}
-
-@media (max-width: 576px) {
-    /* Extra small screens */
-    .route-map,
-    #route-map,
-    #addRouteMap,
-    #editRouteMap {
-        height: 250px !important;
-    }
-    
-    .points-section {
-        height: 200px;
-    }
-    
-    .modal-body {
-        padding: 1rem;
-    }
-    
-    .route-points-container,
-    .route-controls,
-    .Weekly-days-container {
-        padding: 1rem;
-    }
-    
-    .marker-pin {
-        width: 25px;
-        height: 35px;
-    }
-    
-    .marker-pin i {
-        font-size: 10px;
-    }
-}
-
-/* =====================================
-   15) PRINT STYLES
-   ===================================== */
-
-@media print {
-    .route-map,
-    #route-map,
-    #addRouteMap,
-    #editRouteMap {
-        height: 300px !important;
-        border: 1px solid #000;
-    }
-    
-    .modal {
-        position: static !important;
-        display: block !important;
-    }
-    
-    .modal-backdrop {
-        display: none !important;
-    }
-    
-    .btn {
-        border: 1px solid #000 !important;
-    }
 }
