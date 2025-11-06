@@ -62,6 +62,11 @@ class EditTruckView {
   }
 
   populate(data) {
+    if (!data?.truck_id) {
+      console.warn('Missing truck_id in EditTruckView.populate payload:', data);
+      return; // don’t proceed; prevents empty hidden input
+    }
+
     const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
     setVal('editTruckId', data.truck_id);
     setVal('editScheduleId', data.schedule_id);

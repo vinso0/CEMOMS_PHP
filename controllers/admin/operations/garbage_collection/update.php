@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Fixed parameter name from 'id' to 'truck_id'
-$truckId = $_POST['truck_id'] ?? null;
+$truckId = isset($_POST['truck_id']) && is_numeric($_POST['truck_id']) ? (int)$_POST['truck_id'] : null;
 $plateNumber = trim($_POST['plate_number'] ?? '');
 $bodyNumber = trim($_POST['body_number'] ?? '');
 $foremanId = $_POST['foreman_id'] ?? null;

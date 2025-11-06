@@ -117,7 +117,7 @@ ob_start();
             <tbody id="trucks-tbody">
                 <?php if (!empty($trucks)): ?>
                     <?php foreach ($trucks as $truck): ?>
-                        <tr data-truck-id="<?= htmlspecialchars($truck['truck_id'] ?? '') ?>" 
+                        <tr data-truck-id="<?= htmlspecialchars((string)($truck['id'] ?? $truck['truck_id'] ?? '')) ?>"
                             data-foreman-id="<?= htmlspecialchars($truck['foreman_id'] ?? '') ?>"
                             data-status="<?= htmlspecialchars($truck['status'] ?? 'Parked') ?>"
                             data-route-id="<?= htmlspecialchars($truck['route_id'] ?? '') ?>">
@@ -155,7 +155,7 @@ ob_start();
                                             class="btn btn-sm btn-warning edit-truck-btn" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#editTruckModal"
-                                            data-truck-id="<?= htmlspecialchars((string)($truck['id'] ?? '')) ?>"
+                                            data-truck-id="<?= htmlspecialchars((string)($truck['id'] ?? $truck['truck_id'] ?? '')) ?>"
                                             data-plate-number="<?= htmlspecialchars((string)($truck['plate_number'] ?? '')) ?>"
                                             data-body-number="<?= htmlspecialchars((string)($truck['body_number'] ?? '')) ?>"
                                             data-route-name="<?= htmlspecialchars((string)($truck['route_name'] ?? '')) ?>"
