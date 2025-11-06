@@ -229,17 +229,17 @@
                                 <div class="btn-group" role="group" aria-label="Point selection">
                                     <input type="radio" class="btn-check" name="editPointMode" id="editStartMode" value="start" checked>
                                     <label class="btn btn-outline-success" for="editStartMode">
-                                        <i class="fas fa-play me-1"></i>Start
+                                        Start
                                     </label>
 
                                     <input type="radio" class="btn-check" name="editPointMode" id="editMidMode" value="mid">
                                     <label class="btn btn-outline-primary" for="editMidMode">
-                                        <i class="fas fa-pause me-1"></i>Mid
+                                        Mid
                                     </label>
 
                                     <input type="radio" class="btn-check" name="editPointMode" id="editEndMode" value="end">
                                     <label class="btn btn-outline-danger" for="editEndMode">
-                                        <i class="fas fa-stop me-1"></i>End
+                                        End
                                     </label>
                                 </div>
                                 

@@ -250,6 +250,44 @@
 .mid-marker .marker-pin { background: #007bff; }
 .end-marker .marker-pin { background: #dc3545; }
 
+.custom-route-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
+.custom-route-marker > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #007bff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: bold;
+    font-size: 12px;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Route line styles */
+.leaflet-interactive {
+    outline: none;
+}
+
+/* Loading indicator for route calculation */
+#route-loading-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 /* 8) ROUTE POINT INPUT STATES */
 .route-point-input.updated {
   background-color: #d4edda;

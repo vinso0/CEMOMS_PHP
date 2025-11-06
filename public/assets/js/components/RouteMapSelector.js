@@ -15,6 +15,7 @@ class RouteMapSelector {
             end: null
         };
         
+        this.path = null;
         this.currentMode = 'start';
         this._destroyed = false;
         this._isInitializing = false;
@@ -180,7 +181,7 @@ class RouteMapSelector {
             }
         }
         
-        // Create new marker
+        // Create new marker with numbered circular icon
         const markerConfig = this.getMarkerConfig(type);
         
         this.markers[type] = L.marker([lat, lng], {
@@ -188,50 +189,119 @@ class RouteMapSelector {
             title: markerConfig.title
         }).addTo(this.map);
         
-        this.markers[type].bindPopup(markerConfig.title).openPopup();
+        this.markers[type].bindPopup(markerConfig.popupContent).openPopup();
         
         // Store coordinates
         this.setCoordinates(type, lat, lng);
+        
+        // Update route line
+        this.updateRouteLine();
         
         // Update bounds
         this.fitMapToMarkers();
     }
 
     getMarkerConfig(type) {
-        const configs = {
-            start: {
-                title: 'Start Point',
-                icon: L.divIcon({
-                    className: 'custom-marker start-marker',
-                    html: '<div class="marker-pin"><i class="fas fa-play"></i></div>',
-                    iconSize: [30, 40],
-                    iconAnchor: [15, 40],
-                    popupAnchor: [0, -40]
-                })
-            },
-            mid: {
-                title: 'Mid Point',
-                icon: L.divIcon({
-                    className: 'custom-marker mid-marker',
-                    html: '<div class="marker-pin"><i class="fas fa-pause"></i></div>',
-                    iconSize: [30, 40],
-                    iconAnchor: [15, 40],
-                    popupAnchor: [0, -40]
-                })
-            },
-            end: {
-                title: 'End Point',
-                icon: L.divIcon({
-                    className: 'custom-marker end-marker',
-                    html: '<div class="marker-pin"><i class="fas fa-stop"></i></div>',
-                    iconSize: [30, 40],
-                    iconAnchor: [15, 40],
-                    popupAnchor: [0, -40]
-                })
-            }
-        };
+        const markerNumber = type === 'start' ? 1 : (type === 'mid' ? 2 : 3);
+        const color = type === 'start' ? '#28a745' : (type === 'mid' ? '#007bff' : '#dc3545');
+        const pointName = type === 'start' ? 'Start Point' : (type === 'mid' ? 'Mid Point' : 'End Point');
         
-        return configs[type];
+        return {
+            title: pointName,
+            icon: L.divIcon({
+                html: `<div style="background-color:${color};width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:12px;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,.3);">${markerNumber}</div>`,
+                className: 'custom-route-marker',
+                iconSize: [24, 24],
+                iconAnchor: [12, 12],
+                popupAnchor: [0, -12]
+            }),
+            popupContent: `
+                <div style="min-width:150px;">
+                    <h6>${pointName}</h6>
+                    <p class="mb-0"><small>Click to set location</small></p>
+                </div>
+            `
+        };
+    }
+
+    updateRouteLine() {
+        if (!this.map || this._destroyed) return;
+        
+        // Clear existing path
+        if (this.path) {
+            try {
+                this.map.removeLayer(this.path);
+            } catch (error) {
+                console.warn('Error removing path:', error);
+            }
+            this.path = null;
+        }
+        
+        // Get coordinates of all placed markers
+        const coordinates = [];
+        ['start', 'mid', 'end'].forEach(type => {
+            if (this.markers[type]) {
+                const latlng = this.markers[type].getLatLng();
+                coordinates.push([latlng.lat, latlng.lng]);
+            }
+        });
+        
+        // Draw route line if we have at least 2 points
+        if (coordinates.length >= 2) {
+            this.drawRoadRoute(coordinates);
+        }
+    }
+
+    async drawRoadRoute(coordinates) {
+        if (!this.map || this._destroyed) return;
+        
+        try {
+            // Format coordinates for OSRM API
+            const waypoints = coordinates.map(coord => `${coord[1]},${coord[0]}`).join(';');
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${waypoints}?overview=full&geometries=geojson`;
+
+            const response = await fetch(osrmUrl);
+            
+            if (!response.ok) {
+                throw new Error(`OSRM API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const route = data.routes?.[0];
+
+            if (!route) {
+                console.warn('No route found, drawing straight lines');
+                this.drawStraightLines(coordinates);
+                return;
+            }
+
+            // Draw the route
+            const routeCoordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+            
+            this.path = L.polyline(routeCoordinates, {
+                color: '#2196f3',
+                weight: 4,
+                opacity: 0.8,
+                smoothFactor: 1
+            }).addTo(this.map);
+
+            console.log('✅ Road route drawn successfully');
+
+        } catch (error) {
+            console.warn('⚠️ OSRM routing failed, using straight lines:', error);
+            this.drawStraightLines(coordinates);
+        }
+    }
+
+    drawStraightLines(coordinates) {
+        if (!this.map || this._destroyed) return;
+
+        this.path = L.polyline(coordinates, {
+            color: '#ff9800',
+            weight: 3,
+            opacity: 0.7,
+            dashArray: '10,5'
+        }).addTo(this.map);
     }
         
     reverseGeocode(lat, lng, type) {
@@ -373,6 +443,17 @@ class RouteMapSelector {
     clearAllMarkers() {
         if (this._destroyed) return;
         
+        // Clear path first
+        if (this.path && this.map) {
+            try {
+                this.map.removeLayer(this.path);
+            } catch (error) {
+                console.warn('Error removing path:', error);
+            }
+            this.path = null;
+        }
+        
+        // Clear markers
         Object.keys(this.markers).forEach(type => {
             if (this.markers[type] && this.map) {
                 try {
@@ -460,6 +541,16 @@ class RouteMapSelector {
         if (!this.map) return;
         
         try {
+            // Remove path
+            if (this.path) {
+                try {
+                    this.map.removeLayer(this.path);
+                } catch (error) {
+                    console.warn('Error removing path:', error);
+                }
+                this.path = null;
+            }
+            
             // Remove all layers
             this.map.eachLayer(layer => {
                 try {
@@ -487,6 +578,16 @@ class RouteMapSelector {
         
         console.log('🧹 Destroying RouteMapSelector');
         this._destroyed = true;
+        
+        // Clear path
+        if (this.path && this.map) {
+            try {
+                this.map.removeLayer(this.path);
+            } catch (e) {
+                console.warn('Error removing path:', e);
+            }
+            this.path = null;
+        }
         
         // Clear markers
         Object.values(this.markers).forEach(marker => {
