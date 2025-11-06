@@ -313,6 +313,21 @@ class EditTruckView {
     }
     this.clearRouteInputs(); 
   }
+
+  cleanup() {
+  if (this.map) {
+    this.map.remove();
+    this.map = null;
+    // Also clear global reference if used
+    window._detailsMapInstance = null;
+  }
+  // (Optionally) Clear container innerHTML if you dynamically re-render
+  const container = document.getElementById(this.mapId);
+  if (container) {
+    container.innerHTML = '';
+    container._leaflet_id = undefined;
+  }
+}
 }
 
 window.EditTruckView = EditTruckView;

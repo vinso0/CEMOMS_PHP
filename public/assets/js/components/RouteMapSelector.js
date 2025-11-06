@@ -17,18 +17,29 @@ class RouteMapSelector {
         
         this.currentMode = 'start';
         this._destroyed = false;
+        this._isInitializing = false;
         
         this.init();
     }
     
     init() {
+        if (this._isInitializing) {
+            console.warn('⚠️ RouteMapSelector already initializing');
+            return;
+        }
+        
+        this._isInitializing = true;
+        
         try {
             this.initMap();
             this.initEventListeners();
             console.log('✅ RouteMapSelector initialized');
         } catch (error) {
             console.error('❌ RouteMapSelector init failed:', error);
+            this._destroyed = true;
             throw error;
+        } finally {
+            this._isInitializing = false;
         }
     }
 
@@ -39,64 +50,86 @@ class RouteMapSelector {
             throw new Error(`Map container '${this.mapId}' not found`);
         }
         
-        // Clean existing instance
+        // CRITICAL FIX: Complete cleanup like RouteDetailsView
         this.destroyMapInstance();
         
-        // Clear Leaflet references
-        if (mapContainer._leaflet_id) {
-            mapContainer._leaflet_id = undefined;
+        // CRITICAL FIX: Clean Leaflet internal references properly
+        try {
+            if (mapContainer._leaflet_id && window.L && L.DomUtil) {
+                L.DomUtil.removeClass(mapContainer, 'leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom');
+                mapContainer._leaflet_id = undefined;
+                mapContainer._leaflet = undefined;
+            }
+        } catch (error) {
+            console.warn('⚠️ Could not clean Leaflet references:', error);
         }
+        
+        // Clear container HTML
         mapContainer.innerHTML = '';
         
         if (typeof L === 'undefined') {
             throw new Error('Leaflet library not loaded');
         }
         
-        try {
-            // CRITICAL FIX: Simple, direct initialization like RouteDetailsView
-            this.map = L.map(this.mapId, {
-                center: [this.options.defaultLat, this.options.defaultLng],
-                zoom: this.options.defaultZoom,
-                zoomControl: true,
-                attributionControl: true,
-                dragging: true,           // ✅ Enable dragging
-                touchZoom: true,
-                scrollWheelZoom: true,
-                doubleClickZoom: true,
-                boxZoom: true,
-                keyboard: true,
-                tap: true
-            });
+        // CRITICAL FIX: Add delay to ensure DOM is ready (like RouteDetailsView)
+        setTimeout(() => {
+            if (this._destroyed) return;
             
-            // Add tile layer
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                maxZoom: 19
-            }).addTo(this.map);
-            
-            // Map click handler for point selection
-            this.map.on('click', (event) => {
-                if (!this._destroyed) {
-                    this.handleMapClick(event);
-                }
-            });
-            
-            // Safe resize after map is ready
-            this.map.whenReady(() => {
-                setTimeout(() => {
-                    if (!this._destroyed && this.map) {
-                        this.map.invalidateSize();
+            try {
+                // CRITICAL FIX: Simplified initialization with all interactions enabled
+                this.map = L.map(this.mapId, {
+                    center: [this.options.defaultLat, this.options.defaultLng],
+                    zoom: this.options.defaultZoom,
+                    zoomControl: true,
+                    attributionControl: true,
+                    dragging: true,
+                    touchZoom: true,
+                    scrollWheelZoom: true,
+                    doubleClickZoom: true,
+                    boxZoom: true,
+                    keyboard: true,
+                    tap: true,
+                    preferCanvas: false,
+                    worldCopyJump: false,
+                    fadeAnimation: false,
+                    zoomAnimation: false,
+                    markerZoomAnimation: false
+                });
+                
+                // Add tile layer
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                    maxZoom: 19,
+                    keepBuffer: 2,
+                    updateWhenZooming: false,
+                    updateWhenIdle: true
+                }).addTo(this.map);
+                
+                // Map click handler for point selection
+                this.map.on('click', (event) => {
+                    if (!this._destroyed) {
+                        this.handleMapClick(event);
                     }
-                }, 100);
-            });
-            
-            console.log('✅ Map initialized successfully');
-            
-        } catch (error) {
-            console.error('❌ Map init failed:', error);
-            this._destroyed = true;
-            throw error;
-        }
+                });
+                
+                // CRITICAL FIX: Use whenReady like RouteDetailsView
+                this.map.whenReady(() => {
+                    console.log('✅ Map ready, invalidating size');
+                    setTimeout(() => {
+                        if (!this._destroyed && this.map) {
+                            this.map.invalidateSize(true);
+                        }
+                    }, 100);
+                });
+                
+                console.log('✅ Map initialized successfully');
+                
+            } catch (error) {
+                console.error('❌ Map init failed:', error);
+                this._destroyed = true;
+                throw error;
+            }
+        }, 50); // Small delay to ensure DOM is ready
     }
 
     initEventListeners() {
@@ -133,7 +166,11 @@ class RouteMapSelector {
         
         // Remove existing marker
         if (this.markers[type]) {
-            this.map.removeLayer(this.markers[type]);
+            try {
+                this.map.removeLayer(this.markers[type]);
+            } catch (error) {
+                console.warn('Error removing marker:', error);
+            }
         }
         
         // Create new marker
@@ -299,10 +336,15 @@ class RouteMapSelector {
 
     updateModeIndicator() {
         if (!this.map || this._destroyed) return;
-        const mapContainer = this.map.getContainer();
-        if (mapContainer) {
-            mapContainer.style.cursor = this.currentMode === 'start' ? 'crosshair' : 
-                                        this.currentMode === 'mid' ? 'copy' : 'cell';
+        
+        try {
+            const mapContainer = this.map.getContainer();
+            if (mapContainer) {
+                mapContainer.style.cursor = this.currentMode === 'start' ? 'crosshair' : 
+                                            this.currentMode === 'mid' ? 'copy' : 'cell';
+            }
+        } catch (error) {
+            console.warn('Could not update cursor:', error);
         }
     }
 
@@ -312,8 +354,12 @@ class RouteMapSelector {
         const validMarkers = Object.values(this.markers).filter(m => m);
         
         if (validMarkers.length > 0) {
-            const group = new L.featureGroup(validMarkers);
-            this.map.fitBounds(group.getBounds().pad(0.1));
+            try {
+                const group = new L.featureGroup(validMarkers);
+                this.map.fitBounds(group.getBounds().pad(0.1));
+            } catch (error) {
+                console.warn('Error fitting bounds:', error);
+            }
         }
     }
 
@@ -322,7 +368,11 @@ class RouteMapSelector {
         
         Object.keys(this.markers).forEach(type => {
             if (this.markers[type] && this.map) {
-                this.map.removeLayer(this.markers[type]);
+                try {
+                    this.map.removeLayer(this.markers[type]);
+                } catch (error) {
+                    console.warn('Error removing marker:', error);
+                }
                 this.markers[type] = null;
             }
             
@@ -389,7 +439,11 @@ class RouteMapSelector {
         if (!this._destroyed && this.map) {
             setTimeout(() => {
                 if (!this._destroyed && this.map) {
-                    this.map.invalidateSize();
+                    try {
+                        this.map.invalidateSize(true);
+                    } catch (error) {
+                        console.warn('Error invalidating size:', error);
+                    }
                 }
             }, 100);
         }
@@ -399,14 +453,23 @@ class RouteMapSelector {
         if (!this.map) return;
         
         try {
+            // Remove all layers
             this.map.eachLayer(layer => {
-                this.map.removeLayer(layer);
+                try {
+                    this.map.removeLayer(layer);
+                } catch (error) {
+                    console.warn('Error removing layer:', error);
+                }
             });
             
+            // Remove event listeners
             this.map.off();
+            
+            // Remove map instance
             this.map.remove();
+            console.log('🗑️ Map instance removed');
         } catch (error) {
-            console.warn('Error destroying map:', error);
+            console.warn('⚠️ Error destroying map:', error);
         }
         
         this.map = null;
@@ -418,15 +481,19 @@ class RouteMapSelector {
         console.log('🧹 Destroying RouteMapSelector');
         this._destroyed = true;
         
+        // Clear markers
         Object.values(this.markers).forEach(marker => {
             if (marker && this.map) {
                 try {
                     this.map.removeLayer(marker);
-                } catch (e) {}
+                } catch (e) {
+                    console.warn('Error removing marker:', e);
+                }
             }
         });
         this.markers = { start: null, mid: null, end: null };
         
+        // Destroy map
         this.destroyMapInstance();
     }
 }
