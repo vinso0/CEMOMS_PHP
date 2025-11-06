@@ -116,13 +116,13 @@ class AddTruckView {
     if (fb) fb.textContent = '';
   }
 
-  // weekly days helpers
+  // Weekly days helpers
   toggleWeeklyDays() {
     const type = document.getElementById('scheduleType')?.value;
     const section = document.getElementById('weeklyDaysSection');
     if (!section) return;
     const checks = document.querySelectorAll('input[name="schedule_days[]"]');
-    if (type === 'weekly') {
+    if (type === 'Weekly') {
       section.style.display = 'block';
       checks.forEach(c => c.required = true);
     } else {
@@ -140,11 +140,11 @@ class AddTruckView {
   }
   validateWeeklyDays() {
     const type = document.getElementById('scheduleType')?.value;
-    if (type === 'weekly') {
+    if (type === 'Weekly') {
       const selected = document.querySelectorAll('input[name="schedule_days[]"]:checked');
       const err = document.getElementById('weeklyDaysError');
       if (selected.length === 0) {
-        if (err) err.textContent = 'Please select at least one day for weekly schedule.';
+        if (err) err.textContent = 'Please select at least one day for Weekly schedule.';
         document.querySelectorAll('input[name="schedule_days[]"]').forEach(c => c.classList.add('is-invalid'));
         return false;
       }

@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $plateNumber = trim($_POST['plate_number'] ?? '');
 $bodyNumber = trim($_POST['body_number'] ?? '');
 $foremanId = $_POST['foreman_id'] ?? null;
-$scheduleType = $_POST['schedule_type'] ?? 'daily';
+$scheduleType = $_POST['schedule_type'] ?? 'Daily';
 $operationTime = $_POST['operation_time'] ?? null;
 
 // Route data
@@ -84,14 +84,14 @@ if (!empty($midPoint) && (empty($midLat) || empty($midLon))) {
     $errors[] = 'Mid point coordinates are required if mid point is specified. Please select a location on the map.';
 }
 
-if (!in_array($scheduleType, ['daily', 'weekly'])) {
+if (!in_array($scheduleType, ['Daily', 'Weekly'])) {
     $errors[] = 'Invalid schedule type.';
 }
 
-// ENHANCED: Validate weekly schedule days
-if ($scheduleType === 'weekly') {
+// ENHANCED: Validate Weekly schedule days
+if ($scheduleType === 'Weekly') {
     if (empty($_POST['schedule_days']) || !is_array($_POST['schedule_days'])) {
-        $errors[] = 'Please select at least one day for weekly schedule.';
+        $errors[] = 'Please select at least one day for Weekly schedule.';
     } else {
         $validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         foreach ($_POST['schedule_days'] as $day) {
@@ -174,8 +174,8 @@ if (count($errors) === 0) {
             throw new \Exception('Failed to create schedule record');
         }
         
-        // ENHANCED: Step 5 - Handle weekly schedule days
-        if ($scheduleType === 'weekly' && !empty($_POST['schedule_days']) && is_array($_POST['schedule_days'])) {
+        // ENHANCED: Step 5 - Handle Weekly schedule days
+        if ($scheduleType === 'Weekly' && !empty($_POST['schedule_days']) && is_array($_POST['schedule_days'])) {
             foreach ($_POST['schedule_days'] as $dayOfWeek) {
                 $db->query(
                     "INSERT INTO schedule_days (schedule_id, day_of_week) VALUES (:schedule_id, :day_of_week)",

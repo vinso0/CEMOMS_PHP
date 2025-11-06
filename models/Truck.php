@@ -56,7 +56,7 @@ class Truck
         
         $trucks = $this->db->query($query)->get();
         
-        // Process weekly days for each truck
+        // Process Weekly days for each truck
         foreach ($trucks as &$truck) {
             if (!empty($truck['weekly_days_str'])) {
                 $truck['weekly_days'] = explode(',', $truck['weekly_days_str']);

@@ -88,11 +88,11 @@ class RouteDetailsView {
     }
     setText('details-operation-time', operationTime);
 
-    // Handle weekly days
-    const weeklyContainer = document.getElementById('weekly-days-container');
-    const weeklyDaysEl = document.getElementById('details-weekly-days');
+    // Handle Weekly days
+    const weeklyContainer = document.getElementById('Weekly-days-container');
+    const weeklyDaysEl = document.getElementById('details-Weekly-days');
     
-    if (truckData.schedule === 'weekly' && truckData.weekly_days?.length) {
+    if (truckData.schedule === 'Weekly' && truckData.weekly_days?.length) {
       if (weeklyContainer) weeklyContainer.style.display = 'block';
       if (weeklyDaysEl) {
         weeklyDaysEl.innerHTML = truckData.weekly_days

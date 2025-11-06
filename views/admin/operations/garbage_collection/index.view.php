@@ -165,7 +165,7 @@ ob_start();
                                             data-schedule="<?= htmlspecialchars((string)($truck['schedule'] ?? '')) ?>"
                                             data-schedule-id="<?= htmlspecialchars((string)($truck['schedule_id'] ?? '')) ?>"
                                             data-operation-time="<?= htmlspecialchars((string)($truck['operation_time'] ?? '')) ?>"
-                                            data-weekly-days="<?= htmlspecialchars(json_encode($truck['weekly_days'] ?? [])) ?>">
+                                            data-Weekly-days="<?= htmlspecialchars(json_encode($truck['weekly_days'] ?? [])) ?>">
                                         <i class="fas fa-edit"></i>
                                     </button>
 

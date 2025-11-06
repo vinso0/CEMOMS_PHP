@@ -36,7 +36,7 @@ class EditTruckView {
     // expose for inline calls if needed
     window.populateEditModal = (d) => this.populate(d);
 
-    // weekly helpers
+    // Weekly helpers
     window.toggleEditWeeklyDays = () => this.toggleWeeklyDays();
     window.selectEditWeekdays = () => this.selectWeekdays();
     window.selectEditAllDays = () => this.selectAllDays();
@@ -80,7 +80,7 @@ class EditTruckView {
     if (sched) { sched.value = data.schedule || ''; this.toggleWeeklyDays(); }
     setVal('editOperationTime', data.operation_time);
 
-    if (data.schedule === 'weekly' && data.weekly_days) {
+    if (data.schedule === 'Weekly' && data.weekly_days) {
       this.clearDays();
       (Array.isArray(data.weekly_days) ? data.weekly_days : String(data.weekly_days).split(','))
         .map(d => d.trim())
@@ -137,12 +137,12 @@ class EditTruckView {
     });
   }
 
-  // weekly helpers
+  // Weekly helpers
   toggleWeeklyDays() {
     const type = document.getElementById('editScheduleType')?.value;
     const section = document.getElementById('editWeeklyDaysSection');
     if (!section) return;
-    if (type === 'weekly') section.style.display = 'block';
+    if (type === 'Weekly') section.style.display = 'block';
     else { section.style.display = 'none'; this.clearDays(); }
   }
   selectWeekdays() { this.clearDays(); ['editMonday','editTuesday','editWednesday','editThursday','editFriday'].forEach(id => document.getElementById(id).checked = true); }

@@ -78,8 +78,8 @@
                                 <label for="editScheduleType" class="form-label required">Schedule Type</label>
                                 <select class="form-select" id="editScheduleType" name="schedule_type" required onchange="toggleEditWeeklyDays()">
                                     <option value="">Select Schedule</option>
-                                    <option value="daily">Daily</option>
-                                    <option value="weekly">Weekly</option>
+                                    <option value="Daily">Daily</option>
+                                    <option value="Weekly">Weekly</option>
                                 </select>
                                 <div class="invalid-feedback"></div>
                             </div>
@@ -89,7 +89,7 @@
                         <div class="row" id="editWeeklyDaysSection" style="display: none;">
                             <div class="col-12">
                                 <label class="form-label required">Select Days of the Week</label>
-                                <div class="weekly-days-container">
+                                <div class="Weekly-days-container">
                                     <div class="day-checkboxes">
                                         <div class="form-check form-check-inline">
                                             <input class="form-check-input" type="checkbox" id="editMonday" name="schedule_days[]" value="Monday">

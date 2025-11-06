@@ -22,7 +22,7 @@ $truckId = isset($_POST['truck_id']) && is_numeric($_POST['truck_id']) ? (int)$_
 $plateNumber = trim($_POST['plate_number'] ?? '');
 $bodyNumber = trim($_POST['body_number'] ?? '');
 $foremanId = $_POST['foreman_id'] ?? null;
-$scheduleType = $_POST['schedule_type'] ?? 'daily';
+$scheduleType = $_POST['schedule_type'] ?? 'Daily';
 
 // Route data
 $routeId = $_POST['route_id'] ?? null;
@@ -109,15 +109,24 @@ if (!empty($midPoint) && (empty($midLat) || empty($midLon) || !is_numeric($midLa
     $errors[] = 'Mid point coordinates are invalid. Please select a valid location on the map for the mid point.';
 }
 
-if (!in_array($scheduleType, ['daily', 'weekly'])) {
+if (!in_array($scheduleType, ['Daily', 'Weekly'])) {
     $errors[] = 'Invalid schedule type selected.';
 }
 
-// If weekly schedule, validate that at least one day is selected
-if ($scheduleType === 'weekly') {
+// If Weekly schedule, validate that at least one day is selected
+if ($scheduleType === 'Weekly') {
     $scheduleDays = $_POST['schedule_days'] ?? [];
     if (empty($scheduleDays) || !is_array($scheduleDays)) {
-        $errors[] = 'At least one day must be selected for weekly schedule.';
+        $errors[] = 'At least one day must be selected for Weekly schedule.';
+    }
+}
+
+$normalizedDays = [];
+if ($scheduleType === 'Weekly') {
+    $allowed = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    foreach ((array)($_POST['schedule_days'] ?? []) as $d) {
+        $d = trim($d);
+        if (in_array($d, $allowed, true)) $normalizedDays[] = $d;
     }
 }
 
@@ -168,6 +177,13 @@ if (count($errors) === 0) {
                 $scheduleType,
                 $schedule['status']
             );
+
+            if ($scheduleType === 'weekly') {
+                $scheduleModel->replaceWeeklyDays($schedule['schedule_id'], $normalizedDays);
+            } else {
+                // if switching from weekly to daily, remove any stored days
+                $scheduleModel->replaceWeeklyDays($schedule['schedule_id'], []);
+            }
         } else {
             // Create new operation and schedule if it doesn't exist
             $adminId = $_SESSION['user_id'] ?? 1;
@@ -187,6 +203,11 @@ if (count($errors) === 0) {
                 $scheduleType,
                 'Parked'
             );
+
+            $newSchedule = $scheduleModel->getByTruckId($truckId);
+            if ($scheduleType === 'weekly') {
+                $scheduleModel->createWeeklyDays($newSchedule['schedule_id'], $normalizedDays);
+            }
         }
         
         $_SESSION['success'] = 'Truck updated successfully with all route information.';

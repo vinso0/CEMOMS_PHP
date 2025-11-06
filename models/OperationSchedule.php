@@ -171,4 +171,33 @@ class OperationSchedule
         $result = $this->db->query($sql, [':truck_id' => $truckId])->find();
         return $result['count'] > 0;
     }
+
+    public function replaceWeeklyDays($scheduleId, array $days)
+    {
+        // remove existing
+        $this->db->query("DELETE FROM schedule_days WHERE schedule_id = :sid", [':sid' => $scheduleId]);
+
+        // normalize and insert new
+        $stmt = $this->db->connection->prepare(
+            "INSERT INTO schedule_days (schedule_id, day_of_week) VALUES (:sid, :day)"
+        );
+        foreach ($days as $d) {
+            $day = trim($d);
+            if (!$day) continue;
+            $stmt->execute([':sid' => $scheduleId, ':day' => $day]);
+        }
+    }
+
+    public function createWeeklyDays($scheduleId, array $days)
+    {
+        if (empty($days)) return;
+        $stmt = $this->db->connection->prepare(
+            "INSERT INTO schedule_days (schedule_id, day_of_week) VALUES (:sid, :day)"
+        );
+        foreach ($days as $d) {
+            $day = trim($d);
+            if (!$day) continue;
+            $stmt->execute([':sid' => $scheduleId, ':day' => $day]);
+        }
+    }
 }

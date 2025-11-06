@@ -51,10 +51,10 @@
                                     <strong>Operation Time:</strong> 
                                     <span id="details-operation-time">-</span>
                                 </div>
-                                <!-- Weekly Days (shown only for weekly schedules) -->
-                                <div class="info-item" id="weekly-days-container" style="display: none;">
+                                <!-- Weekly Days (shown only for Weekly schedules) -->
+                                <div class="info-item" id="Weekly-days-container" style="display: none;">
                                     <strong>Days:</strong> 
-                                    <div id="details-weekly-days" class="mt-1"></div>
+                                    <div id="details-Weekly-days" class="mt-1"></div>
                                 </div>
                             </div>
                         </div>
