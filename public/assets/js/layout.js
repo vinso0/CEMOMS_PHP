@@ -4,7 +4,6 @@ class LayoutManager {
     constructor() {
         this.sidebar = document.querySelector('.sidebar');
         this.overlay = document.querySelector('.sidebar-overlay');
-        this.mobileToggle = document.querySelector('.mobile-menu-toggle');
         this.isMobile = window.innerWidth <= 768;
         
         this.init();

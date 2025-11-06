@@ -35,8 +35,6 @@
         <?php require base_path('views/partials/sidebar.php'); ?>
         
         <div class="main-content">
-            <?php require base_path('views/partials/navbar.php'); ?>
-            
             <div class="page-content">
                 <?= $content ?? '' ?>
             </div>

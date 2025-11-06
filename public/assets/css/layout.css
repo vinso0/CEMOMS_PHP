@@ -2,6 +2,7 @@
 .app-layout {
     display: flex;
     min-height: 100vh;
+    padding-top: 10px;
 }
 
 /* Sidebar Styles */
