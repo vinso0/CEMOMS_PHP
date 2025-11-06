@@ -30,11 +30,11 @@
                                     placeholder="e.g., ABC 1234" 
                                     required
                                     maxlength="20"
-                                    pattern="[A-Za-z0-9\s-]+"
+                                    pattern="[A-Za-z0-9 -]+"
                                     title="Only letters, numbers, spaces, and hyphens allowed">
                                 <div class="invalid-feedback"></div>
                             </div>
-                            
+
                             <div class="col-md-6 mb-3">
                                 <label for="editBodyNumber" class="form-label required">Body Number</label>
                                 <input 
@@ -45,7 +45,7 @@
                                     placeholder="e.g., SWM-309" 
                                     required
                                     maxlength="20"
-                                    pattern="[A-Za-z0-9\-]+"
+                                    pattern="[A-Za-z0-9-]+"
                                     title="Only letters, numbers, and hyphens allowed">
                                 <div class="invalid-feedback"></div>
                             </div>
