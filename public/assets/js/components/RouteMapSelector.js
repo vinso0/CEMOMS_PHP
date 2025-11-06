@@ -50,33 +50,40 @@ class RouteMapSelector {
             throw new Error(`Map container '${this.mapId}' not found`);
         }
         
-        // CRITICAL FIX: Complete cleanup like RouteDetailsView
-        this.destroyMapInstance();
-        
-        // CRITICAL FIX: Clean Leaflet internal references properly
-        try {
-            if (mapContainer._leaflet_id && window.L && L.DomUtil) {
-                L.DomUtil.removeClass(mapContainer, 'leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom');
-                mapContainer._leaflet_id = undefined;
-                mapContainer._leaflet = undefined;
-            }
-        } catch (error) {
-            console.warn('⚠️ Could not clean Leaflet references:', error);
-        }
-        
-        // Clear container HTML
-        mapContainer.innerHTML = '';
-        
         if (typeof L === 'undefined') {
             throw new Error('Leaflet library not loaded');
         }
         
-        // CRITICAL FIX: Add delay to ensure DOM is ready (like RouteDetailsView)
+        // CRITICAL FIX: Everything happens inside setTimeout in proper sequence
         setTimeout(() => {
             if (this._destroyed) return;
             
             try {
-                // CRITICAL FIX: Simplified initialization with all interactions enabled
+                // Step 1: Destroy existing map instance first
+                if (this.map) {
+                    try {
+                        this.map.eachLayer(layer => {
+                            this.map.removeLayer(layer);
+                        });
+                        this.map.off();
+                        this.map.remove();
+                    } catch (error) {
+                        console.warn('⚠️ Error destroying old map:', error);
+                    }
+                    this.map = null;
+                }
+                
+                // Step 2: Clean Leaflet DOM references
+                if (mapContainer._leaflet_id && window.L && L.DomUtil) {
+                    L.DomUtil.removeClass(mapContainer, 'leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom');
+                    mapContainer._leaflet_id = undefined;
+                    mapContainer._leaflet = undefined;
+                }
+                
+                // Step 3: Clear HTML
+                mapContainer.innerHTML = '';
+                
+                // Step 4: Create new map
                 this.map = L.map(this.mapId, {
                     center: [this.options.defaultLat, this.options.defaultLng],
                     zoom: this.options.defaultZoom,
@@ -96,7 +103,7 @@ class RouteMapSelector {
                     markerZoomAnimation: false
                 });
                 
-                // Add tile layer
+                // Step 5: Add tile layer
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
                     maxZoom: 19,
@@ -105,14 +112,14 @@ class RouteMapSelector {
                     updateWhenIdle: true
                 }).addTo(this.map);
                 
-                // Map click handler for point selection
+                // Step 6: Add click handler
                 this.map.on('click', (event) => {
                     if (!this._destroyed) {
                         this.handleMapClick(event);
                     }
                 });
                 
-                // CRITICAL FIX: Use whenReady like RouteDetailsView
+                // Step 7: Handle map ready
                 this.map.whenReady(() => {
                     console.log('✅ Map ready, invalidating size');
                     setTimeout(() => {
@@ -129,7 +136,7 @@ class RouteMapSelector {
                 this._destroyed = true;
                 throw error;
             }
-        }, 50); // Small delay to ensure DOM is ready
+        }, 50);
     }
 
     initEventListeners() {
