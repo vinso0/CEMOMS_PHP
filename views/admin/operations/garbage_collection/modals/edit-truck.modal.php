@@ -30,8 +30,8 @@
                                     placeholder="e.g., ABC 1234" 
                                     required
                                     maxlength="20"
-                                    pattern="[A-Za-z0-9 -]+"
-                                    title="Only letters, numbers, spaces, and hyphens allowed">
+                                    pattern="[A-Za-z0-9\s\-]+"
+                                    title="Only letters, numbers, and hyphens allowed">
                                 <div class="invalid-feedback"></div>
                             </div>
 
@@ -45,7 +45,7 @@
                                     placeholder="e.g., SWM-309" 
                                     required
                                     maxlength="20"
-                                    pattern="[A-Za-z0-9-]+"
+                                    pattern="[A-Za-z0-9\-]+"
                                     title="Only letters, numbers, and hyphens allowed">
                                 <div class="invalid-feedback"></div>
                             </div>
