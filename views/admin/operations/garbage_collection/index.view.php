@@ -96,6 +96,9 @@ ob_start();
 <div class="trucks-table-container">
     <div class="table-header">
         <h3><i class="fas fa-truck"></i> Trucks & Assignments</h3>
+        <div class="table-info">
+            Showing <?= count($trucks) ?> of <?= $totalTrucks ?> trucks
+        </div>
     </div>
     <div class="table-wrapper">
         <table class="trucks-table">
@@ -200,6 +203,57 @@ ob_start();
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    <?php if ($totalPages > 1): ?>
+    <div class="pagination-container">
+        <nav aria-label="Trucks pagination">
+            <ul class="pagination">
+                <!-- Previous Button -->
+                <li class="page-item <?= $currentPage <= 1 ? 'disabled' : '' ?>">
+                    <a class="page-link" href="?page=<?= $currentPage - 1 ?>" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+
+                <!-- Page Numbers -->
+                <?php
+                $startPage = max(1, $currentPage - 2);
+                $endPage = min($totalPages, $currentPage + 2);
+
+                // Show first page if not in range
+                if ($startPage > 1) {
+                    echo '<li class="page-item"><a class="page-link" href="?page=1">1</a></li>';
+                    if ($startPage > 2) {
+                        echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                    }
+                }
+
+                // Show page numbers
+                for ($i = $startPage; $i <= $endPage; $i++) {
+                    $activeClass = $i == $currentPage ? 'active' : '';
+                    echo "<li class=\"page-item {$activeClass}\"><a class=\"page-link\" href=\"?page={$i}\">{$i}</a></li>";
+                }
+
+                // Show last page if not in range
+                if ($endPage < $totalPages) {
+                    if ($endPage < $totalPages - 1) {
+                        echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                    }
+                    echo "<li class=\"page-item\"><a class=\"page-link\" href=\"?page={$totalPages}\">{$totalPages}</a></li>";
+                }
+                ?>
+
+                <!-- Next Button -->
+                <li class="page-item <?= $currentPage >= $totalPages ? 'disabled' : '' ?>">
+                    <a class="page-link" href="?page=<?= $currentPage + 1 ?>" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    <?php endif; ?>
 </div>
 
 <!-- Dispatch & Return Logs -->

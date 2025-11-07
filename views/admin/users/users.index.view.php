@@ -16,6 +16,12 @@ ob_start();
 <div class="users-table-container">
     <div class="table-header">
         <h2 class="section-title">Existing Foremen</h2>
+        <form class="d-flex" method="GET" action="/admin/users" style="gap: 0.5rem;">
+            <input type="search" name="q" class="form-control" placeholder="Search foremen..." aria-label="Search foremen">
+            <button class="btn btn-primary" type="submit">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </form>
     </div>
     <table class="users-table">
         <thead>
@@ -94,6 +100,10 @@ function populateDeleteModal(user) {
 <?php
 $content = ob_get_clean();
 $additionalScripts = '<script src="/assets/js/users.js"></script>';
-$additionalStyles = '<link rel="stylesheet" href="/assets/css/modal.css">';
+$additionalStyles = '
+    <link rel="stylesheet" href="/assets/css/modal.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+    <link rel="stylesheet" href="/assets/css/admin-dashboard.css">
+';
 
-require base_path('views/layout.php');
+require base_path('views/layout.php');  

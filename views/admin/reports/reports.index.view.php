@@ -63,7 +63,9 @@ ob_start();
                     <th>Date</th>
                     <th>Location</th>
                     <th>Foreman</th>
-                    <th>Proof</th>
+                    <th>Before</th>
+                    <th>After</th>
+                    <th>Remarks</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -76,14 +78,40 @@ ob_start();
                             <td><?= htmlspecialchars($report['operation_type']) ?></td>
                             <td><?= htmlspecialchars($report['date']) ?></td>
                             <td><?= htmlspecialchars($report['location']) ?></td>
-                            <td><?= htmlspecialchars($report['foreman']) ?></td>
+                            <td><?= htmlspecialchars($report['foreman_name']) ?></td>
+                            <td>
+                                <?php if (!empty($report['before_image'])): ?>
+                                    <a href="<?= htmlspecialchars($report['before_image']) ?>" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-image"></i> View
+                                    </a>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if (!empty($report['after_image'])): ?>
+                                    <a href="<?= htmlspecialchars($report['after_image']) ?>" target="_blank" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-image"></i> View
+                                    </a>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <div class="remarks-cell" title="<?= htmlspecialchars($report['remarks'] ?? '') ?>">
+                                    <?= htmlspecialchars(substr($report['remarks'] ?? '', 0, 30)) ?>
+                                    <?php if (strlen($report['remarks'] ?? '') > 30): ?>
+                                        ...
+                                    <?php endif; ?>
+                                </div>
+                            </td>
                             <td>
                                 <span class="status-badge status-<?= htmlspecialchars($report['status']) ?>">
                                     <?= ucfirst(htmlspecialchars($report['status'])) ?>
                                 </span>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-primary" title="View Details">
+                                <button class="btn btn-sm btn-primary" title="View Details" onclick="viewReportDetails(<?= htmlspecialchars($report['id']) ?>)">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </td>
@@ -91,7 +119,7 @@ ob_start();
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="7" class="text-center">
+                        <td colspan="10" class="text-center">
                             <div class="empty-state">
                                 <i class="fas fa-inbox"></i>
                                 <h5>No Reports</h5>
@@ -112,17 +140,17 @@ const operationsData = {
     collection: <?= $stats['operations']['collection'] ?? 0 ?>,
     sweeping: <?= $stats['operations']['sweeping'] ?? 0 ?>,
     flushing: <?= $stats['operations']['flushing'] ?? 0 ?>,
-    deClogging: <?= $stats['operations']['deClogging'] ?? 0 ?>
+    deClogging: <?= $stats['operations']['deClogging'] ?? 0 ?>,
     cleanup: <?= $stats['operations']['cleanup'] ?? 0 ?>
 };
 
 function updateOperationCount() {
     const filterValue = document.getElementById('operation-type-filter').value;
     const countElement = document.getElementById('operation-count');
-    
+
     // Animate the number change
     countElement.style.opacity = '0.5';
-    
+
     setTimeout(() => {
         countElement.textContent = operationsData[filterValue];
         countElement.style.opacity = '1';
@@ -142,6 +170,12 @@ function resetFilters() {
     document.getElementById('operation-type').value = '';
     document.getElementById('date-range').value = '';
     console.log('Filters reset');
+}
+
+function viewReportDetails(reportId) {
+    console.log('Viewing report details for ID:', reportId);
+    // TODO: Implement report details modal or redirect to details page
+    alert('Report details functionality to be implemented. Report ID: ' + reportId);
 }
 </script>
 

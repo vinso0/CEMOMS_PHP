@@ -12,7 +12,7 @@
                     <!-- Sweeper Information & Route Assignment -->
                     <div class="info-section p-3 bg-light border-bottom">
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <h6 class="text-primary mb-2">
                                     <i class="fas fa-broom me-1"></i>Sweeper Information
                                 </h6>
@@ -25,24 +25,14 @@
                                     <span id="details-status">-</span>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <h6 class="text-success mb-2">
-                                    <i class="fas fa-route me-1"></i>Route Assignment
+                            <div class="col-md-6">
+                                <h6 class="text-info mb-2">
+                                    <i class="fas fa-calendar-alt me-1"></i>Schedule Details
                                 </h6>
                                 <div class="info-item">
                                     <strong>Route:</strong>
                                     <span id="details-route-name">-</span>
                                 </div>
-                                <div class="info-item">
-                                    <strong>Foreman:</strong>
-                                    <span id="details-foreman">-</span>
-                                </div>
-                            </div>
-                            <!-- Schedule Information -->
-                            <div class="col-md-4">
-                                <h6 class="text-info mb-2">
-                                    <i class="fas fa-calendar-alt me-1"></i>Schedule Details
-                                </h6>
                                 <div class="info-item">
                                     <strong>Type:</strong>
                                     <span id="details-schedule-type">-</span>

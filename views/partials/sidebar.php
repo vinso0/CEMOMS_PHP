@@ -39,9 +39,11 @@
                 <div class="sidebar-submenu" style="display: none;">
                     <a class="submenu-link" href="/admin/operations/garbage_collection">Garbage Collection</a>
                     <a class="submenu-link" href="/admin/operations/sweeping">Street Sweeping</a>
+                    <!-- 
                     <a class="submenu-link" href="/admin/operations/flushing">Flushing</a>
                     <a class="submenu-link" href="/admin/operations/de-clogging">De-clogging</a>
                     <a class="submenu-link" href="/admin/operations/cleanup">Cleanup Drives</a>
+                    -->
                 </div>
             </div>
             

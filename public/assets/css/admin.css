@@ -46,7 +46,7 @@
         background: #5a6268;
     }
 
-.users-table-container {
+users-table-container {
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
@@ -101,7 +101,7 @@
 }
 
 .btn-edit {
-    background: #4CAF50;
+     background: #4CAF50;
     color: white;
     border: none;
     padding: 7px 12px;
@@ -116,7 +116,7 @@
 }
 
 .btn-edit:hover {
-    background: #45a049;
+    background: #4CAF50;
 }
 
 .btn-delete {
@@ -135,8 +135,9 @@
 }
 
 .btn-delete:hover {
-    background: #d32f2f;
+    background: #f44336;
 }
+
 
 /* Form Cards */
 .form-card {

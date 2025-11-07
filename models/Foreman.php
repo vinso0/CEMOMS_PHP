@@ -156,9 +156,9 @@ class Foreman
         return $result['count'] ?? 0;
     }
 
-    public function getStreetSweepingForemen()
+    public function getStreetSweepingForemen(): array
     {
-        $sql = "SELECT f.foreman_id as id, f.username, f.email, 
+        $sql = "SELECT f.foreman_id as id, f.username, f.email,
                     fr.role_name as role, f.foreman_role_id
                 FROM foreman f
                 JOIN foreman_role fr ON f.foreman_role_id = fr.foreman_role_id

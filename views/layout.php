@@ -32,26 +32,25 @@
 </head>
 <body>
     <div class="app-layout">
-        <?php require base_path('views/partials/sidebar.php'); ?>
-        
+        <?php if (($userType ?? 'admin') === 'admin'): ?>
+            <?php require base_path('views/partials/sidebar.php'); ?>
+        <?php endif; ?>
+
         <div class="main-content">
             <div class="page-content">
                 <?= $content ?? '' ?>
             </div>
         </div>
-        
-        <!-- Sidebar overlay for mobile -->
-        <div class="sidebar-overlay"></div>
-    </div>
 
-    <?php if ($userType !== 'foreman'): ?>
+        <?php if (($userType ?? 'admin') === 'admin'): ?>
+            <!-- Sidebar overlay for mobile -->
             <div class="sidebar-overlay"></div>
         <?php endif; ?>
-
-        <?php if ($userType === 'foreman'): ?>
-            <?php require base_path('views/partials/foreman-bottom-nav.php'); ?>
-        <?php endif; ?>
     </div>
+
+    <?php if (($userType ?? 'admin') === 'foreman'): ?>
+        <?php require base_path('views/partials/foreman-bottom-nav.php'); ?>
+    <?php endif; ?>
 
     <!-- JavaScript Files -->
    <script src="/public/assets/js/layout.js"></script>

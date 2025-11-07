@@ -2,13 +2,12 @@
 .app-layout {
     display: flex;
     min-height: 100vh;
-    padding-top: 10px;
 }
 
 /* Sidebar Styles */
 .sidebar {
     width: 280px;
-    background: linear-gradient(180deg, #3D6B01 0%, #34495e 100%);
+    background:  #1b5a47;
     color: white;
     position: fixed;
     height: 100vh;
@@ -59,13 +58,13 @@
 }
 
 .nav-link:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.164);
     color: white;
     transform: translateX(5px);
 }
 
 .nav-link.active {
-    background: #4CAF50;
+    background: #014532;
     color: white;
 }
 
@@ -86,16 +85,15 @@
     display: flex;
     align-items: center;
     padding: 12px 20px;
-    color: #e74c3c;
+    color: #fdfdfd;
     text-decoration: none;
     border-radius: 8px;
     transition: all 0.3s ease;
     gap: 12px;
-    background: rgba(231, 76, 60, 0.1);
 }
 
 .logout-link:hover {
-    background: rgba(231, 76, 60, 0.2);
+    background: rgba(141, 57, 57, 0.521);
     transform: translateX(5px);
 }
 
@@ -113,72 +111,7 @@
     width: calc(100% - 280px);
 }
 
-/* Top Navbar */
-.top-navbar {
-    background: #6B9F01;
-    padding: 0 30px;
-    height: 65px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
 
-.navbar-left {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.mobile-menu-toggle {
-    display: none;
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    color: #666;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 4px;
-}
-
-.mobile-menu-toggle:hover {
-    background: #f0f0f0;
-}
-
-.breadcrumb h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #2c3e50;
-    margin-top: 22px;
-}
-
-.breadcrumb-info p {
-    color: #666;
-    font-size: 0.9rem;
-    margin: 0;
-}
-
-.user-profile {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.user-profile span {
-    font-weight: 500;
-    color: #495057;
-}
-
-.avatar-image {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    object-fit: cover;
-   
-}
 
 /* Page Content */
 .page-content {

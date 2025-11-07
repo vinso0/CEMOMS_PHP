@@ -138,7 +138,8 @@ ob_start();
                                     <button class="btn btn-sm btn-success route-details-btn" title="View"
                                             data-bs-toggle="modal"
                                             data-bs-target="#routeDetailsModal"
-                                            data-sweeper-data="<?= htmlspecialchars(json_encode($sweeper)) ?>">
+                                            data-sweeper-data="<?= htmlspecialchars(json_encode($sweeper)) ?>"
+                                            data-truck-data="<?= htmlspecialchars(json_encode($sweeper)) ?>">
                                         <i class="fa-solid fa-expand"></i>
                                     </button>
                                     
@@ -215,3 +216,4 @@ $additionalScripts = '
 ';
 require base_path('views/layout.php');
 ?>
+

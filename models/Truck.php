@@ -15,37 +15,37 @@ class Truck
     }
 
     /**
-     * Get only garbage collection trucks (operation_type_id = 1)
+     * Get only garbage collection trucks (operation_type_id = 1) with pagination
      */
-    public function getGarbageCollectionTrucks()
+    public function getGarbageCollectionTrucks($limit = null, $offset = 0)
     {
-        $query = "SELECT 
+        $query = "SELECT
                     t.truck_id,
-                    t.plate_number,     
-                    t.body_number,      
+                    t.plate_number,
+                    t.body_number,
                     t.foreman_id,
-                    
+
                     -- ROUTE COLUMNS
                     os.route_id,
                     r.route_name,
                     r.start_point,
                     r.mid_point,
                     r.end_point,
-                    
+
                     -- FOREMAN COLUMNS
                     f.username as foreman_name,
-                    
+
                     -- SCHEDULE COLUMNS
                     os.schedule_type as schedule,
                     os.operation_time,
                     os.status,
-                    
+
                     -- WEEKLY DAYS (if needed)
-                    GROUP_CONCAT(sd.day_of_week ORDER BY 
+                    GROUP_CONCAT(sd.day_of_week ORDER BY
                         FIELD(sd.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')
                         SEPARATOR ','
                     ) as weekly_days_str
-                    
+
                 FROM truck t
                 LEFT JOIN operation_schedule os ON t.truck_id = os.truck_id
                 LEFT JOIN route r ON os.route_id = r.route_id
@@ -53,9 +53,18 @@ class Truck
                 LEFT JOIN schedule_days sd ON os.schedule_id = sd.schedule_id
                 GROUP BY t.truck_id, t.plate_number, t.body_number, t.foreman_id, os.route_id, r.route_name, f.username, os.schedule_type, os.operation_time, os.status
                 ORDER BY t.truck_id DESC";
-        
-        $trucks = $this->db->query($query)->get();
-        
+
+        if ($limit !== null) {
+            $query .= " LIMIT :limit OFFSET :offset";
+            $stmt = $this->db->connection->prepare($query);
+            $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+            $stmt->execute();
+            $trucks = $stmt->fetchAll();
+        } else {
+            $trucks = $this->db->query($query)->get();
+        }
+
         // Process Weekly days for each truck
         foreach ($trucks as &$truck) {
             if (!empty($truck['weekly_days_str'])) {
@@ -66,7 +75,7 @@ class Truck
             // Remove the temporary string field
             unset($truck['weekly_days_str']);
         }
-        
+
         return $trucks;
     }
 
@@ -288,6 +297,20 @@ class Truck
         $stmt->execute();
         
         return $stmt->fetchAll();
+    }
+
+    /**
+     * Get garbage collection trucks count
+     */
+    public function getGarbageCollectionTrucksCount()
+    {
+        $sql = "SELECT COUNT(DISTINCT t.truck_id) as count
+                FROM truck t
+                LEFT JOIN operation_schedule os ON t.truck_id = os.truck_id
+                LEFT JOIN operation o ON os.operation_id = o.operation_id
+                WHERE o.operation_type_id = 1 OR o.operation_type_id IS NULL";
+        $result = $this->db->query($sql)->find();
+        return $result['count'] ?? 0;
     }
 
     /**

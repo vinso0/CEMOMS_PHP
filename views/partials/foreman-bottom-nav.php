@@ -46,10 +46,6 @@
         <div class="icon"><i class="fas fa-file-alt"></i></div>
         <div class="label">Reports</div>
     </div>
-    <div class="nav-item" data-target="/foreman/notifications" onclick="foremanNavClick(event)">
-        <div class="icon"><i class="fas fa-bell"></i></div>
-        <div class="label">Messages</div>
-    </div>
     <div class="nav-item" data-target="/foreman/account" onclick="foremanNavClick(event)">
         <div class="icon"><i class="fas fa-user"></i></div>
         <div class="label">Account</div>

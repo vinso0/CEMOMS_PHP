@@ -131,25 +131,32 @@ class Filters {
    */
   reset() {
     console.log('🔄 Resetting filters...');
-    
+
     const filterSchedule = document.getElementById('filter-schedule');
     const filterForeman = document.getElementById('filter-foreman');
     const filterStatus = document.getElementById('filter-status');
     const filterSearch = document.getElementById('filter-search');
-    
+
     if (filterSchedule) filterSchedule.value = '';
     if (filterForeman) filterForeman.value = '';
     if (filterStatus) filterStatus.value = '';
     if (filterSearch) filterSearch.value = '';
-    
+
     // Show all rows
     const rows = document.querySelectorAll('#trucks-tbody tr[data-truck-id]');
     rows.forEach(row => {
       row.style.display = '';
     });
-    
+
     console.log('✅ Filters reset');
     this.updateResults(rows.length, rows.length);
+
+    // Reset pagination to page 1 if there are pagination links
+    const currentUrl = new URL(window.location);
+    if (currentUrl.searchParams.has('page')) {
+      currentUrl.searchParams.set('page', '1');
+      window.location.href = currentUrl.toString();
+    }
   }
   
   /**
@@ -158,17 +165,23 @@ class Filters {
    * @param {number} totalCount - Total number of trucks
    */
   updateResults(visibleCount, totalCount) {
+    // Update table info display
+    const tableInfo = document.querySelector('.table-info');
+    if (tableInfo) {
+      tableInfo.textContent = `Showing ${visibleCount} of ${totalCount} trucks`;
+    }
+
     // Remove any existing "no results" message
     const existingMessage = document.querySelector('#trucks-tbody .no-results-row');
     if (existingMessage) {
       existingMessage.remove();
     }
-    
+
     // Show "no results" message if no trucks are visible
     if (visibleCount === 0) {
       this.showNoResultsMessage();
     }
-    
+
     // Log results
     console.log(`📊 Filter results: ${visibleCount} of ${totalCount} trucks visible`);
   }
