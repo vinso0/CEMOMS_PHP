@@ -32,6 +32,12 @@ $router->post('/admin/operations/garbage_collection/delete', 'controllers/admin/
 
 
 // Street Sweeping Operations
+// Redirect shorter URL to the full URL
+$router->get('/admin/operations/sweeping', function() {
+    header('Location: /admin/operations/street_sweeping');
+    exit();
+});
+
 $router->get('/admin/operations/street_sweeping', 'controllers/admin/operations/street_sweeping/index.php');
 $router->get('/admin/operations/street_sweeping/create', 'controllers/admin/operations/street_sweeping/create.php');
 $router->post('/admin/operations/street_sweeping/store', 'controllers/admin/operations/street_sweeping/store.php');

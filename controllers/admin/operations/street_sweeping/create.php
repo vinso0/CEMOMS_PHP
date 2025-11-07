@@ -13,9 +13,9 @@ try {
     $routeModel = new Route();
     $foremanModel = new Foreman();
 
-    // Get street sweeping specific data
+    // Get street sweeping specific data (no trucks for street sweeping)
     $routes = $routeModel->getAllRoutes();
-    $foremen = $foremanModel->getStreetSweepingForemen();
+    $foremen = $foremanModel->getStreetSweepingForemen(); // Only foremen with Street Sweeping role
 
     // Return data as JSON for modal
     header('Content-Type: application/json');
@@ -27,4 +27,5 @@ try {
 } catch (\Exception $e) {
     header('Content-Type: application/json');
     echo json_encode(['error' => $e->getMessage()]);
+    error_log('Error loading street sweeping create data: ' . $e->getMessage());
 }

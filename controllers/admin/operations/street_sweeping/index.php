@@ -19,12 +19,12 @@ try {
     // Get street sweeping specific data
     $routes = $routeModel->getAllRoutes();
     $foremen = $foremanModel->getStreetSweepingForemen(); // Only foremen with role_id = 2
-    $street_sweeping_schedules = $streetSweepingModel->getRecentSchedules(10);
+    $sweepers = $streetSweepingModel->getAllStreetSweeping();
 
     view('admin/operations/street_sweeping/index.view.php', [
         'routes' => $routes,
         'foremen' => $foremen,
-        'street_sweeping_schedules' => $street_sweeping_schedules
+        'sweepers' => $sweepers
     ]);
 
 } catch (\Exception $e) {
@@ -33,6 +33,6 @@ try {
     view('admin/operations/street_sweeping/index.view.php', [
         'routes' => [],
         'foremen' => [],
-        'street_sweeping_schedules' => []
+        'sweepers' => []
     ]);
 }

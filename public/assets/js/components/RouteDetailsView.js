@@ -36,12 +36,12 @@ class RouteDetailsView {
       if (btn) {
         console.log('🔍 Route details button clicked');
         try {
-          const truckData = JSON.parse(btn.dataset.truckData);
-          console.log('🔍 Truck data parsed:', truckData);
+          const sweeperData = JSON.parse(btn.dataset.sweeperData || btn.dataset.truckData);
+          console.log('🔍 Sweeper data parsed:', sweeperData);
           // Set data immediately when button is clicked
-          this.setTruckData(truckData);
+          this.setSweeperData(sweeperData);
         } catch (error) {
-          console.error('❌ Failed to parse truck data:', error);
+          console.error('❌ Failed to parse sweeper data:', error);
         }
       }
     });
@@ -52,35 +52,51 @@ class RouteDetailsView {
     this.populateModalData(truckData);
   }
 
-  populateModalData(truckData) {
-    console.log('🔍 Populating modal with:', truckData);
-    
+  setSweeperData(sweeperData) {
+    this.currentSweeperData = sweeperData;
+    this.populateModalData(sweeperData);
+  }
+
+  populateModalData(data) {
+    console.log('🔍 Populating modal with:', data);
+
     // Helper function to set text content
     const setText = (id, value) => {
       const el = document.getElementById(id);
       if (el) el.textContent = value || '-';
     };
 
-    // Populate truck information
-    setText('details-plate-number', truckData.plate_number);
-    setText('details-body-number', truckData.body_number);
-    setText('details-route-name', truckData.route_name);
-    setText('details-foreman', truckData.foreman_name);
+    // Check if this is sweeper data (has operation_name) or truck data (has plate_number)
+    const isSweeperData = data.operation_name !== undefined;
 
-    // Format schedule type
-    const scheduleType = truckData.schedule ? 
-      truckData.schedule.charAt(0).toUpperCase() + truckData.schedule.slice(1) : '-';
+    if (isSweeperData) {
+      // Populate sweeper information
+      setText('details-operation-name', data.operation_name);
+      setText('details-status', data.status || 'Scheduled');
+      setText('details-route-name', data.route_name);
+      setText('details-foreman', data.foreman_name);
+    } else {
+      // Populate truck information (legacy support)
+      setText('details-plate-number', data.plate_number);
+      setText('details-body-number', data.body_number);
+      setText('details-route-name', data.route_name);
+      setText('details-foreman', data.foreman_name);
+    }
+
+    // Format schedule type - check both 'schedule' and 'schedule_type' fields
+    const scheduleType = (data.schedule_type || data.schedule) ?
+      (data.schedule_type || data.schedule).charAt(0).toUpperCase() + (data.schedule_type || data.schedule).slice(1) : '-';
     setText('details-schedule-type', scheduleType);
 
     // Format operation time
-    let operationTime = truckData.operation_time || '-';
+    let operationTime = data.operation_time || '-';
     if (operationTime && operationTime !== '-') {
       try {
         const date = new Date(`2000-01-01 ${operationTime}`);
-        operationTime = date.toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit', 
-          hour12: true 
+        operationTime = date.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
         });
       } catch (error) {
         console.warn('Failed to format operation time:', error);
@@ -88,14 +104,14 @@ class RouteDetailsView {
     }
     setText('details-operation-time', operationTime);
 
-    // Handle Weekly days
+    // Handle Weekly days (only for truck data, not applicable to street sweeping)
     const weeklyContainer = document.getElementById('Weekly-days-container');
     const weeklyDaysEl = document.getElementById('details-Weekly-days');
-    
-    if (truckData.schedule === 'Weekly' && truckData.weekly_days?.length) {
+
+    if (!isSweeperData && data.schedule === 'Weekly' && data.weekly_days?.length) {
       if (weeklyContainer) weeklyContainer.style.display = 'block';
       if (weeklyDaysEl) {
-        weeklyDaysEl.innerHTML = truckData.weekly_days
+        weeklyDaysEl.innerHTML = data.weekly_days
           .map(day => `<span class="badge bg-primary me-1 mb-1">${day.substring(0, 3)}</span>`)
           .join('');
       }
@@ -181,8 +197,9 @@ class RouteDetailsView {
           }, 100);
 
           // Load route data if available
-          if (this.currentTruckData?.route_id) {
-            this.loadRoutePoints(this.currentTruckData.route_id);
+          const data = this.currentSweeperData || this.currentTruckData;
+          if (data?.route_id) {
+            this.loadRoutePoints(data.route_id);
           } else {
             this.showNoRouteMessage();
           }
@@ -266,7 +283,14 @@ class RouteDetailsView {
     }
 
     try {
-      const response = await fetch(`/admin/operations/garbage_collection/get_route_points?route_id=${routeId}`);
+      // Check if we're in street sweeping context by looking at the URL or modal data
+      const isStreetSweeping = window.location.pathname.includes('street_sweeping') ||
+                              (this.currentSweeperData !== undefined);
+      const endpoint = isStreetSweeping ?
+        `/admin/operations/street_sweeping/get_route_points?route_id=${routeId}` :
+        `/admin/operations/garbage_collection/get_route_points?route_id=${routeId}`;
+
+      const response = await fetch(endpoint);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -523,8 +547,9 @@ class RouteDetailsView {
     // Destroy map
     this.destroyMap();
 
-    // Clear truck data
+    // Clear data
     this.currentTruckData = null;
+    this.currentSweeperData = null;
 
     // Remove global highlight function
     if (window.__highlightRoutePoint) {

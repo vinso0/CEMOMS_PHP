@@ -13,10 +13,10 @@ header('Content-Type: application/json');
 // Get route ID from request
 $routeId = $_GET['route_id'] ?? null;
 
-if (!$routeId) {
+if (empty($routeId) || !is_numeric($routeId)) {
     echo json_encode([
         'success' => false,
-        'error' => 'Route ID is required'
+        'error' => 'Valid route ID is required'
     ]);
     exit();
 }
@@ -50,7 +50,7 @@ try {
 } catch (\Exception $e) {
     echo json_encode([
         'success' => false,
-        'error' => $e->getMessage()
+        'error' => 'Error fetching route points: ' . $e->getMessage()
     ]);
     
     // Log error for debugging

@@ -13,9 +13,9 @@ require_once base_path('models/Foreman.php');
 
 $scheduleId = $_GET['id'] ?? null;
 
-if (!$scheduleId) {
-    $_SESSION['errors'] = ['Schedule ID is required'];
-    header('Location: /admin/operations/street_sweeping');
+if (!$scheduleId || !is_numeric($scheduleId)) {
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Invalid schedule ID']);
     exit();
 }
 
@@ -25,14 +25,15 @@ try {
     $foremanModel = new Foreman();
 
     $schedule = $streetSweepingModel->getById($scheduleId);
-    $routes = $routeModel->getAllRoutes();
-    $foremen = $foremanModel->getStreetSweepingForemen();
-
+    
     if (!$schedule) {
-        $_SESSION['errors'] = ['Schedule not found'];
-        header('Location: /admin/operations/street_sweeping');
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Schedule not found']);
         exit();
     }
+
+    $routes = $routeModel->getAllRoutes();
+    $foremen = $foremanModel->getStreetSweepingForemen(); // Only foremen with Street Sweeping role (role_id = 2)
 
     // Get route points
     $routePoints = $routeModel->getRoutePoints($schedule['route_id']);
@@ -49,4 +50,5 @@ try {
 } catch (\Exception $e) {
     header('Content-Type: application/json');
     echo json_encode(['error' => $e->getMessage()]);
+    error_log('Error loading street sweeping edit data: ' . $e->getMessage());
 }

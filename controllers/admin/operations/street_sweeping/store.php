@@ -36,12 +36,14 @@ $endLon = $_POST['end_lon'] ?? null;
 $errors = [];
 
 // Validation
-if (empty($foremanId)) {
-    $errors[] = 'Foreman is required.';
+if (empty($foremanId) || !is_numeric($foremanId)) {
+    $errors[] = 'Valid street sweeping foreman selection is required.';
 }
 
 if (empty($routeName)) {
     $errors[] = 'Route name is required.';
+} elseif (strlen($routeName) > 100) {
+    $errors[] = 'Route name cannot exceed 100 characters.';
 }
 
 if (empty($startPoint)) {
@@ -52,18 +54,18 @@ if (empty($endPoint)) {
     $errors[] = 'End point is required.';
 }
 
-// Validate coordinates
-if (empty($startLat) || empty($startLon)) {
-    $errors[] = 'Start point coordinates are required. Please select a location on the map.';
+// Validate coordinates with better error messages
+if (empty($startLat) || empty($startLon) || !is_numeric($startLat) || !is_numeric($startLon)) {
+    $errors[] = 'Start point coordinates are invalid. Please select a valid location on the map.';
 }
 
-if (empty($endLat) || empty($endLon)) {
-    $errors[] = 'End point coordinates are required. Please select a location on the map.';
+if (empty($endLat) || empty($endLon) || !is_numeric($endLat) || !is_numeric($endLon)) {
+    $errors[] = 'End point coordinates are invalid. Please select a valid location on the map.';
 }
 
 // Validate mid point coordinates if mid point address is provided
-if (!empty($midPoint) && (empty($midLat) || empty($midLon))) {
-    $errors[] = 'Mid point coordinates are required if mid point is specified. Please select a location on the map.';
+if (!empty($midPoint) && (empty($midLat) || empty($midLon) || !is_numeric($midLat) || !is_numeric($midLon))) {
+    $errors[] = 'Mid point coordinates are invalid. Please select a valid location on the map for the mid point.';
 }
 
 if (empty($operationTime)) {
