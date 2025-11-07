@@ -46,7 +46,7 @@
         background: #5a6268;
     }
 
-users-table-container {
+.users-table-container {
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
@@ -55,7 +55,6 @@ users-table-container {
 }
 
 .table-header {
-    box-shadow: 0 -10px 6px rgba(0, 0, 0, 0.05);
     overflow: hidden;
     border-top: 1px solid #f0f0f0;
 }
@@ -77,6 +76,8 @@ users-table-container {
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
+
+
 
 .users-table td {
     padding: 16px 20px;
