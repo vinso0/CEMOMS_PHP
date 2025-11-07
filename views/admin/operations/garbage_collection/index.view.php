@@ -169,12 +169,15 @@ ob_start();
                                         <i class="fas fa-edit"></i>
                                     </button>
 
-                                    <button class="btn btn-sm btn-danger" title="Delete"
+                                    <button class="btn btn-sm btn-danger delete-truck-btn" 
+                                            title="Delete"
                                             data-bs-toggle="modal"
                                             data-bs-target="#deleteTruckModal"
-                                            onclick="populateDeleteModal(<?= htmlspecialchars(json_encode($truck)) ?>)">
+                                            data-truck-id="<?= htmlspecialchars((string)($truck['truck_id'] ?? $truck['id'] ?? '')) ?>"
+                                            data-plate-number="<?= htmlspecialchars((string)($truck['plate_number'] ?? 'Unknown')) ?>">
                                         <i class="fas fa-trash"></i>
                                     </button>
+
                                 </div>
                             </td>
                         </tr>
