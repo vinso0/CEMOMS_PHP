@@ -1,7 +1,3 @@
-// Garbage Collection Management - Legacy Compatibility Layer
-// Most functionality has been moved to modular components
-
-// Minimal manager for any remaining functionality
 class GarbageCollectionManager {
     constructor() {
         // Keep only if you have other non-modal functionality
@@ -13,7 +9,6 @@ class GarbageCollectionManager {
 document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('hide.bs.modal', function(event) {
         if (event.target.id === 'routeDetailsModal') {
-            // Remove focus from any active button before hiding
             const activeElement = document.activeElement;
             if (activeElement && activeElement.tagName === 'BUTTON') {
                 activeElement.blur();
@@ -21,6 +16,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Initialize legacy manager for backward compatibility
     window.garbageCollectionManager = new GarbageCollectionManager();
 });

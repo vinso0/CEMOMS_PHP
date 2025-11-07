@@ -43,16 +43,11 @@ ob_start();
     <div class="filters-content">
         <div class="filter-row">
             <div class="filter-item">
-                <label for="filter-truck">Truck</label>
-                <select id="filter-truck" class="form-select">
-                    <option value="">All Trucks</option>
-                    <?php if (!empty($trucks)): ?>
-                        <?php foreach ($trucks as $truck): ?>
-                            <option value="<?= htmlspecialchars($truck['id']) ?>">
-                                <?= htmlspecialchars($truck['plate_number']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                <label for="filter-schedule">Schedule Type</label>
+                <select id="filter-schedule" class="form-select">
+                    <option value="">All Schedules</option>
+                    <option value="Daily">Daily</option>
+                    <option value="Weekly">Weekly</option>
                 </select>
             </div>
             
@@ -95,6 +90,7 @@ ob_start();
         </div>
     </div>
 </div>
+
 
 <!-- Trucks Table -->
 <div class="trucks-table-container">
