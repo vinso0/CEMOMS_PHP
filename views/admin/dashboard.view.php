@@ -24,28 +24,6 @@ ob_start();
     </div>
     
     <div class="stat-card">
-        <div class="stat-icon" style="background: #2196F3;">
-            <i class="fas fa-recycle"></i>
-        </div>
-        <div class="stat-info">
-            <h3>Operations: </h3>
-            <div class="options">
-                <select id="operation-type-filter" class="operation-type-select" onchange="updateOperationCount()">
-                <option value="all">All Types</option>
-                <option value="collection">Garbage Collection</option>
-                <option value="sweeping">Street Sweeping</option>
-                <option value="flushing">Flushing</option>
-                <option value="deClogging">De-clogging</option>
-                <option value="cleanup">Cleanup Drives</option>
-                </select>
-            </div>
-            <span class="stat-number" id="operation-count">
-                <?= $stats['operations']['all'] ?? 0 ?>
-            </span>
-        </div>
-    </div>
-    
-    <div class="stat-card">
         <div class="stat-icon" style="background: #FF9800;">
             <i class="fa-solid fa-clipboard-list"></i>
         </div>
