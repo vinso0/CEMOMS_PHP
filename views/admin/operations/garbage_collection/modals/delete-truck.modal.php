@@ -10,11 +10,11 @@
                 </div>
                 <h5 class="mb-3">Delete Truck?</h5>
                 <p class="text-muted mb-3">
-                    Are you sure you want to delete truck <strong id="delete-truck-plate"></strong>? 
+                    Are you sure you want to delete truck <strong id="delete-truck-plate">-</strong>? 
                     This action cannot be undone.
                 </p>
                 <form method="POST" action="/admin/operations/garbage_collection/delete">
-                    <input type="hidden" id="delete-truck-id" name="id">
+                    <input type="hidden" id="delete-truck-id" name="id" value="">
                     <div class="d-flex gap-2 justify-content-center">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                             Cancel

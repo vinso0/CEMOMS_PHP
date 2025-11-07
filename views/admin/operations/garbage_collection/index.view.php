@@ -169,15 +169,22 @@ ob_start();
                                         <i class="fas fa-edit"></i>
                                     </button>
 
-                                    <button class="btn btn-sm btn-danger delete-truck-btn" 
+                                    <!-- DEBUG: Remove this after testing -->
+                                    <?php 
+                                    error_log("Truck data for delete button: " . print_r([
+                                        'truck_id' => $truck['truck_id'] ?? 'MISSING',
+                                        'id' => $truck['id'] ?? 'MISSING',
+                                        'plate_number' => $truck['plate_number'] ?? 'MISSING'
+                                    ], true));
+                                    ?>
+
+                                    <button class="btn btn-sm btn-danger" 
                                             title="Delete"
                                             data-bs-toggle="modal"
                                             data-bs-target="#deleteTruckModal"
-                                            data-truck-id="<?= htmlspecialchars((string)($truck['truck_id'] ?? $truck['id'] ?? '')) ?>"
-                                            data-plate-number="<?= htmlspecialchars((string)($truck['plate_number'] ?? 'Unknown')) ?>">
+                                            onclick="document.getElementById('delete-truck-id').value='<?= htmlspecialchars($truck['truck_id']) ?>'; document.getElementById('delete-truck-plate').textContent='<?= htmlspecialchars($truck['plate_number']) ?>';">
                                         <i class="fas fa-trash"></i>
                                     </button>
-
                                 </div>
                             </td>
                         </tr>
@@ -274,6 +281,7 @@ $additionalScripts = '
     <script src="/assets/js/components/EditTruckView.js"></script>
     <script src="/assets/js/components/RouteDetailsView.js"></script>
     <script type="text/javascript" src="/assets/js/boot-garbage-collection.js"></script>
+    <script src="/assets/js/garbage-collection.js"></script>
 ';
 require base_path('views/layout.php');
 ?>
