@@ -118,6 +118,15 @@ if ($scheduleType === 'Weekly') {
     $scheduleDays = $_POST['schedule_days'] ?? [];
     if (empty($scheduleDays) || !is_array($scheduleDays)) {
         $errors[] = 'At least one day must be selected for Weekly schedule.';
+    } else {
+        // Validate each day is valid
+        $validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        foreach ($scheduleDays as $day) {
+            if (!in_array($day, $validDays, true)) {
+                $errors[] = "Invalid day selected: {$day}";
+                break;
+            }
+        }
     }
 }
 
@@ -129,6 +138,8 @@ if ($scheduleType === 'Weekly') {
         if (in_array($d, $allowed, true)) $normalizedDays[] = $d;
     }
 }
+
+
 
 // Continue with the rest of the existing update logic...
 if (count($errors) === 0) {
@@ -178,10 +189,10 @@ if (count($errors) === 0) {
                 $schedule['status']
             );
 
-            if ($scheduleType === 'weekly') {
+            if ($scheduleType === 'Weekly') { 
                 $scheduleModel->replaceWeeklyDays($schedule['schedule_id'], $normalizedDays);
             } else {
-                // if switching from weekly to daily, remove any stored days
+                // if switching from Weekly to Daily, remove any stored days
                 $scheduleModel->replaceWeeklyDays($schedule['schedule_id'], []);
             }
         } else {
@@ -205,7 +216,7 @@ if (count($errors) === 0) {
             );
 
             $newSchedule = $scheduleModel->getByTruckId($truckId);
-            if ($scheduleType === 'weekly') {
+            if ($scheduleType === 'Weekly') { 
                 $scheduleModel->createWeeklyDays($newSchedule['schedule_id'], $normalizedDays);
             }
         }
