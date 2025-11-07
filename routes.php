@@ -31,10 +31,15 @@ $router->post('/admin/operations/garbage_collection/delete', 'controllers/admin/
 //$router->get('/admin/operations/garbage_collection/get_route_points', 'controllers/admin/operations/garbage_collection/get_route_points.php');
 
 
-// Street Sweeping
-$router->get('/admin/operations/sweeping', function() {
-    require base_path('views/admin/operations/street_sweeping/sweeping.index.view.php');
-});
+// Street Sweeping Operations
+$router->get('/admin/operations/street_sweeping', 'controllers/admin/operations/street_sweeping/index.php');
+$router->get('/admin/operations/street_sweeping/create', 'controllers/admin/operations/street_sweeping/create.php');
+$router->post('/admin/operations/street_sweeping/store', 'controllers/admin/operations/street_sweeping/store.php');
+$router->get('/admin/operations/street_sweeping/edit', 'controllers/admin/operations/street_sweeping/edit.php');
+$router->post('/admin/operations/street_sweeping/update', 'controllers/admin/operations/street_sweeping/update.php');
+$router->post('/admin/operations/street_sweeping/delete', 'controllers/admin/operations/street_sweeping/delete.php');
+$router->get('/admin/operations/street_sweeping/get_route_points', 'controllers/admin/operations/street_sweeping/get_route_points.php');
+
 
 // Flushing
 $router->get('/admin/operations/flushing', function() {

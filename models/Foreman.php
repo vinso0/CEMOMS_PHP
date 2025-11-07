@@ -155,4 +155,16 @@ class Foreman
         $result = $this->db->query($sql)->find();
         return $result['count'] ?? 0;
     }
+
+    public function getStreetSweepingForemen()
+    {
+        $sql = "SELECT f.foreman_id as id, f.username, f.email, 
+                    fr.role_name as role, f.foreman_role_id
+                FROM foreman f
+                JOIN foreman_role fr ON f.foreman_role_id = fr.foreman_role_id
+                WHERE f.foreman_role_id = 2
+                ORDER BY f.username";
+
+        return $this->db->query($sql)->get();
+    }
 }
