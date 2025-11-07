@@ -27,30 +27,6 @@ ob_start();
         </div>
         
         <div class="filter-item">
-            <label for="area">Area</label>
-            <select id="area" class="form-select">
-                <option value="">All Areas</option>
-                <option value="north">Bagong Barrio East</option>
-                <option value="south">Bagong Barrio West</option>
-                <option value="east">Balintawak</option>
-                <option value="west">Bario San Jose</option>
-                <option value="west">Dagat-Dagatan</option>
-                <option value="west">Grace Park East</option>
-                <option value="west">Grace Park West</option>
-                <option value="west">Kaunlaran Village</option>
-                <option value="west">Libis Baesa/Reparo</option>
-                <option value="west">Marulas</option>
-                <option value="west">Maypajo</option>
-                <option value="west">Morning Breeze</option>
-                <option value="west">Poblacion</option>
-                <option value="west">Sangandaan</option>
-                <option value="west">Santa Quiteria</option>
-                <option value="west">Talipapa</option>
-                <option value="west">University Hills</option>
-            </select>
-        </div>
-        
-        <div class="filter-item">
             <label for="date-range">Date Range</label>
             <input type="date" id="date-range" class="form-control">
         </div>
@@ -83,8 +59,8 @@ ob_start();
             <thead>
                 <tr>
                     <th>Report ID</th>
-                    <th>Date</th>
                     <th>Operation Type</th>
+                    <th>Date</th>
                     <th>Location</th>
                     <th>Foreman</th>
                     <th>Proof</th>
@@ -97,9 +73,9 @@ ob_start();
                     <?php foreach ($recent_reports as $report): ?>
                         <tr>
                             <td>#<?= htmlspecialchars($report['id']) ?></td>
-                            <td><?= htmlspecialchars($report['date']) ?></td>
                             <td><?= htmlspecialchars($report['operation_type']) ?></td>
-                            <td><?= htmlspecialchars($report['area']) ?></td>
+                            <td><?= htmlspecialchars($report['date']) ?></td>
+                            <td><?= htmlspecialchars($report['location']) ?></td>
                             <td><?= htmlspecialchars($report['foreman']) ?></td>
                             <td>
                                 <span class="status-badge status-<?= htmlspecialchars($report['status']) ?>">
@@ -155,17 +131,15 @@ function updateOperationCount() {
 
 function applyFilters() {
     const operationType = document.getElementById('operation-type').value;
-    const area = document.getElementById('area').value;
     const dateRange = document.getElementById('date-range').value;
-    
-    console.log('Applying filters:', { operationType, area, dateRange });
+
+    console.log('Applying filters:', { operationType, dateRange });
     // Add your filter logic here
     alert('Filters applied! Implement your filter logic here.');
 }
 
 function resetFilters() {
     document.getElementById('operation-type').value = '';
-    document.getElementById('area').value = '';
     document.getElementById('date-range').value = '';
     console.log('Filters reset');
 }

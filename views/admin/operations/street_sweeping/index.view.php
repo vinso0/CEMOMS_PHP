@@ -100,9 +100,8 @@ ob_start();
         <table class="trucks-table">
             <thead>
                 <tr>
-                    <th>Operation Name</th>
-                    <th>Route Name</th>
                     <th>Foreman</th>
+                    <th>Route Name</th>
                     <th>Schedule Type</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -116,7 +115,7 @@ ob_start();
                             data-status="<?= htmlspecialchars($sweeper['status'] ?? 'Parked') ?>"
                             data-route-id="<?= htmlspecialchars($sweeper['route_id'] ?? '') ?>">
                             
-                            <td><strong><?= htmlspecialchars($sweeper['operation_name'] ?? 'N/A') ?></strong></td>
+                            <td><strong><?= htmlspecialchars($sweeper['foreman_name'] ?? 'N/A') ?></strong></td>
                             
                             <td>
                                 <?php if (!empty($sweeper['route_name'])): ?>
@@ -126,7 +125,6 @@ ob_start();
                                 <?php endif; ?>
                             </td>
                             
-                            <td><?= htmlspecialchars($sweeper['foreman_name'] ?? 'Not Assigned') ?></td>
                             <td><?= htmlspecialchars($sweeper['schedule_type'] ?? 'N/A') ?></td>
                             
                             <td>

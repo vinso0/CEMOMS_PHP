@@ -17,8 +17,8 @@
                                     <i class="fas fa-broom me-1"></i>Sweeper Information
                                 </h6>
                                 <div class="info-item">
-                                    <strong>Operation Name:</strong>
-                                    <span id="details-operation-name">-</span>
+                                    <strong>Foreman:</strong>
+                                    <span id="details-foreman">-</span>
                                 </div>
                                 <div class="info-item">
                                     <strong>Status:</strong>
